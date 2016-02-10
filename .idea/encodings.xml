@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/SettingsActivity.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/CustomerDeviceListAdapter.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/SalesProductListAdapter.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/fragments/MainViewFragment.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/WifiDirectConnectivityState.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/receivers/WifiDirectBroadcastReceiver.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/sqlite/DatabaseHelperDefault.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/sqlite/tables/ProductsTable.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/sqlite/tables/SalesHasRewardsTable.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/sqlite/tables/SalesProductsTable.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/sqlite/tables/SalesTable.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/tasks/SendPurchaseInfoForValidationTask.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/values/DeviceInfo.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/values/Retailer.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/presenters/WifiDirectConnectivityDataPresenter.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_settings.xml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/layout/view_sales_product.xml" charset="UTF-8" />
+  </component>
+</project>
+
