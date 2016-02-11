@@ -1,7 +1,6 @@
 package ph.com.gs3.loyaltystore.adapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,10 +73,6 @@ public class RewardFreeItemListAdapter extends BaseAdapter {
 
                 for (Product product : products) {
 
-                    Log.d("PRODUCT : MIKE : ",product.getName() + " " +
-                            reward.getCondition().toLowerCase() + " " +
-                            reward.getCondition_value());
-
                     viewHolder.tvRewardName.setText(
                             product.getName() + " " +
                                     reward.getCondition().toLowerCase() + " " +
@@ -95,10 +90,7 @@ public class RewardFreeItemListAdapter extends BaseAdapter {
                                 reward.getCondition_value()
                 );
                 break;
-
         }
-
-        Log.d(" REWARD VALUE : ", reward.getReward_value());
 
         viewHolder.tvFreeItemName.setText(reward.getReward_value());
 

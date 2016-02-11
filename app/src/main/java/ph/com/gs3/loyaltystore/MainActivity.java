@@ -34,9 +34,12 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 
-public class MainActivity extends Activity implements MainViewFragment.MainViewFragmentEventListener {
+public class MainActivity extends Activity implements
+        MainViewFragment.MainViewFragmentEventListener {
 
     public static final String TAG = MainActivity.class.getSimpleName();
+
+    public static Activity mainActivity;
 
     private MainViewFragment mainViewFragment;
 
@@ -61,6 +64,8 @@ public class MainActivity extends Activity implements MainViewFragment.MainViewF
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        mainActivity = this;
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -109,6 +114,8 @@ public class MainActivity extends Activity implements MainViewFragment.MainViewF
     @Override
     protected void onResume() {
         super.onResume();
+
+        this.setTitle(retailer.getStoreName());
 
         rewards.clear();
 
@@ -394,6 +401,20 @@ public class MainActivity extends Activity implements MainViewFragment.MainViewF
             salesProductListAdapter.notifyDataSetChanged();
             mainViewFragment.setTotalAmount(totalAmount);
         }
+    }
+
+    @Override
+    public void onSynchronizeClicked() {
+
+        Intent intent = new Intent(this,SynchronizeActivity.class);
+        startActivity(intent);
+
+    }
+
+    @Override
+    public void onSettingsClicked() {
+        Intent intent = new Intent(this,SettingsActivity.class);
+        startActivity(intent);
     }
 
     private String convertToJsonString(List<SalesProduct> salesProducts, List<Reward> rewards) throws JSONException {

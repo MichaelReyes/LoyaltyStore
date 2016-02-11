@@ -43,6 +43,9 @@
             android:name=".CheckoutActivity"
             android:label="@string/title_activity_checkout"
             android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".SynchronizeActivity"
+            android:label="@string/title_activity_sync"></activity>
 
     </application>
 

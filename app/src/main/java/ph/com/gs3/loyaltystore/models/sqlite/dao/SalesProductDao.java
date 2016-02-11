@@ -44,7 +44,7 @@ public class SalesProductDao extends AbstractDao<SalesProduct, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"SALES_PRODUCT\" (" + //
-                "\"_id\" INTEGER PRIMARY KEY ," + // 0: id
+                "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"SALES_ID\" INTEGER," + // 1: sales_id
                 "\"PRODUCT_ID\" INTEGER," + // 2: product_id
                 "\"QUANTITY\" INTEGER," + // 3: quantity

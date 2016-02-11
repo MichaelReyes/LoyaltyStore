@@ -152,8 +152,8 @@ public class CheckOutViewFragment extends Fragment {
         ViewPagerAdapter adapter = new ViewPagerAdapter(activity.getSupportFragmentManager(),
                 extras);
 
+        adapter.addFragment(new SalesProductsViewFragment(), "Receipt");
         adapter.addFragment(new RewardViewFragment(), "Rewards");
-        adapter.addFragment(new SalesProductsViewFragment(), "Transactions");
         viewPager.setAdapter(adapter);
     }
 

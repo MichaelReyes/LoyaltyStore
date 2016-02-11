@@ -37,7 +37,8 @@ public class MainViewFragment extends Fragment {
 
     private Button bCheckout;
     private Button bClear;
-
+    private Button bSynchronize;
+    private Button bSettings;
 
     private TextView tvTotal;
     private Activity activity;
@@ -47,7 +48,7 @@ public class MainViewFragment extends Fragment {
 
     private SalesProductListAdapter salesProductListAdapter;
 
-    private View rooteView;
+    private View rootView;
 
     public static MainViewFragment createInstance(SalesProductListAdapter salesProductListAdapter) {
         MainViewFragment mainViewFragment = new MainViewFragment();
@@ -73,7 +74,7 @@ public class MainViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        this.rooteView = rootView;
+        this.rootView = rootView;
 
         productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
 
@@ -124,6 +125,21 @@ public class MainViewFragment extends Fragment {
             }
         });
 
+        bSynchronize = (Button) rootView.findViewById(R.id.Main_bSync);
+        bSynchronize.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mainViewFragmentEventListener.onSynchronizeClicked();
+            }
+        });
+
+        bSettings = (Button) rootView.findViewById(R.id.Main_bSettings);
+        bSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mainViewFragmentEventListener.onSettingsClicked();
+            }
+        });
 
         mainViewFragmentEventListener.onViewReady();
 
@@ -133,7 +149,7 @@ public class MainViewFragment extends Fragment {
     public void setMenuButtons() {
 
         int buttonPerLinearLayoutCount = 3;
-        LinearLayout rootLinearLayout = (LinearLayout) rooteView.findViewById(R.id.Main_llMenu);
+        LinearLayout rootLinearLayout = (LinearLayout) rootView.findViewById(R.id.Main_llMenu);
 
         getProducts();
 
@@ -244,6 +260,10 @@ public class MainViewFragment extends Fragment {
         void onClearTransaction();
 
         void onRemoveTransaction(SalesProduct salesProduct);
+
+        void onSynchronizeClicked();
+
+        void onSettingsClicked();
     }
 
 }

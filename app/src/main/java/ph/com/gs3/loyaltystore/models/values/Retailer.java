@@ -14,7 +14,6 @@ public class Retailer implements Serializable {
     public static final String TAG = Retailer.class.getSimpleName();
 
     private String deviceId;
-    private String advertisment;
     private String storeName;
     private int servicePortNumber;
 
@@ -25,7 +24,6 @@ public class Retailer implements Serializable {
 
         retailer.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         retailer.storeName = settings.getString("STORE_NAME", "");
-        retailer.advertisment = settings.getString("ADVERTISEMENT", "");
         retailer.servicePortNumber = settings.getInt("SERVICE_PORT_NUMBER", 3001);
 
         return retailer;
@@ -42,7 +40,6 @@ public class Retailer implements Serializable {
         SharedPreferences.Editor editor = settings.edit();
 
         editor.putString("STORE_NAME", storeName);
-        editor.putString("ADVERTISEMENT", advertisment);
         editor.putInt("SERVICE_PORT_NUMBER", servicePortNumber);
 
         editor.commit();
@@ -67,13 +64,6 @@ public class Retailer implements Serializable {
         this.deviceId = deviceId;
     }
 
-    public String getAdvertisment() {
-        return advertisment;
-    }
-
-    public void setAdvertisment(String advertisment) {
-        this.advertisment = advertisment;
-    }
 
     public String getStoreName() {
         return storeName;

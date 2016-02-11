@@ -41,7 +41,7 @@ public class SalesHasRewardDao extends AbstractDao<SalesHasReward, Long> {
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"SALES_HAS_REWARD\" (" + //
-                "\"_id\" INTEGER PRIMARY KEY ," + // 0: id
+                "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"SALES_ID\" INTEGER," + // 1: sales_id
                 "\"REWARD_ID\" INTEGER);"); // 2: reward_id
     }

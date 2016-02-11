@@ -44,7 +44,6 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
     private void initializeComponents() {
 
         etRetailName = (EditText) findViewById(R.id.Settings_etStoreName);
-        etAdvertisement = (EditText) findViewById(R.id.Settings_etAdvertisement);
         etServicePortNumber = (EditText) findViewById(R.id.Settings_etServicePortNumber);
 
         bSave = (Button) findViewById(R.id.Settings_bSave);
@@ -53,7 +52,6 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
             public void onClick(View v) {
 
                 retailer.setStoreName(etRetailName.getText().toString());
-                retailer.setAdvertisment(etAdvertisement.getText().toString());
                 retailer.setServicePortNumber(Integer.parseInt(etServicePortNumber.getText().toString()));
 
                 retailer.save(SettingsActivity.this);
@@ -76,7 +74,6 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
     private void initializeData() {
 
         etRetailName.setText(retailer.getStoreName());
-        etAdvertisement.setText(retailer.getAdvertisment());
         etServicePortNumber.setText(Integer.toString(retailer.getServicePortNumber()));
 
     }

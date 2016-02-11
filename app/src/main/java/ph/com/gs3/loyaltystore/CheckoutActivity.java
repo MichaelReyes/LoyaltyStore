@@ -1,7 +1,9 @@
 package ph.com.gs3.loyaltystore;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -21,6 +23,7 @@ import java.util.Locale;
 import ph.com.gs3.loyaltystore.adapters.CustomerDeviceListAdapter;
 import ph.com.gs3.loyaltystore.fragments.CheckOutViewFragment;
 import ph.com.gs3.loyaltystore.fragments.RewardViewFragment;
+import ph.com.gs3.loyaltystore.models.WifiDirectConnectivityState;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
@@ -72,6 +75,9 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     private WifiP2pDevice customerDevice;
 
+    private ProgressDialog progressDialog;
+
+
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "EEE MMM d HH:mm:ss zzz yyyy");
 
@@ -82,6 +88,8 @@ public class CheckoutActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_checkout);
 
         retailer = Retailer.getDeviceRetailerFromSharedPreferences(this);
+
+        progressDialog = new ProgressDialog(this);
 
         wifiDirectConnectivityDataPresenter = new WifiDirectConnectivityDataPresenter(
                 this, retailer.getDeviceInfo()
@@ -243,6 +251,8 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             if (customerDevice != null) {
                 wifiDirectConnectivityDataPresenter.connectToCustomer(customerDevice, 3001);
+                showSubmitDocumentDialog("Waiting for user ...");
+                hideDialogLater(30000, "User did not respond after 30 seconds, please try again later.", true);
             }
 
         }
@@ -272,9 +282,11 @@ public class CheckoutActivity extends AppCompatActivity implements
                 e.printStackTrace();
             }
 
-            SendPurchaseInfoForValidationTask sendPurchaseInfoForValidationTask = new SendPurchaseInfoForValidationTask(
-                    3001, jsonStringPurchaseInfo, this
-            );
+            SendPurchaseInfoForValidationTask sendPurchaseInfoForValidationTask =
+                new SendPurchaseInfoForValidationTask(
+                    3001,
+                    jsonStringPurchaseInfo, this
+                );
             sendPurchaseInfoForValidationTask.execute();
         }
 
@@ -343,12 +355,10 @@ public class CheckoutActivity extends AppCompatActivity implements
         Date date = new Date();
         String currDateTime = formatter.format(date);
 
-        java.sql.Date dateSQL = java.sql.Date.valueOf(currDateTime);
-
         Sales sales = new Sales();
         sales.setStore_id(1);
         sales.setAmount(totalAmount);
-        sales.setTransacion_date(dateSQL);
+        sales.setTransacion_date(date);
 
         long salesId = salesDao.insert(sales);
 
@@ -390,5 +400,65 @@ public class CheckoutActivity extends AppCompatActivity implements
     @Override
     public void onPurchaseInfoSent() {
 
+        wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                hideSubmitDocumentDialog();
+                CheckoutActivity.this.finish();
+                Toast.makeText(CheckoutActivity.this, "Purchase Information Sent", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                hideSubmitDocumentDialog();
+                CheckoutActivity.this.finish();
+                Toast.makeText(CheckoutActivity.this, "Purchase information sent, but failed to disconnect to peer, please restart your wifi", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        MainActivity.mainActivity.finish();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    protected void showSubmitDocumentDialog(String message) {
+
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage(message);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+    }
+
+    protected void hideSubmitDocumentDialog() {
+        progressDialog.hide();
+    }
+
+    protected void updateSubmitDocumentDialogMessage(String message) {
+        progressDialog.setMessage(message);
+    }
+
+    protected void hideDialogLater(int hideAfterMillis, final String onHideToastMessage, final boolean disconnectWhenReached) {
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        if (progressDialog.isShowing()) {
+                            hideSubmitDocumentDialog();
+                            if (onHideToastMessage != null) {
+                                Toast.makeText(CheckoutActivity.this, onHideToastMessage, Toast.LENGTH_LONG).show();
+                                wifiDirectConnectivityDataPresenter.cancelconnect();
+                            }
+
+                            if (disconnectWhenReached && WifiDirectConnectivityState.getInstance().isConnectedToDevice()) {
+//                                customerPurchasesViewEventListener.onCancel();
+
+                            }
+
+                        }
+                    }
+                },
+                hideAfterMillis);
     }
 }
