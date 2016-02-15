@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import ph.com.gs3.loyaltystore.R;
-import ph.com.gs3.loyaltystore.adapters.CustomerDeviceListAdapter;
+import ph.com.gs3.loyaltystore.adapters.AgentDeviceListAdapter;
 
 /**
  * Created by Bryan-PC on 11/02/2016.
@@ -25,7 +25,7 @@ public class SynchronizeViewFragment extends Fragment {
 
     private Activity activity;
 
-    private CustomerDeviceListAdapter customerDeviceListAdapter;
+    private AgentDeviceListAdapter agentDeviceListAdapter;
 
     private View rootView;
 
@@ -33,9 +33,9 @@ public class SynchronizeViewFragment extends Fragment {
 
     private Button bScanDevices;
 
-    public static SynchronizeViewFragment createInstance(CustomerDeviceListAdapter customerDeviceListAdapter) {
+    public static SynchronizeViewFragment createInstance(AgentDeviceListAdapter agentDeviceListAdapter) {
         SynchronizeViewFragment synchronizeViewFragment = new SynchronizeViewFragment();
-        synchronizeViewFragment.customerDeviceListAdapter = customerDeviceListAdapter;
+        synchronizeViewFragment.agentDeviceListAdapter = agentDeviceListAdapter;
         return synchronizeViewFragment;
     }
 
@@ -61,12 +61,12 @@ public class SynchronizeViewFragment extends Fragment {
         this.rootView = rootView;
 
         lvDeviceList = (ListView) rootView.findViewById(R.id.Synchronize_lvDeviceList);
-        lvDeviceList.setAdapter(customerDeviceListAdapter);
+        lvDeviceList.setAdapter(agentDeviceListAdapter);
         lvDeviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 synchronizeViewFragmentEventListener.onCustomerDeviceClicked(
-                        (WifiP2pDevice) customerDeviceListAdapter.getItem(position)
+                        (WifiP2pDevice) agentDeviceListAdapter.getItem(position)
                 );
             }
         });

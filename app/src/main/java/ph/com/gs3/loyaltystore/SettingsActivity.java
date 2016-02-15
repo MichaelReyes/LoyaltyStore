@@ -10,6 +10,7 @@ import android.widget.EditText;
 
 import java.util.List;
 
+import ph.com.gs3.loyaltystore.models.api.HttpCommunicator;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
 
@@ -20,8 +21,11 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
     private EditText etServicePortNumber;
 
     private Button bSave;
+    private Button bRegister;
 
     private Retailer retailer;
+
+    private HttpCommunicator httpCommunicator;
 
     private WifiDirectConnectivityDataPresenter wifiDirectConnectivityDataPresenter;
 
@@ -39,13 +43,24 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
         initializeComponents();
         initializeData();
 
+
     }
 
     private void initializeComponents() {
 
+        httpCommunicator =new HttpCommunicator();
+
         etRetailName = (EditText) findViewById(R.id.Settings_etStoreName);
         etServicePortNumber = (EditText) findViewById(R.id.Settings_etServicePortNumber);
         etAdvertisement = (EditText) findViewById(R.id.Settings_etAdvertisement);
+
+        bRegister = (Button) findViewById(R.id.Settings_bRegister);
+        bRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onRegisterStore();
+            }
+        });
 
         bSave = (Button) findViewById(R.id.Settings_bSave);
         bSave.setOnClickListener(new View.OnClickListener() {
@@ -73,6 +88,12 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
         });
     }
 
+    private void onRegisterStore(){
+
+
+
+    }
+
     private void initializeData() {
 
         etRetailName.setText(retailer.getStoreName());
@@ -95,4 +116,12 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
     public void onConnectionTerminated() {
 
     }
+
+    public interface RegisterStoreDeviceAPI{
+
+
+
+
+    }
+
 }
