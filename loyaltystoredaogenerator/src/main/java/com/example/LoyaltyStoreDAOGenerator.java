@@ -30,12 +30,13 @@ public class LoyaltyStoreDAOGenerator {
         reward.addDateProperty("updated_at");
 
         Entity sales = schema.addEntity("Sales");
-        sales.addIdProperty();
+        sales.addIdProperty().autoincrement();
         sales.addIntProperty("store_id");
         sales.addLongProperty("customer_id");
         sales.addFloatProperty("amount");
         sales.addFloatProperty("total_discount");
         sales.addDateProperty("transacion_date");
+        sales.addBooleanProperty("is_synced");
 
         Entity customer = schema.addEntity("Customer");
         customer.addIdProperty();
@@ -50,18 +51,26 @@ public class LoyaltyStoreDAOGenerator {
         customer.addDateProperty("updated_at");
 
         Entity salesHasReward = schema.addEntity("SalesHasReward");
-        salesHasReward.addIdProperty();
+        salesHasReward.addIdProperty().autoincrement();
         salesHasReward.addLongProperty("sales_id");
         salesHasReward.addLongProperty("reward_id");
 
         Entity salesProduct = schema.addEntity("SalesProduct");
-        salesProduct.addIdProperty();
+        salesProduct.addIdProperty().autoincrement();
         salesProduct.addLongProperty("sales_id");
         salesProduct.addLongProperty("product_id");
         salesProduct.addIntProperty("quantity");
         salesProduct.addFloatProperty("sub_total");
         salesProduct.addStringProperty("sale_type");
 
+        Entity store = schema.addEntity("Store");
+        store.addIdProperty();
+        store.addStringProperty("device_id");
+        store.addIntProperty("device_web_id");
+        store.addStringProperty("name");
+        store.addIntProperty("is_active");
+        store.addDateProperty("created_at");
+        store.addDateProperty("updated_at");
 
         new DaoGenerator().generateAll(schema, "../app/src/main/java");
 

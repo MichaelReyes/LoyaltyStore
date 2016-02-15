@@ -12,6 +12,7 @@ public class Sales {
     private Float amount;
     private Float total_discount;
     private java.util.Date transacion_date;
+    private Boolean is_synced;
 
     public Sales() {
     }
@@ -20,13 +21,14 @@ public class Sales {
         this.id = id;
     }
 
-    public Sales(Long id, Integer store_id, Long customer_id, Float amount, Float total_discount, java.util.Date transacion_date) {
+    public Sales(Long id, Integer store_id, Long customer_id, Float amount, Float total_discount, java.util.Date transacion_date, Boolean is_synced) {
         this.id = id;
         this.store_id = store_id;
         this.customer_id = customer_id;
         this.amount = amount;
         this.total_discount = total_discount;
         this.transacion_date = transacion_date;
+        this.is_synced = is_synced;
     }
 
     public Long getId() {
@@ -75,6 +77,14 @@ public class Sales {
 
     public void setTransacion_date(java.util.Date transacion_date) {
         this.transacion_date = transacion_date;
+    }
+
+    public Boolean getIs_synced() {
+        return is_synced;
+    }
+
+    public void setIs_synced(Boolean is_synced) {
+        this.is_synced = is_synced;
     }
 
 }
