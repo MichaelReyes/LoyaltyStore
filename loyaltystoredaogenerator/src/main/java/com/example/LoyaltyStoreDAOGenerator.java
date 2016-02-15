@@ -35,6 +35,7 @@ public class LoyaltyStoreDAOGenerator {
         sales.addLongProperty("customer_id");
         sales.addFloatProperty("amount");
         sales.addFloatProperty("total_discount");
+        sales.addBooleanProperty("is_synched");
         sales.addDateProperty("transacion_date");
         sales.addBooleanProperty("is_synced");
 

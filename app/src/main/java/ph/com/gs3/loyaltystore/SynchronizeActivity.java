@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
  */
 public class SynchronizeActivity extends Activity implements
         SynchronizeViewFragment.SynchronizeViewFragmentEventListener,
-        WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener{
+        WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener {
 
     public static final String TAG = SynchronizeActivity.class.getSimpleName();
 
@@ -94,7 +95,9 @@ public class SynchronizeActivity extends Activity implements
     @Override
     public void onCustomerDeviceClicked(WifiP2pDevice customerDevice) {
 
-        wifiDirectConnectivityDataPresenter.connectToCustomer(customerDevice,3001);
+        Intent intent = new Intent(this, SynchronizeWithAgentActivity.class);
+        intent.putExtra(SynchronizeWithAgentActivity.EXTRA_AGENT_DEVICE, customerDevice);
+        startActivity(intent);
 
     }
 
@@ -109,12 +112,12 @@ public class SynchronizeActivity extends Activity implements
 
     @Override
     public void onConnectionEstablished() {
-        Intent intent = new Intent(this,SynchronizeWithAgentActivity.class);
-        startActivity(intent);
+        Log.v(TAG, "Connnection established");
     }
 
     @Override
     public void onConnectionTerminated() {
 
     }
+
 }

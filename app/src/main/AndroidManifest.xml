@@ -55,6 +55,10 @@
         <activity
             android:name=".SynchronizeActivity"
             android:label="@string/title_activity_sync"></activity>
+        <activity
+            android:name=".SynchronizeWithAgentActivity"
+            android:launchMode = "singleInstance"
+            android:label="Sync With Agent"></activity>
 
     </application>
 

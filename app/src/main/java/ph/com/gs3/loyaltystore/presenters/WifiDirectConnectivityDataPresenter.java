@@ -25,12 +25,12 @@ import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 /**
  * Responsibilities in relation to wifi direct/P2P connectivity is delegated here
- * <p>
+ * <p/>
  * Created by Ervinne Sodusta on 8/17/2015.
  */
 public class WifiDirectConnectivityDataPresenter implements
         Observer,
-        WifiDirectConnectivityState.WifiDirectPeerConnectivityStateListener{
+        WifiDirectConnectivityState.WifiDirectPeerConnectivityStateListener {
 
     public static final String TAG = WifiDirectConnectivityDataPresenter.class.getSimpleName();
 
@@ -39,6 +39,8 @@ public class WifiDirectConnectivityDataPresenter implements
     private WifiDirectBroadcastReceiver wifiDirectBroadcastReceiver;
     private WifiP2pManager wifiP2pManager;
     private WifiP2pManager.Channel channel;
+
+    private WifiDirectConnectivityState lastConnectivityState;
 
     private DeviceInfo deviceInfo;
 
@@ -85,7 +87,7 @@ public class WifiDirectConnectivityDataPresenter implements
     @Override
     public void update(Observable observable, Object data) {
 
-        WifiDirectConnectivityState connectivityState = (WifiDirectConnectivityState) observable;
+        lastConnectivityState = (WifiDirectConnectivityState) observable;
 
 //        if (!connectivityState.isConnectedToDevice()) {
 //            connectivityState.reset();
@@ -98,10 +100,13 @@ public class WifiDirectConnectivityDataPresenter implements
 
         // filter the devices
         List<WifiP2pDevice> readableDevices = new ArrayList<>();
-        for (WifiP2pDevice device : connectivityState.getDeviceList()) {
+        for (WifiP2pDevice device : lastConnectivityState.getDeviceList()) {
 
             try {
                 DeviceInfo deviceInfo = DeviceInfo.unserialize(device.deviceName);
+                Log.v(TAG, device.deviceName);
+                Log.v(TAG, deviceInfo.getType().toString());
+
                 if (deviceInfo.getType() == filterType) {
                     // add here
                     readableDevices.add(device);
@@ -115,6 +120,10 @@ public class WifiDirectConnectivityDataPresenter implements
 
         wifiDirectConnectivityPresentationListener.onNewPeersDiscovered(readableDevices);
 
+    }
+
+    public WifiDirectConnectivityState getLastConnectivityState () {
+        return lastConnectivityState;
     }
 
     public void resetDeviceInfo(DeviceInfo deviceInfo) {
@@ -204,7 +213,6 @@ public class WifiDirectConnectivityDataPresenter implements
 
     @Override
     public void onPeerDeviceConnectionFailed() {
-
 
 
     }

@@ -21,7 +21,18 @@ public class DeviceInfo implements Serializable {
         JSONObject json = new JSONObject();
 
         json.put("O", ownerDisplayName);
-        json.put("T", type == Type.RETAILER ? 1 : 0);
+
+        switch (type) {
+            case AGENT:
+                json.put("T", 2);
+                break;
+            case RETAILER:
+                json.put("T", 1);
+                break;
+            case CUSTOMER:
+                json.put("T", 0);
+                break;
+        }
 
         return json.toString();
     }
@@ -36,7 +47,18 @@ public class DeviceInfo implements Serializable {
         DeviceInfo deviceInfo = new DeviceInfo();
 
         deviceInfo.setOwnerDisplayName(json.getString("O"));
-        deviceInfo.setType(json.getInt("T") == 1 ? Type.RETAILER : Type.CUSTOMER);
+
+        switch(json.getInt("T")) {
+            case 2:
+                deviceInfo.setType(Type.AGENT);
+                break;
+            case 1:
+                deviceInfo.setType(Type.RETAILER);
+                break;
+            case 0:
+                deviceInfo.setType(Type.CUSTOMER);
+                break;
+        }
 
         return deviceInfo;
 
