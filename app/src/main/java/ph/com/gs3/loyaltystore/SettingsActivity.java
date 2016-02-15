@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -132,6 +133,7 @@ public class SettingsActivity extends Activity
                 retailer.setStoreName(etRetailName.getText().toString());
                 retailer.setAdvertisment(etAdvertisement.getText().toString());
                 retailer.setServicePortNumber(Integer.parseInt(etServicePortNumber.getText().toString()));
+                retailer.setServerUrl(etServerUrl.getText().toString());
 
                 retailer.save(SettingsActivity.this);
 
@@ -193,7 +195,11 @@ public class SettingsActivity extends Activity
 
                     @Override
                     public void onFailure(Throwable t) {
-                        Log.d(TAG, "Can't register device.");
+                        Toast.makeText(
+                                SettingsActivity.this,
+                                "Failed to register device. Please check your network connection.",
+                                Toast.LENGTH_LONG
+                        ).show();
                     }
                 });
 
@@ -265,8 +271,15 @@ public class SettingsActivity extends Activity
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Log.d(TAG, "Failed to get information from web");
+
+                    Toast.makeText(
+                            SettingsActivity.this,
+                            "Failed to get information from web",
+                            Toast.LENGTH_LONG
+                    ).show();
+                    Log.d(TAG, "Failed to get information from web. Please check your network connection.");
                     hideDialog();
+
                 }
             });
 
@@ -324,6 +337,7 @@ public class SettingsActivity extends Activity
 
         etRetailName.setText(retailer.getStoreName());
         etAdvertisement.setText(retailer.getAdvertisment());
+        etServerUrl.setText(retailer.getServerUrl());
         etServicePortNumber.setText(Integer.toString(retailer.getServicePortNumber()));
 
     }

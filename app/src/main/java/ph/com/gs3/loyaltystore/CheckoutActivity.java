@@ -6,7 +6,6 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -77,6 +76,8 @@ public class CheckoutActivity extends AppCompatActivity implements
     private WifiP2pDevice customerDevice;
 
     private ProgressDialog progressDialog;
+
+    private long salesId;
 
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "EEE MMM d HH:mm:ss zzz yyyy");
@@ -242,6 +243,7 @@ public class CheckoutActivity extends AppCompatActivity implements
         public void onComplete () {
 
             setSalesIdToProductsAndRewards();
+            finish();
 
 
         }
@@ -361,10 +363,10 @@ public class CheckoutActivity extends AppCompatActivity implements
         sales.setStore_id(retailer.getStoreId());
         sales.setAmount(totalAmount);
         sales.setTransacion_date(date);
+        sales.setIs_synced(false);
 
         long salesId = salesDao.insert(sales);
-
-        Log.d(TAG, "SAVED : " + salesId);
+        this.salesId = salesId;
 
         return salesId;
     }
@@ -400,7 +402,20 @@ public class CheckoutActivity extends AppCompatActivity implements
 
 
     @Override
-    public void onPurchaseInfoSent() {
+    public void onPurchaseInfoSent(String customerDeviceId) {
+
+        List<Sales> salesList = salesDao.queryRaw(
+                "WHERE " + SalesDao.Properties.Id.columnName + "=?",
+                new String[]{salesId + ""}
+        );
+
+        for(Sales sales : salesList){
+
+            sales.setCustomer_id(Long.valueOf(customerDeviceId));
+            salesDao.update(sales);
+
+        }
+
 
         wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
 

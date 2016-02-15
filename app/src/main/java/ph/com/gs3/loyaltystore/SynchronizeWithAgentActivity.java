@@ -17,7 +17,9 @@ import org.json.JSONObject;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
 import ph.com.gs3.loyaltystore.models.tasks.SyncWithAgentTask;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
@@ -50,6 +52,9 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     private Retailer retailer;
     private WifiDirectConnectivityDataPresenter wifiDirectConnectivityDataPresenter;
 
+    private ProductDao productDao;
+    private RewardDao rewardDao;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -58,8 +63,10 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
 
         initializeConnectivity();
         initializeViews();
+        initializeDataAccessObjects();
 
     }
+
 
     private void initializeConnectivity() {
         agentDevice = (WifiP2pDevice) getIntent().getExtras().get(EXTRA_AGENT_DEVICE);
@@ -73,6 +80,13 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
             Toast.makeText(this, "Agent Device Unavailable", Toast.LENGTH_LONG).show();
             finish();
         }
+    }
+
+    private void initializeDataAccessObjects(){
+
+        productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
+        rewardDao = LoyaltyStoreApplication.getInstance().getSession().getRewardDao();
+
     }
 
     @Override
@@ -198,11 +212,15 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     @Override
     public void onProductsAcquired(List<Product> products) {
         markSyncProductsDone(products.size());
+
+        productDao.insertInTx(products);
     }
 
     @Override
     public void onRewardsAcquired(List<Reward> rewards) {
         markSyncRewardsDone(rewards.size());
+
+        rewardDao.insertInTx(rewards);
     }
 
     @Override

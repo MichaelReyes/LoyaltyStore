@@ -161,7 +161,7 @@ public class MainActivity extends Activity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(isServiceRunning(DiscoverPeersOnBackgroundService.class)){
+        if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
             stopService(discoverPeersOnBackgroundIntent);
         }
     }
@@ -169,7 +169,7 @@ public class MainActivity extends Activity implements
     @Override
     public void onViewReady() {
 
-
+        /*
         productDao.deleteAll();
 
         Product product1 = new Product();
@@ -336,9 +336,25 @@ public class MainActivity extends Activity implements
         List<Reward> rewardList = rewardDao.loadAll();
         for (Reward r : rewardList) {
             Log.d(TAG, "REWARD : " + r.getCondition() + " ~ " + r.getValid_from());
+        }*/
+
+        products = productDao.loadAll();
+
+        if(products.isEmpty()){
+
+            if(retailer.getStoreName().equals("") && retailer.getServerUrl().equals("")){
+
+                Intent intent = new Intent(this,SettingsActivity.class);
+                startActivity(intent);
+
+            }
+
+        }else{
+
+            mainViewFragment.setMenuButtons();
+
         }
 
-        mainViewFragment.setMenuButtons();
 
     }
 
@@ -392,7 +408,7 @@ public class MainActivity extends Activity implements
             Intent intent = new Intent(this, CheckoutActivity.class);
             try {
                 intent.putExtra(CheckoutActivity.EXTRA_DATA_JSON_STRING,
-                        convertToJsonString(salesProducts,rewards));
+                        convertToJsonString(salesProducts, rewards));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -402,7 +418,7 @@ public class MainActivity extends Activity implements
 
             startActivity(intent);
 
-            if(isServiceRunning(DiscoverPeersOnBackgroundService.class)){
+            if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
                 stopService(discoverPeersOnBackgroundIntent);
             }
 
@@ -442,14 +458,14 @@ public class MainActivity extends Activity implements
     @Override
     public void onSynchronizeClicked() {
 
-        Intent intent = new Intent(this,SynchronizeActivity.class);
+        Intent intent = new Intent(this, SynchronizeActivity.class);
         startActivity(intent);
 
     }
 
     @Override
     public void onSettingsClicked() {
-        Intent intent = new Intent(this,SettingsActivity.class);
+        Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
 
@@ -458,12 +474,12 @@ public class MainActivity extends Activity implements
         JSONObject salesProductsJsonObject;
         JSONObject rewardsJsonObject;
 
-        JSONArray  salesProductsJsonArray = new JSONArray();
+        JSONArray salesProductsJsonArray = new JSONArray();
         JSONArray rewardsJsonArray = new JSONArray();
 
         JSONObject resultJsonObject = new JSONObject();
 
-        for(SalesProduct salesProduct : salesProducts){
+        for (SalesProduct salesProduct : salesProducts) {
 
             salesProductsJsonObject = new JSONObject();
 
@@ -490,54 +506,54 @@ public class MainActivity extends Activity implements
 
         }
 
-        resultJsonObject.put(SalesProduct.class.getSimpleName(),salesProductsJsonArray);
+        resultJsonObject.put(SalesProduct.class.getSimpleName(), salesProductsJsonArray);
 
-        for(Reward reward : rewards){
+        for (Reward reward : rewards) {
 
             rewardsJsonObject = new JSONObject();
 
             rewardsJsonObject.put(
-                    RewardDao.Properties.Id.columnName,reward.getId()
+                    RewardDao.Properties.Id.columnName, reward.getId()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Reward_condition.columnName,reward.getReward_condition()
+                    RewardDao.Properties.Reward_condition.columnName, reward.getReward_condition()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Condition_product_id.columnName,reward.getCondition_product_id()
+                    RewardDao.Properties.Condition_product_id.columnName, reward.getCondition_product_id()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Condition.columnName,reward.getCondition()
+                    RewardDao.Properties.Condition.columnName, reward.getCondition()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Condition_value.columnName,reward.getCondition_value()
+                    RewardDao.Properties.Condition_value.columnName, reward.getCondition_value()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Reward_type.columnName,reward.getReward_type()
+                    RewardDao.Properties.Reward_type.columnName, reward.getReward_type()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Reward.columnName,reward.getReward()
+                    RewardDao.Properties.Reward.columnName, reward.getReward()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Reward_value.columnName,reward.getReward_value()
+                    RewardDao.Properties.Reward_value.columnName, reward.getReward_value()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Valid_from.columnName,reward.getValid_from()
+                    RewardDao.Properties.Valid_from.columnName, reward.getValid_from()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Valid_until.columnName,reward.getValid_until()
+                    RewardDao.Properties.Valid_until.columnName, reward.getValid_until()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Created_at.columnName,reward.getCreated_at()
+                    RewardDao.Properties.Created_at.columnName, reward.getCreated_at()
             );
             rewardsJsonObject.put(
-                    RewardDao.Properties.Updated_at.columnName,reward.getUpdated_at()
+                    RewardDao.Properties.Updated_at.columnName, reward.getUpdated_at()
             );
 
             rewardsJsonArray.put(rewardsJsonObject);
 
         }
 
-        resultJsonObject.put(Reward.class.getSimpleName(),rewardsJsonArray);
+        resultJsonObject.put(Reward.class.getSimpleName(), rewardsJsonArray);
 
         return resultJsonObject.toString();
 
@@ -621,7 +637,7 @@ public class MainActivity extends Activity implements
 
             for (Reward reward : rewardsForProductList) {
 
-                Log.d(TAG,reward.toString());
+                Log.d(TAG, reward.toString());
 
                 if (isRewardValid(reward.getValid_from(), reward.getValid_until())) {
 

@@ -15,24 +15,22 @@ import ph.com.gs3.loyaltystore.models.WifiDirectConnectivityState;
 /**
  * Created by Ervinne Sodusta on 8/18/2015.
  */
-public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Void> {
+public class SendUnsyncedSaleTransactionsTask extends AsyncTask<Void, Void, Void> {
 
-    public static final String TAG = SendPurchaseInfoForValidationTask.class.getSimpleName();
+    public static final String TAG = SendUnsyncedSaleTransactionsTask.class.getSimpleName();
 
     private int port;
 
-    private String jsonStringPurchaseInfo;
+    private String jsonStringUnsyncedSaleTransactions;
 
-    private SendPurchaseInfoForValidationTaskEventListener sendPurchaseInfoForValidationTaskEventListener;
+    private SendUnsyncedSaleTransactionsTaskEventListener sendUnsyncedSaleTransactionsTaskEventListener;
 
-    private String customerDeviceId;
-
-    public SendPurchaseInfoForValidationTask(int port,
-                                             String jsonStringPurchaseInfo,
-                                             SendPurchaseInfoForValidationTaskEventListener sendPurchaseInfoForValidationTaskEventListener) {
+    public SendUnsyncedSaleTransactionsTask(int port,
+                                            String jsonStringUnsyncedSaleTransactions,
+                                            SendUnsyncedSaleTransactionsTaskEventListener sendUnsyncedSaleTransactionsTaskEventListener) {
         this.port = port;
-        this.jsonStringPurchaseInfo = jsonStringPurchaseInfo;
-        this.sendPurchaseInfoForValidationTaskEventListener = sendPurchaseInfoForValidationTaskEventListener;
+        this.jsonStringUnsyncedSaleTransactions = jsonStringUnsyncedSaleTransactions;
+        this.sendUnsyncedSaleTransactionsTaskEventListener = sendUnsyncedSaleTransactionsTaskEventListener;
     }
 
     @Override
@@ -80,7 +78,7 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
 
-        sendPurchaseInfoForValidationTaskEventListener.onPurchaseInfoSent(customerDeviceId);
+        sendUnsyncedSaleTransactionsTaskEventListener.onTransactionsSent();
     }
 
     private void awaitClientReadyConfirmation(DataInputStream dataInputStream) throws IOException {
@@ -90,24 +88,17 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
 
     }
 
-    private void awaitClientId(DataInputStream dataInputStream) throws IOException{
-
-        customerDeviceId = dataInputStream.readUTF();
-        Log.d(TAG,"Customer device Id : " + customerDeviceId);
-
-    }
-
     private void sendPurchaseInfo(DataOutputStream dataOutputStream) throws IOException {
 
-        dataOutputStream.writeUTF("PURCHASE_INFO"); //  notify client that this is a purchase info
-        dataOutputStream.writeUTF(jsonStringPurchaseInfo);
+        dataOutputStream.writeUTF("SALE_TRANSACTIONS"); //  notify client that this is a purchase info
+        dataOutputStream.writeUTF(jsonStringUnsyncedSaleTransactions);
         dataOutputStream.flush();
 
     }
 
-    public interface SendPurchaseInfoForValidationTaskEventListener {
+    public interface SendUnsyncedSaleTransactionsTaskEventListener {
 
-        void onPurchaseInfoSent(String customerDeviceId);
+        void onTransactionsSent();
 
     }
 
