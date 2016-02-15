@@ -169,7 +169,8 @@ public class MainActivity extends Activity implements
     @Override
     public void onViewReady() {
 
-        /*
+        Log.d(TAG,"STORE ID : " + retailer.getStoreId());
+
         productDao.deleteAll();
 
         Product product1 = new Product();
@@ -266,7 +267,7 @@ public class MainActivity extends Activity implements
             Log.d(TAG, "PRODUCT :" + a.getId() + "~" + a.getName());
         }
 
-        rewardDao.deleteAll();
+        /*rewardDao.deleteAll();
 
         List<Reward> sampleRewards = new ArrayList<>();
 
@@ -405,6 +406,10 @@ public class MainActivity extends Activity implements
 
             checkForRewards();
 
+            if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
+                stopService(new Intent(MainActivity.this,DiscoverPeersOnBackgroundService.class));
+            }
+
             Intent intent = new Intent(this, CheckoutActivity.class);
             try {
                 intent.putExtra(CheckoutActivity.EXTRA_DATA_JSON_STRING,
@@ -413,14 +418,12 @@ public class MainActivity extends Activity implements
                 e.printStackTrace();
             }
 
+
             intent.putExtra(CheckoutActivity.EXTRA_TOTAL_AMOUNT, mainViewFragment.getTotalAmount());
             intent.putExtra(RewardViewFragment.EXTRA_TOTAL_DISCOUNT, totalDiscount);
 
             startActivity(intent);
 
-            if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
-                stopService(discoverPeersOnBackgroundIntent);
-            }
 
         }
     }

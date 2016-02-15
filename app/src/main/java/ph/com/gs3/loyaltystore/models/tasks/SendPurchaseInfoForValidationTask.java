@@ -59,6 +59,8 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
                 awaitClientReadyConfirmation(dataInputStream);
             }
 
+            awaitClientId(dataInputStream);
+
             sendPurchaseInfo(dataOutputStream);
 
             dataOutputStream.close();
@@ -93,7 +95,7 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
     private void awaitClientId(DataInputStream dataInputStream) throws IOException{
 
         customerDeviceId = dataInputStream.readUTF();
-        Log.d(TAG,"Customer device Id : " + customerDeviceId);
+        Log.d(TAG,"Customer Id : " + customerDeviceId);
 
     }
 

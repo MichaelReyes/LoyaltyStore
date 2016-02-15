@@ -126,6 +126,8 @@ public class SettingsActivity extends Activity
             @Override
             public void onClick(View v) {
 
+                registerDevice();
+
                 if (!isDeviceRegister) {
                     registerDevice();
                 }
@@ -183,7 +185,11 @@ public class SettingsActivity extends Activity
                         try {
                             JSONObject jsonObject = new JSONObject(response.body().toString());
 
+
+
                             retailer.setStoreId(store.getId());
+                            retailer.save(SettingsActivity.this);
+
                             store.setDevice_web_id(jsonObject.getInt("device_web_id"));
                             storeDao.update(store);
 

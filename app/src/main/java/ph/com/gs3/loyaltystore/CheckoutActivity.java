@@ -85,6 +85,8 @@ public class CheckoutActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        salesId = -1;
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkout);
 
@@ -161,143 +163,196 @@ public class CheckoutActivity extends AppCompatActivity implements
             salesProducts.add(salesProduct);
         }
 
-            JSONArray rewardsJsonArray = dataJsonObject.getJSONArray(Reward.class.getSimpleName());
-            for (int i = 0; i < rewardsJsonArray.length(); i++) {
+        JSONArray rewardsJsonArray = dataJsonObject.getJSONArray(Reward.class.getSimpleName());
+        for (int i = 0; i < rewardsJsonArray.length(); i++) {
 
-                JSONObject rewardJsonObject = rewardsJsonArray.getJSONObject(i);
+            JSONObject rewardJsonObject = rewardsJsonArray.getJSONObject(i);
 
-                Reward reward = new Reward();
-                reward.setId(rewardJsonObject.getLong(RewardDao.Properties.Id.columnName));
-                reward.setReward_condition(rewardJsonObject.getString(RewardDao.Properties.Reward_condition.columnName));
-                reward.setCondition_product_id(rewardJsonObject.getInt(RewardDao.Properties.Condition_product_id.columnName));
-                reward.setCondition(rewardJsonObject.getString(RewardDao.Properties.Condition.columnName));
-                reward.setCondition_value(Float.valueOf(rewardJsonObject.get(RewardDao.Properties.Condition_value.columnName).toString()));
-                reward.setReward_type(rewardJsonObject.getString(RewardDao.Properties.Reward_type.columnName));
-                reward.setReward(rewardJsonObject.getString(RewardDao.Properties.Reward.columnName));
-                reward.setReward_value(rewardJsonObject.getString(RewardDao.Properties.Reward_value.columnName));
-                reward.setValid_from(formatter.parse(
-                                rewardJsonObject.get(RewardDao.Properties.Valid_from.columnName).toString())
-                );
-                reward.setValid_until(formatter.parse(
-                                rewardJsonObject.get(RewardDao.Properties.Valid_until.columnName).toString())
-                );
-                reward.setCreated_at(formatter.parse(
-                                rewardJsonObject.get(RewardDao.Properties.Created_at.columnName).toString())
-                );
+            Reward reward = new Reward();
+            reward.setId(rewardJsonObject.getLong(RewardDao.Properties.Id.columnName));
+            reward.setReward_condition(rewardJsonObject.getString(RewardDao.Properties.Reward_condition.columnName));
+            reward.setCondition_product_id(rewardJsonObject.getInt(RewardDao.Properties.Condition_product_id.columnName));
+            reward.setCondition(rewardJsonObject.getString(RewardDao.Properties.Condition.columnName));
+            reward.setCondition_value(Float.valueOf(rewardJsonObject.get(RewardDao.Properties.Condition_value.columnName).toString()));
+            reward.setReward_type(rewardJsonObject.getString(RewardDao.Properties.Reward_type.columnName));
+            reward.setReward(rewardJsonObject.getString(RewardDao.Properties.Reward.columnName));
+            reward.setReward_value(rewardJsonObject.getString(RewardDao.Properties.Reward_value.columnName));
+            reward.setValid_from(formatter.parse(
+                            rewardJsonObject.get(RewardDao.Properties.Valid_from.columnName).toString())
+            );
+            reward.setValid_until(formatter.parse(
+                            rewardJsonObject.get(RewardDao.Properties.Valid_until.columnName).toString())
+            );
+            reward.setCreated_at(formatter.parse(
+                            rewardJsonObject.get(RewardDao.Properties.Created_at.columnName).toString())
+            );
 
-                rewards.add(reward);
-            }
+            rewards.add(reward);
+        }
 
 
         /*salesProducts = (ArrayList<SalesProduct>) bundle.get(SalesProductsViewFragment.EXTRA_SALES_PRODUCT_LIST);
         rewards = (ArrayList<Reward>) bundle.get(RewardViewFragment.EXTRA_REWARDS_LIST);*/
-            totalAmount = bundle.getFloat(EXTRA_TOTAL_AMOUNT);
-            totalDiscounts = bundle.getFloat(RewardViewFragment.EXTRA_TOTAL_DISCOUNT);
+        totalAmount = bundle.getFloat(EXTRA_TOTAL_AMOUNT);
+        totalDiscounts = bundle.getFloat(RewardViewFragment.EXTRA_TOTAL_DISCOUNT);
 
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        this.setTitle(retailer.getStoreName());
+        wifiDirectConnectivityDataPresenter.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        wifiDirectConnectivityDataPresenter.onDestroy();
+        progressDialog.dismiss();
+    }
+
+
+    @Override
+    public void onViewReady() throws JSONException {
+
+    }
+
+    @Override
+    public void onUpdateCustomerList() {
+        wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.CUSTOMER);
+
+    }
+
+    @Override
+    public void onCustomerSelect(WifiP2pDevice customerDevice, boolean selected) {
+
+        if (selected) {
+
+            this.customerDevice = customerDevice;
+
+        } else {
+
+            if (this.customerDevice == customerDevice) {
+                this.customerDevice = null;
+            }
 
         }
 
-        @Override
-        protected void onResume () {
-            super.onResume();
-            this.setTitle(retailer.getStoreName());
-            wifiDirectConnectivityDataPresenter.onResume();
+    }
+
+    @Override
+    public void onComplete() {
+
+        setSalesIdToProductsAndRewards();
+        finish();
+
+
+    }
+
+    @Override
+    public void onCompleteWithRewards() {
+
+        setSalesIdToProductsAndRewards();
+
+        if (customerDevice != null) {
+            wifiDirectConnectivityDataPresenter.connectToCustomer(customerDevice, 3001);
+            showSubmitDocumentDialog("Waiting for user ...");
+            hideDialogLater(30000, "User did not respond after 30 seconds, please try again later.", true);
         }
 
-        @Override
-        protected void onDestroy () {
-            super.onDestroy();
-            wifiDirectConnectivityDataPresenter.onDestroy();
-        }
+    }
+
+    @Override
+    public void onCancel() {
+
+        removeSalesRecord();
+
+        finish();
+
+    }
 
 
-        @Override
-        public void onViewReady ()throws JSONException {
+    //In case the connection to customer device failed and store decided to cancel it.
+    private void removeSalesRecord(){
 
-        }
+        if(salesId != -1){
 
-        @Override
-        public void onUpdateCustomerList () {
-            wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.CUSTOMER);
+            List<Sales> salesList = salesDao.queryRaw(
+                    "WHERE " +
+                    SalesDao.Properties.Id.columnName + 
+                    "=?",
+                    new String[]{salesId + ""}
+            );
+            
+            for(Sales sales : salesList){
+                
+                salesDao.delete(sales);
+                
+            }
+            
+            List<SalesProduct> salesProductList = salesProductDao.queryRaw(
+                    "WHERE " +
+                    SalesProductDao.Properties.Sales_id.columnName +
+                    "=?",
+                    new String[]{salesId + ""}
+            );
 
-        }
+            for(SalesProduct salesProduct : salesProductList){
 
-        @Override
-        public void onCustomerSelect (WifiP2pDevice customerDevice,boolean selected){
+                salesProduct.setSales_id(null);
+                salesProductDao.update(salesProduct);
 
-            if (selected) {
+            }
 
-                this.customerDevice = customerDevice;
+            List<SalesHasReward> salesHasRewardList = salesHasRewardDao.queryRaw(
+                    "WHERE " +
+                    SalesHasRewardDao.Properties.Sales_id.columnName +
+                    "=?",
+                    new String[]{salesId + ""});
 
-            } else {
+            for(SalesHasReward salesHasReward : salesHasRewardList){
 
-                if (this.customerDevice == customerDevice) {
-                    this.customerDevice = null;
-                }
+                salesHasRewardDao.delete(salesHasReward);
 
             }
 
         }
 
-        @Override
-        public void onComplete () {
+    }
 
-            setSalesIdToProductsAndRewards();
-            finish();
+    @Override
+    public void onNewPeersDiscovered(List<WifiP2pDevice> wifiP2pDevices) {
+        this.customerDeviceList.clear();
+        this.customerDeviceList.addAll(wifiP2pDevices);
+        customerDeviceListAdapter.notifyDataSetChanged();
+    }
 
+    @Override
+    public void onConnectionEstablished() {
+        Toast.makeText(CheckoutActivity.this, "Connection established.", Toast.LENGTH_SHORT).show();
 
+        String jsonStringPurchaseInfo = null;
+
+        try {
+            jsonStringPurchaseInfo = generateDataToJsonString();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
-        @Override
-        public void onCompleteWithRewards () {
-
-            setSalesIdToProductsAndRewards();
-
-            if (customerDevice != null) {
-                wifiDirectConnectivityDataPresenter.connectToCustomer(customerDevice, 3001);
-                showSubmitDocumentDialog("Waiting for user ...");
-                hideDialogLater(30000, "User did not respond after 30 seconds, please try again later.", true);
-            }
-
-        }
-
-        @Override
-        public void onCancel () {
-
-            finish();
-        }
-
-        @Override
-        public void onNewPeersDiscovered (List < WifiP2pDevice > wifiP2pDevices) {
-            this.customerDeviceList.clear();
-            this.customerDeviceList.addAll(wifiP2pDevices);
-            customerDeviceListAdapter.notifyDataSetChanged();
-        }
-
-        @Override
-        public void onConnectionEstablished () {
-            Toast.makeText(CheckoutActivity.this, "Connection established.", Toast.LENGTH_SHORT).show();
-
-            String jsonStringPurchaseInfo = null;
-
-            try {
-                jsonStringPurchaseInfo = generateDataToJsonString();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            SendPurchaseInfoForValidationTask sendPurchaseInfoForValidationTask =
+        SendPurchaseInfoForValidationTask sendPurchaseInfoForValidationTask =
                 new SendPurchaseInfoForValidationTask(
-                    3001,
-                    jsonStringPurchaseInfo, this
+                        3001,
+                        jsonStringPurchaseInfo, this
                 );
-            sendPurchaseInfoForValidationTask.execute();
-        }
+        sendPurchaseInfoForValidationTask.execute();
+    }
 
-        @Override
-        public void onConnectionTerminated () {
+    @Override
+    public void onConnectionTerminated() {
 
-        }
+    }
 
     private String generateDataToJsonString() throws JSONException {
 
@@ -339,6 +394,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             jsonSalesObject.put("id", sales.getId());
             jsonSalesObject.put("store_id", sales.getStore_id());
+            jsonSalesObject.put("store_name", retailer.getStoreName());
             jsonSalesObject.put("customer_id", sales.getCustomer_id());
             jsonSalesObject.put("amount", sales.getAmount());
             jsonSalesObject.put("total_discount", sales.getTotal_discount());
@@ -353,6 +409,7 @@ public class CheckoutActivity extends AppCompatActivity implements
     }
 
     private long generateSalesID() {
+
 
         SimpleDateFormat formatter = new SimpleDateFormat(
                 "yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
@@ -373,16 +430,21 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     private void setSalesIdToProductsAndRewards() {
 
-        long salesId = generateSalesID();
+        if (salesId == -1) {
 
-        for (SalesProduct salesProduct : salesProducts) {
+            long salesId = generateSalesID();
 
-            salesProduct.setSales_id(salesId);
-            salesProductDao.insert(salesProduct);
+            for (SalesProduct salesProduct : salesProducts) {
+
+                salesProduct.setSales_id(salesId);
+                salesProductDao.insert(salesProduct);
+
+            }
+
+            setSalesHasReward(salesId);
 
         }
 
-        setSalesHasReward(salesId);
 
     }
 
@@ -409,7 +471,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                 new String[]{salesId + ""}
         );
 
-        for(Sales sales : salesList){
+        for (Sales sales : salesList) {
 
             sales.setCustomer_id(Long.valueOf(customerDeviceId));
             salesDao.update(sales);

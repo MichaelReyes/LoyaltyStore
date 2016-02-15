@@ -30,7 +30,7 @@ public class LoyaltyStoreDAOGenerator {
         reward.addDateProperty("updated_at");
 
         Entity sales = schema.addEntity("Sales");
-        sales.addIdProperty().autoincrement();
+        sales.addIdProperty().autoincrement().primaryKey();
         sales.addLongProperty("store_id");
         sales.addLongProperty("customer_id");
         sales.addFloatProperty("amount");
@@ -57,7 +57,7 @@ public class LoyaltyStoreDAOGenerator {
         salesHasReward.addLongProperty("reward_id");
 
         Entity salesProduct = schema.addEntity("SalesProduct");
-        salesProduct.addIdProperty().autoincrement();
+        salesProduct.addIdProperty().autoincrement().primaryKey();
         salesProduct.addLongProperty("sales_id");
         salesProduct.addLongProperty("product_id");
         salesProduct.addIntProperty("quantity");

@@ -57,6 +57,7 @@ public class DiscoverPeersOnBackgroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopSelf();
     }
 
     private void writeState(int state) {
