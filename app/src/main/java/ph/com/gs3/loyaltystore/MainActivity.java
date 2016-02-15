@@ -169,9 +169,7 @@ public class MainActivity extends Activity implements
     @Override
     public void onViewReady() {
 
-        Log.d(TAG,"STORE ID : " + retailer.getStoreId());
-
-        productDao.deleteAll();
+        /*productDao.deleteAll();
 
         Product product1 = new Product();
         product1.setName("Cassava Cake Original Big");
@@ -265,7 +263,7 @@ public class MainActivity extends Activity implements
         for (int i = 0; i < test.size(); i++) {
             Product a = test.get(i);
             Log.d(TAG, "PRODUCT :" + a.getId() + "~" + a.getName());
-        }
+        }*/
 
         /*rewardDao.deleteAll();
 
