@@ -1,20 +1,44 @@
 package ph.com.gs3.loyaltystore;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.models.api.HttpCommunicator;
+import ph.com.gs3.loyaltystore.models.services.AdvertisementSenderService;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Store;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.StoreDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
+import retrofit.http.Field;
+import retrofit.http.FormUrlEncoded;
+import retrofit.http.GET;
+import retrofit.http.POST;
+import retrofit.http.Path;
 
-public class SettingsActivity extends AppCompatActivity implements WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener {
+public class SettingsActivity extends Activity
+        implements WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener {
+
+    public static final String TAG = SettingsActivity.class.getSimpleName();
 
     private EditText etRetailName;
     private EditText etAdvertisement;
@@ -22,12 +46,24 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
 
     private Button bSave;
     private Button bRegister;
+    private Button bBroadcast;
+
+    private List<String> retailerNameList;
+    private ArrayAdapter<String> retailerNameListAdapter;
 
     private Retailer retailer;
 
     private HttpCommunicator httpCommunicator;
+    private Retrofit retrofit;
+    private RegisterStoreDeviceAPI registerStoreDeviceAPI;
 
     private WifiDirectConnectivityDataPresenter wifiDirectConnectivityDataPresenter;
+
+    private ProgressDialog progressDialog;
+
+    private StoreDao storeDao;
+
+    private boolean isDeviceRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,15 +76,39 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
                 this, retailer.getDeviceInfo()
         );
 
+        initializeDao();
         initializeComponents();
         initializeData();
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        progressDialog.dismiss();
+    }
+
+    private void initializeDao() {
+
+        storeDao = LoyaltyStoreApplication.getInstance().getSession().getStoreDao();
 
     }
 
     private void initializeComponents() {
 
-        httpCommunicator =new HttpCommunicator();
+        progressDialog = new ProgressDialog(this);
+
+        retailerNameList = new ArrayList<>();
+        retailerNameListAdapter = new ArrayAdapter<String>(
+                this, android.R.layout.simple_spinner_item, retailerNameList);
+
+        retailerNameListAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        httpCommunicator = new HttpCommunicator();
+        retrofit = httpCommunicator.getRetrofit();
+        registerStoreDeviceAPI = retrofit.create(RegisterStoreDeviceAPI.class);
 
         etRetailName = (EditText) findViewById(R.id.Settings_etStoreName);
         etServicePortNumber = (EditText) findViewById(R.id.Settings_etServicePortNumber);
@@ -66,6 +126,10 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
         bSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if (!isDeviceRegister) {
+                    registerDevice();
+                }
 
                 retailer.setStoreName(etRetailName.getText().toString());
                 retailer.setAdvertisment(etAdvertisement.getText().toString());
@@ -86,15 +150,171 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
                 //  TODO: add a date updated in the preferences
             }
         });
+
+        bBroadcast = (Button) findViewById(R.id.Settings_bBroadcast);
+        bBroadcast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBroadcastAdvertisment();
+            }
+        });
+
     }
 
-    private void onRegisterStore(){
+    private void registerDevice() {
+
+        List<Store> stores = getStoreDataByName(etRetailName.getText().toString());
+
+        for (final Store store : stores) {
+
+            Call<String> registerCall = registerStoreDeviceAPI.registerStore(
+                    Long.toString(store.getId()),retailer.getDeviceId()
+            );
+
+            registerCall.enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(Response<String> response, Retrofit retrofit) {
+                    Log.d(TAG, " RESPONSE : " + response.body().toString());
+
+                    try {
+                        JSONObject jsonObject = new JSONObject(response.body().toString());
+
+                        store.setDevice_web_id(jsonObject.getInt("device_web_id"));
+                        storeDao.update(store);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    Log.d(TAG, "Can't register device.");
+                }
+            });
+
+        }
 
 
+    }
+
+    private List<Store> getStoreDataByName(String name) {
+
+        return storeDao.queryRaw(
+                "WHERE " + StoreDao.Properties.Name.columnName + "=?",
+                new String[]{name}
+        );
+
+    }
+
+    private void onBroadcastAdvertisment() {
+
+        if (etAdvertisement.getText().toString() != "") {
+
+            retailer.setAdvertisment(etAdvertisement.getText().toString());
+            retailer.save(this);
+
+            Intent intent = new Intent(this, AdvertisementSenderService.class);
+            startService(intent);
+
+        }
+
+
+    }
+
+    private void onRegisterStore() {
+
+        showDialog("Please wait while getting available branches...");
+
+        Call<List<Store>> storesCall = registerStoreDeviceAPI.getStoresWithNoDeviceID();
+
+        storesCall.enqueue(new Callback<List<Store>>() {
+            @Override
+            public void onResponse(Response<List<Store>> response, Retrofit retrofit) {
+
+                retailerNameList.clear();
+
+                List<Store> stores = response.body();
+
+                storeDao.deleteAll();
+
+                for (Store store : stores) {
+
+                    Log.d(TAG, "STORE NAME : " + store.getName());
+
+                    storeDao.insert(store);
+
+                    retailerNameList.add(store.getName());
+
+                }
+
+                retailerNameListAdapter.notifyDataSetChanged();
+
+                hideDialog();
+
+                setChoices();
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.d(TAG, "Failed to get information from web");
+                hideDialog();
+            }
+        });
+
+
+    }
+
+    private void showDialog(String message) {
+
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage(message);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+    }
+
+    private void hideDialog() {
+        if (progressDialog.isShowing()) {
+            progressDialog.hide();
+        }
+    }
+
+    private void setChoices() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+        builder.setTitle("Select desired branch");
+
+        builder.setNegativeButton(
+                "cancel",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        builder.setAdapter(
+                retailerNameListAdapter,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        etRetailName.setText(retailerNameListAdapter.getItem(which));
+
+                    }
+                });
+        builder.show();
 
     }
 
     private void initializeData() {
+
+        if (!retailer.getStoreName().equals("")) {
+            isDeviceRegister = true;
+        }
 
         etRetailName.setText(retailer.getStoreName());
         etAdvertisement.setText(retailer.getAdvertisment());
@@ -117,10 +337,15 @@ public class SettingsActivity extends AppCompatActivity implements WifiDirectCon
 
     }
 
-    public interface RegisterStoreDeviceAPI{
+    public interface RegisterStoreDeviceAPI {
 
+        @GET("/stores/nodevice")
+        Call<List<Store>> getStoresWithNoDeviceID();
 
-
+        @FormUrlEncoded
+        @POST("/stores/{id}/device/register")
+        Call<String> registerStore(@Path("id") String id,
+                                   @Field("device_id") String device_id);
 
     }
 

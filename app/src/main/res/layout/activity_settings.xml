@@ -20,8 +20,7 @@
             android:id="@+id/Settings_bRegister"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bluebtn"
-            android:textColor="#ffffff"
+            android:textColor="#000000"
             android:text="Register"
             android:layout_marginLeft="10dp"/>
 
@@ -31,13 +30,31 @@
     <EditText
         android:id="@+id/Settings_etStoreName"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <TextView
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Advertisement/Announcement:"
-        android:textColor="#000000" />
+        android:enabled="false"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Advertisement/Announcement:"
+            android:textColor="#000000" />
+
+        <Button
+            android:id="@+id/Settings_bBroadcast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:text="Broadcast"
+            android:layout_marginLeft="10dp"/>
+
+        </LinearLayout>
+
+
 
     <EditText
         android:id="@+id/Settings_etAdvertisement"
