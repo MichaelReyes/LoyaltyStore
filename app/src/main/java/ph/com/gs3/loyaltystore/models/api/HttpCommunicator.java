@@ -21,7 +21,7 @@ public class HttpCommunicator {
 
     private Retrofit retrofit;
 
-    public HttpCommunicator() {
+    public HttpCommunicator(String serverUrl) {
 
         constants = new Constants();
 
@@ -31,7 +31,7 @@ public class HttpCommunicator {
                 .create();
 
         retrofit = new Retrofit.Builder()
-                .baseUrl(constants.SERVER_ADDRESS)
+                .baseUrl("http://" + serverUrl)
                 .addConverterFactory(new ToStringConverterFactory())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();

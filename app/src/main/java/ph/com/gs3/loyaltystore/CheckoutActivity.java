@@ -358,7 +358,7 @@ public class CheckoutActivity extends AppCompatActivity implements
         String currDateTime = formatter.format(date);
 
         Sales sales = new Sales();
-        sales.setStore_id(1);
+        sales.setStore_id(retailer.getStoreId());
         sales.setAmount(totalAmount);
         sales.setTransacion_date(date);
 

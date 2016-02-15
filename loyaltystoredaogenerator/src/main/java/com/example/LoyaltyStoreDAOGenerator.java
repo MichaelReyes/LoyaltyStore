@@ -31,7 +31,7 @@ public class LoyaltyStoreDAOGenerator {
 
         Entity sales = schema.addEntity("Sales");
         sales.addIdProperty().autoincrement();
-        sales.addIntProperty("store_id");
+        sales.addLongProperty("store_id");
         sales.addLongProperty("customer_id");
         sales.addFloatProperty("amount");
         sales.addFloatProperty("total_discount");

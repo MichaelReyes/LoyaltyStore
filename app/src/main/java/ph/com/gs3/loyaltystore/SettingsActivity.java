@@ -43,6 +43,7 @@ public class SettingsActivity extends Activity
     private EditText etRetailName;
     private EditText etAdvertisement;
     private EditText etServicePortNumber;
+    private EditText etServerUrl;
 
     private Button bSave;
     private Button bRegister;
@@ -106,19 +107,16 @@ public class SettingsActivity extends Activity
                 android.R.layout.simple_spinner_dropdown_item
         );
 
-        httpCommunicator = new HttpCommunicator();
-        retrofit = httpCommunicator.getRetrofit();
-        registerStoreDeviceAPI = retrofit.create(RegisterStoreDeviceAPI.class);
-
         etRetailName = (EditText) findViewById(R.id.Settings_etStoreName);
         etServicePortNumber = (EditText) findViewById(R.id.Settings_etServicePortNumber);
         etAdvertisement = (EditText) findViewById(R.id.Settings_etAdvertisement);
+        etServerUrl = (EditText) findViewById(R.id.Settings_etServerAddress);
 
         bRegister = (Button) findViewById(R.id.Settings_bRegister);
         bRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onRegisterStore();
+                onGetAvailableBranches();
             }
         });
 
@@ -163,36 +161,43 @@ public class SettingsActivity extends Activity
 
     private void registerDevice() {
 
-        List<Store> stores = getStoreDataByName(etRetailName.getText().toString());
+        if (!etServerUrl.getText().toString().equals("")) {
 
-        for (final Store store : stores) {
+            initializeApiCommunicator(etServerUrl.getText().toString());
 
-            Call<String> registerCall = registerStoreDeviceAPI.registerStore(
-                    Long.toString(store.getId()),retailer.getDeviceId()
-            );
+            List<Store> stores = getStoreDataByName(etRetailName.getText().toString());
 
-            registerCall.enqueue(new Callback<String>() {
-                @Override
-                public void onResponse(Response<String> response, Retrofit retrofit) {
-                    Log.d(TAG, " RESPONSE : " + response.body().toString());
+            for (final Store store : stores) {
 
-                    try {
-                        JSONObject jsonObject = new JSONObject(response.body().toString());
+                Call<String> registerCall = registerStoreDeviceAPI.registerStore(
+                        Long.toString(store.getId()), retailer.getDeviceId()
+                );
 
-                        store.setDevice_web_id(jsonObject.getInt("device_web_id"));
-                        storeDao.update(store);
+                registerCall.enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Response<String> response, Retrofit retrofit) {
+                        Log.d(TAG, " RESPONSE : " + response.body().toString());
 
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                        try {
+                            JSONObject jsonObject = new JSONObject(response.body().toString());
+
+                            retailer.setStoreId(store.getId());
+                            store.setDevice_web_id(jsonObject.getInt("device_web_id"));
+                            storeDao.update(store);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
                     }
 
-                }
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.d(TAG, "Can't register device.");
+                    }
+                });
 
-                @Override
-                public void onFailure(Throwable t) {
-                    Log.d(TAG, "Can't register device.");
-                }
-            });
+            }
 
         }
 
@@ -223,48 +228,49 @@ public class SettingsActivity extends Activity
 
     }
 
-    private void onRegisterStore() {
+    private void onGetAvailableBranches() {
 
-        showDialog("Please wait while getting available branches...");
+        if (!etServerUrl.getText().toString().equals("")) {
 
-        Call<List<Store>> storesCall = registerStoreDeviceAPI.getStoresWithNoDeviceID();
+            initializeApiCommunicator(etServerUrl.getText().toString());
 
-        storesCall.enqueue(new Callback<List<Store>>() {
-            @Override
-            public void onResponse(Response<List<Store>> response, Retrofit retrofit) {
+            showDialog("Please wait while getting available branches...");
 
-                retailerNameList.clear();
+            Call<List<Store>> storesCall = registerStoreDeviceAPI.getStoresWithNoDeviceID();
 
-                List<Store> stores = response.body();
+            storesCall.enqueue(new Callback<List<Store>>() {
+                @Override
+                public void onResponse(Response<List<Store>> response, Retrofit retrofit) {
 
-                storeDao.deleteAll();
+                    retailerNameList.clear();
 
-                for (Store store : stores) {
+                    List<Store> stores = response.body();
 
-                    Log.d(TAG, "STORE NAME : " + store.getName());
+                    storeDao.deleteAll();
 
-                    storeDao.insert(store);
+                    for (Store store : stores) {
 
-                    retailerNameList.add(store.getName());
+                        storeDao.insert(store);
+
+                        retailerNameList.add(store.getName());
+
+                    }
+
+                    retailerNameListAdapter.notifyDataSetChanged();
+
+                    hideDialog();
+                    setChoices();
 
                 }
 
-                retailerNameListAdapter.notifyDataSetChanged();
+                @Override
+                public void onFailure(Throwable t) {
+                    Log.d(TAG, "Failed to get information from web");
+                    hideDialog();
+                }
+            });
 
-                hideDialog();
-
-                setChoices();
-
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                Log.d(TAG, "Failed to get information from web");
-                hideDialog();
-            }
-        });
-
-
+        }
     }
 
     private void showDialog(String message) {
@@ -319,6 +325,14 @@ public class SettingsActivity extends Activity
         etRetailName.setText(retailer.getStoreName());
         etAdvertisement.setText(retailer.getAdvertisment());
         etServicePortNumber.setText(Integer.toString(retailer.getServicePortNumber()));
+
+    }
+
+    private void initializeApiCommunicator(String serverUrl) {
+
+        httpCommunicator = new HttpCommunicator(serverUrl);
+        retrofit = httpCommunicator.getRetrofit();
+        registerStoreDeviceAPI = retrofit.create(RegisterStoreDeviceAPI.class);
 
     }
 

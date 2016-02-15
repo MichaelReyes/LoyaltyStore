@@ -7,7 +7,7 @@ package ph.com.gs3.loyaltystore.models.sqlite.dao;
 public class Sales {
 
     private Long id;
-    private Integer store_id;
+    private Long store_id;
     private Long customer_id;
     private Float amount;
     private Float total_discount;
@@ -21,7 +21,7 @@ public class Sales {
         this.id = id;
     }
 
-    public Sales(Long id, Integer store_id, Long customer_id, Float amount, Float total_discount, java.util.Date transacion_date, Boolean is_synced) {
+    public Sales(Long id, Long store_id, Long customer_id, Float amount, Float total_discount, java.util.Date transacion_date, Boolean is_synced) {
         this.id = id;
         this.store_id = store_id;
         this.customer_id = customer_id;
@@ -39,11 +39,11 @@ public class Sales {
         this.id = id;
     }
 
-    public Integer getStore_id() {
+    public Long getStore_id() {
         return store_id;
     }
 
-    public void setStore_id(Integer store_id) {
+    public void setStore_id(Long store_id) {
         this.store_id = store_id;
     }
 

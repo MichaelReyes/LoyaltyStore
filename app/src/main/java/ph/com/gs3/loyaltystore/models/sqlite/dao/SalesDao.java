@@ -24,7 +24,7 @@ public class SalesDao extends AbstractDao<Sales, Long> {
     */
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
-        public final static Property Store_id = new Property(1, Integer.class, "store_id", false, "STORE_ID");
+        public final static Property Store_id = new Property(1, Long.class, "store_id", false, "STORE_ID");
         public final static Property Customer_id = new Property(2, Long.class, "customer_id", false, "CUSTOMER_ID");
         public final static Property Amount = new Property(3, Float.class, "amount", false, "AMOUNT");
         public final static Property Total_discount = new Property(4, Float.class, "total_discount", false, "TOTAL_DISCOUNT");
@@ -70,7 +70,7 @@ public class SalesDao extends AbstractDao<Sales, Long> {
             stmt.bindLong(1, id);
         }
  
-        Integer store_id = entity.getStore_id();
+        Long store_id = entity.getStore_id();
         if (store_id != null) {
             stmt.bindLong(2, store_id);
         }
@@ -112,7 +112,7 @@ public class SalesDao extends AbstractDao<Sales, Long> {
     public Sales readEntity(Cursor cursor, int offset) {
         Sales entity = new Sales( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
-            cursor.isNull(offset + 1) ? null : cursor.getInt(offset + 1), // store_id
+            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // store_id
             cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2), // customer_id
             cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3), // amount
             cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // total_discount
@@ -126,7 +126,7 @@ public class SalesDao extends AbstractDao<Sales, Long> {
     @Override
     public void readEntity(Cursor cursor, Sales entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
-        entity.setStore_id(cursor.isNull(offset + 1) ? null : cursor.getInt(offset + 1));
+        entity.setStore_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
         entity.setCustomer_id(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
         entity.setAmount(cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3));
         entity.setTotal_discount(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
