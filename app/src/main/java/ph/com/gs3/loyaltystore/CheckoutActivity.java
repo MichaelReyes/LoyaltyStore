@@ -35,6 +35,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesHasRewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
 import ph.com.gs3.loyaltystore.models.tasks.SendPurchaseInfoForValidationTask;
+import ph.com.gs3.loyaltystore.models.values.DeviceInfo;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
 
@@ -112,7 +113,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                     CheckOutViewFragment.TAG).commit();
         }
 
-        wifiDirectConnectivityDataPresenter.discoverPeers();
+        wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.CUSTOMER);
 
         initializeDAO();
 
@@ -216,7 +217,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         @Override
         public void onUpdateCustomerList () {
-            wifiDirectConnectivityDataPresenter.discoverPeers();
+            wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.CUSTOMER);
 
         }
 

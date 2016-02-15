@@ -1,6 +1,5 @@
 package ph.com.gs3.loyaltystore.presenters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -45,14 +44,16 @@ public class WifiDirectConnectivityDataPresenter implements
 
     private Context context;
 
-    public WifiDirectConnectivityDataPresenter(Activity sourceActivity, DeviceInfo deviceInfo) {
-        this.context = sourceActivity;
+    private DeviceInfo.Type filterType;
+
+    public WifiDirectConnectivityDataPresenter(Context context, DeviceInfo deviceInfo) {
+        this.context = context;
         this.deviceInfo = deviceInfo;
 
-        this.wifiDirectConnectivityPresentationListener = (WifiDirectConnectivityPresentationListener) sourceActivity;
+        this.wifiDirectConnectivityPresentationListener = (WifiDirectConnectivityPresentationListener) context;
 
-        wifiP2pManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
-        channel = wifiP2pManager.initialize(context, context.getMainLooper(), null);
+        wifiP2pManager = (WifiP2pManager) this.context.getSystemService(Context.WIFI_P2P_SERVICE);
+        channel = wifiP2pManager.initialize(this.context, this.context.getMainLooper(), null);
 
         wifiDirectBroadcastReceiver = new WifiDirectBroadcastReceiver(wifiP2pManager, channel);
     }
@@ -66,7 +67,7 @@ public class WifiDirectConnectivityDataPresenter implements
         // start listenting to wifi direct broadcasts
         context.registerReceiver(wifiDirectBroadcastReceiver, wifiDirectBroadcastReceiver.getIntentFilter());
 
-        discoverPeers();
+        discoverPeers(filterType);
     }
 
     public void onDestroy() {
@@ -76,7 +77,8 @@ public class WifiDirectConnectivityDataPresenter implements
 
     }
 
-    public void discoverPeers() {
+    public void discoverPeers(DeviceInfo.Type type) {
+        this.filterType = type;
         wifiP2pManager.discoverPeers(channel, peerDiscoveryActionListener);
     }
 
@@ -100,7 +102,7 @@ public class WifiDirectConnectivityDataPresenter implements
 
             try {
                 DeviceInfo deviceInfo = DeviceInfo.unserialize(device.deviceName);
-                if (deviceInfo.getType() == DeviceInfo.Type.CUSTOMER) {
+                if (deviceInfo.getType() == filterType) {
                     // add here
                     readableDevices.add(device);
 

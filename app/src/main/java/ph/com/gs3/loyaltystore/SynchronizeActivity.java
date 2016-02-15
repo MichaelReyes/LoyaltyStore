@@ -9,6 +9,7 @@ import java.util.List;
 
 import ph.com.gs3.loyaltystore.adapters.CustomerDeviceListAdapter;
 import ph.com.gs3.loyaltystore.fragments.SynchronizeViewFragment;
+import ph.com.gs3.loyaltystore.models.values.DeviceInfo;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
 
@@ -81,12 +82,12 @@ public class SynchronizeActivity extends Activity implements
 
     @Override
     public void onViewReady() {
-        wifiDirectConnectivityDataPresenter.discoverPeers();
+        wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.AGENT);
     }
 
     @Override
     public void onDiscoverPeersCommand() {
-        wifiDirectConnectivityDataPresenter.discoverPeers();
+        wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.AGENT);
     }
 
     @Override
