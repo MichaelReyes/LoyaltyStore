@@ -77,7 +77,6 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     private ProgressDialog progressDialog;
 
-
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "EEE MMM d HH:mm:ss zzz yyyy");
 
@@ -240,6 +239,8 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         @Override
         public void onComplete () {
+
+            setSalesIdToProductsAndRewards();
 
 
         }

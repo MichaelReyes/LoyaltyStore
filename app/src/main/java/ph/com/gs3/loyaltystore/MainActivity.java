@@ -1,7 +1,9 @@
 package ph.com.gs3.loyaltystore;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -25,6 +27,8 @@ import java.util.Locale;
 import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
 import ph.com.gs3.loyaltystore.fragments.MainViewFragment;
 import ph.com.gs3.loyaltystore.fragments.RewardViewFragment;
+import ph.com.gs3.loyaltystore.models.services.AdvertisementSenderService;
+import ph.com.gs3.loyaltystore.models.services.DiscoverPeersOnBackgroundService;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
@@ -58,6 +62,8 @@ public class MainActivity extends Activity implements
     private ProductDao productDao;
     private RewardDao rewardDao;
     private SalesProductDao salesProductDao;
+
+    private Intent discoverPeersOnBackgroundIntent;
 
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "yyyy-MM-dd", Locale.ENGLISH);
@@ -98,6 +104,28 @@ public class MainActivity extends Activity implements
         rewardDao = LoyaltyStoreApplication.getInstance().getSession().getRewardDao();
         salesProductDao = LoyaltyStoreApplication.getInstance().getSession().getSalesProductDao();
 
+        startBackgroundService();
+
+    }
+
+    private void startBackgroundService() {
+
+        setServiceIntent();
+
+        if (!isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
+            this.startService(discoverPeersOnBackgroundIntent);
+
+        } else {
+            Log.d(TAG, "DiscoverPeersOnBackgroundService SERVICE ALREADY RUNNING!");
+        }
+
+    }
+
+
+    private void setServiceIntent() {
+
+        discoverPeersOnBackgroundIntent = new Intent(this, DiscoverPeersOnBackgroundService.class);
+
     }
 
     @Override
@@ -133,6 +161,9 @@ public class MainActivity extends Activity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(isServiceRunning(DiscoverPeersOnBackgroundService.class)){
+            stopService(discoverPeersOnBackgroundIntent);
+        }
     }
 
     @Override
@@ -370,6 +401,11 @@ public class MainActivity extends Activity implements
             intent.putExtra(RewardViewFragment.EXTRA_TOTAL_DISCOUNT, totalDiscount);
 
             startActivity(intent);
+
+            if(isServiceRunning(DiscoverPeersOnBackgroundService.class)){
+                stopService(discoverPeersOnBackgroundIntent);
+            }
+
         }
     }
 
@@ -745,6 +781,23 @@ public class MainActivity extends Activity implements
 
         return result;
 
+    }
+
+    private void broadcastAdvertisement() {
+
+        Intent intent = new Intent(this, AdvertisementSenderService.class);
+        startService(intent);
+
+    }
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

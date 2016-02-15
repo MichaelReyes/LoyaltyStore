@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <!--<TextView
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Advertisement/Announcement:"
@@ -25,7 +25,7 @@
     <EditText
         android:id="@+id/Settings_etAdvertisement"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />-->
+        android:layout_height="wrap_content" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -40,12 +40,32 @@
         android:ems="10"
         android:inputType="number"/>
 
-    <Button
-        android:id="@+id/Settings_bSave"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@drawable/positivebtn"
-        android:text="Save" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/Settings_bSave"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="bottom"
+            android:background="@drawable/positivebtn"
+            android:textColor="#ffffff"
+            android:text="Save" />
+
+        <!--<Button
+            android:id="@+id/Settings_bBroadcastAdvertisment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bluebtn"
+            android:textColor="#ffffff"
+            android:text="Broadcast Advertisment" />-->
+
+
+    </LinearLayout>
 
 </LinearLayout>
