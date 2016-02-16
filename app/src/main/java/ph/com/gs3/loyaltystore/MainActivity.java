@@ -169,6 +169,8 @@ public class MainActivity extends Activity implements
     @Override
     public void onViewReady() {
 
+        Log.d(TAG, "STORE ID :" + retailer.getStoreId());
+
         /*productDao.deleteAll();
 
         Product product1 = new Product();
@@ -263,9 +265,9 @@ public class MainActivity extends Activity implements
         for (int i = 0; i < test.size(); i++) {
             Product a = test.get(i);
             Log.d(TAG, "PRODUCT :" + a.getId() + "~" + a.getName());
-        }*/
+        }
 
-        /*rewardDao.deleteAll();
+        rewardDao.deleteAll();
 
         List<Reward> sampleRewards = new ArrayList<>();
 
@@ -288,7 +290,7 @@ public class MainActivity extends Activity implements
 
         sampleRewards.add(reward1);
 
-        Reward reward2 = new Reward();
+        *//*Reward reward2 = new Reward();
         reward2.setReward_condition("Number of Products Purchased / Product Purchased");
         reward2.setCondition_product_id(2);
         reward2.setCondition("Greater Than Or Equal To");
@@ -300,7 +302,7 @@ public class MainActivity extends Activity implements
         reward2.setValid_until(java.sql.Date.valueOf("2016-02-27"));
         reward2.setCreated_at(dateSQL);
 
-        sampleRewards.add(reward2);
+        sampleRewards.add(reward2);*//*
 
         Reward reward3 = new Reward();
         reward3.setReward_condition("Purchase Amount");
@@ -308,15 +310,15 @@ public class MainActivity extends Activity implements
         reward3.setCondition("Greater Than");
         reward3.setCondition_value((float) 500);
         reward3.setReward_type("Discount");
-        reward3.setReward("250 discount for every 500+ worth of purchase.");
-        reward3.setReward_value("250");
+        reward3.setReward("50 discount for every 500+ worth of purchase.");
+        reward3.setReward_value("50");
         reward3.setValid_from(java.sql.Date.valueOf("2016-02-01"));
         reward3.setValid_until(java.sql.Date.valueOf("2016-02-27"));
         reward3.setCreated_at(dateSQL);
 
         sampleRewards.add(reward3);
 
-        Reward reward4 = new Reward();
+        *//*Reward reward4 = new Reward();
         reward4.setReward_condition("Purchase Amount");
         reward4.setCondition_product_id(0);
         reward4.setCondition("Equal To");
@@ -328,7 +330,7 @@ public class MainActivity extends Activity implements
         reward4.setValid_until(java.sql.Date.valueOf("2016-02-27"));
         reward4.setCreated_at(dateSQL);
 
-        sampleRewards.add(reward4);
+        sampleRewards.add(reward4);*//*
 
         rewardDao.insertInTx(sampleRewards);
 
@@ -723,13 +725,6 @@ public class MainActivity extends Activity implements
         Date dtValidFrom = java.sql.Date.valueOf(formatter.format(validFrom));
         Date dtValidUntil = java.sql.Date.valueOf(formatter.format(validUntil));
         Date currDate = java.sql.Date.valueOf(formatter.format(new Date()));
-
-        Log.d(TAG, "VALID FROM :" + dtValidFrom);
-        Log.d(TAG, "VALID UNTIL :" + dtValidUntil);
-        Log.d(TAG, "CURRENT DATE :" + currDate);
-
-        Log.d(TAG, "CDATE CTO VF :" + currDate.compareTo(dtValidFrom));
-        Log.d(TAG, "CDATE CTO VU :" + currDate.compareTo(dtValidUntil));
 
         if (currDate.compareTo(dtValidFrom) != -1 && currDate.compareTo(dtValidUntil) != 1) {
             isValid = true;

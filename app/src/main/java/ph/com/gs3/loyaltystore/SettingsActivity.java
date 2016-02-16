@@ -3,8 +3,11 @@ package ph.com.gs3.loyaltystore;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.util.Log;
@@ -117,7 +120,9 @@ public class SettingsActivity extends Activity
         bRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onGetAvailableBranches();
+                if (isNetworkAvailable()) {
+                    onGetAvailableBranches();
+                }
             }
         });
 
@@ -129,7 +134,9 @@ public class SettingsActivity extends Activity
                 registerDevice();
 
                 if (!isDeviceRegister) {
-                    registerDevice();
+                    if (isNetworkAvailable()) {
+                        registerDevice();
+                    }
                 }
 
                 retailer.setStoreName(etRetailName.getText().toString());
@@ -163,6 +170,13 @@ public class SettingsActivity extends Activity
 
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
     private void registerDevice() {
 
         if (!etServerUrl.getText().toString().equals("")) {
@@ -184,7 +198,6 @@ public class SettingsActivity extends Activity
 
                         try {
                             JSONObject jsonObject = new JSONObject(response.body().toString());
-
 
 
                             retailer.setStoreId(store.getId());
