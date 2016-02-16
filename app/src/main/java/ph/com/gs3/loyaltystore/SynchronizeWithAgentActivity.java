@@ -46,7 +46,9 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     protected TextView tvSyncProductsResult;
     protected TextView tvSyncRewardsResult;
     protected TextView tvSyncSalesResult;
+
     private Button bSync;
+    private Button bClose;
 
     private WifiP2pDevice agentDevice;
     private Retailer retailer;
@@ -128,21 +130,30 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
         tvSyncRewardsResult = (TextView) findViewById(R.id.Sync_tvSyncRewardsResult);
         tvSyncSalesResult = (TextView) findViewById(R.id.Sync_tvSyncSalesResult);
 
-
         bSync = (Button) findViewById(R.id.Sync_bSync);
         bSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 wifiDirectConnectivityDataPresenter.connectToCustomer(agentDevice, 3002);
                 Toast.makeText(SynchronizeWithAgentActivity.this, "Connecting", Toast.LENGTH_SHORT).show();
+                bSync.setEnabled(false);
             }
         });
+
+        bClose = (Button) findViewById(R.id.Sync_bClose);
+        bClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
     }
 
     private void synchronize() {
-        SyncWithAgentTask syncWithAgentTask = new SyncWithAgentTask(3002, this);
+        SyncWithAgentTask syncWithAgentTask = new SyncWithAgentTask(this, 3002, this);
         syncWithAgentTask.execute();
-        Toast.makeText(SynchronizeWithAgentActivity.this, "Synchronizing", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(SynchronizeWithAgentActivity.this, "Synchronizing", Toast.LENGTH_SHORT).show();
         showSyncStarted();
     }
 
@@ -178,18 +189,18 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     public void markSyncSalesDone(int syncedSalesCount) {
         pbSyncSales.setVisibility(View.GONE);
         if (syncedSalesCount > 0) {
-            tvSyncProductsResult.setText(tvSyncSalesResult + " sales transactions synced");
+            tvSyncSalesResult.setText(syncedSalesCount + " sales transactions synced");
         } else {
-            tvSyncProductsResult.setText("Done");
+            tvSyncSalesResult.setText("Done");
         }
     }
 
     @Override
     public void onNewPeersDiscovered(List<WifiP2pDevice> wifiP2pDevices) {
 
-        if (wifiDirectConnectivityDataPresenter.getLastConnectivityState().isConnectedToDevice()) {
-            synchronize();
-        }
+//        if (wifiDirectConnectivityDataPresenter.getLastConnectivityState().isConnectedToDevice()) {
+//            synchronize();
+//        }
 
     }
 
@@ -226,5 +237,10 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     @Override
     public void onSalesSent(List<Sales> sales) {
         markSyncSalesDone(sales.size());
+
+        bSync.setVisibility(View.GONE);
+        bClose.setVisibility(View.VISIBLE);
+
+//        finish();
     }
 }
