@@ -36,8 +36,7 @@ public class LoyaltyStoreDAOGenerator {
         sales.addFloatProperty("amount");
         sales.addFloatProperty("total_discount");
         sales.addBooleanProperty("is_synched");
-        sales.addDateProperty("transacion_date");
-        sales.addBooleanProperty("is_synced");
+        sales.addDateProperty("transaction_date");
 
         Entity customer = schema.addEntity("Customer");
         customer.addIdProperty();

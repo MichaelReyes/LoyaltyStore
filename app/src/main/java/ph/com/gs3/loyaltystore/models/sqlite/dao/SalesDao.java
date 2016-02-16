@@ -28,8 +28,8 @@ public class SalesDao extends AbstractDao<Sales, Long> {
         public final static Property Customer_id = new Property(2, Long.class, "customer_id", false, "CUSTOMER_ID");
         public final static Property Amount = new Property(3, Float.class, "amount", false, "AMOUNT");
         public final static Property Total_discount = new Property(4, Float.class, "total_discount", false, "TOTAL_DISCOUNT");
-        public final static Property Transacion_date = new Property(5, java.util.Date.class, "transacion_date", false, "TRANSACION_DATE");
-        public final static Property Is_synced = new Property(6, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Is_synched = new Property(5, Boolean.class, "is_synched", false, "IS_SYNCHED");
+        public final static Property Transaction_date = new Property(6, java.util.Date.class, "transaction_date", false, "TRANSACTION_DATE");
     };
 
 
@@ -50,8 +50,8 @@ public class SalesDao extends AbstractDao<Sales, Long> {
                 "\"CUSTOMER_ID\" INTEGER," + // 2: customer_id
                 "\"AMOUNT\" REAL," + // 3: amount
                 "\"TOTAL_DISCOUNT\" REAL," + // 4: total_discount
-                "\"TRANSACION_DATE\" INTEGER," + // 5: transacion_date
-                "\"IS_SYNCED\" INTEGER);"); // 6: is_synced
+                "\"IS_SYNCHED\" INTEGER," + // 5: is_synched
+                "\"TRANSACTION_DATE\" INTEGER);"); // 6: transaction_date
     }
 
     /** Drops the underlying database table. */
@@ -90,14 +90,14 @@ public class SalesDao extends AbstractDao<Sales, Long> {
             stmt.bindDouble(5, total_discount);
         }
  
-        java.util.Date transacion_date = entity.getTransacion_date();
-        if (transacion_date != null) {
-            stmt.bindLong(6, transacion_date.getTime());
+        Boolean is_synched = entity.getIs_synched();
+        if (is_synched != null) {
+            stmt.bindLong(6, is_synched ? 1L: 0L);
         }
  
-        Boolean is_synced = entity.getIs_synced();
-        if (is_synced != null) {
-            stmt.bindLong(7, is_synced ? 1L: 0L);
+        java.util.Date transaction_date = entity.getTransaction_date();
+        if (transaction_date != null) {
+            stmt.bindLong(7, transaction_date.getTime());
         }
     }
 
@@ -116,8 +116,8 @@ public class SalesDao extends AbstractDao<Sales, Long> {
             cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2), // customer_id
             cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3), // amount
             cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // total_discount
-            cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)), // transacion_date
-            cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0 // is_synced
+            cursor.isNull(offset + 5) ? null : cursor.getShort(offset + 5) != 0, // is_synched
+            cursor.isNull(offset + 6) ? null : new java.util.Date(cursor.getLong(offset + 6)) // transaction_date
         );
         return entity;
     }
@@ -130,8 +130,8 @@ public class SalesDao extends AbstractDao<Sales, Long> {
         entity.setCustomer_id(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
         entity.setAmount(cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3));
         entity.setTotal_discount(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
-        entity.setTransacion_date(cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)));
-        entity.setIs_synced(cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0);
+        entity.setIs_synched(cursor.isNull(offset + 5) ? null : cursor.getShort(offset + 5) != 0);
+        entity.setTransaction_date(cursor.isNull(offset + 6) ? null : new java.util.Date(cursor.getLong(offset + 6)));
      }
     
     /** @inheritdoc */

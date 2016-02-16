@@ -11,8 +11,8 @@ public class Sales {
     private Long customer_id;
     private Float amount;
     private Float total_discount;
-    private java.util.Date transacion_date;
-    private Boolean is_synced;
+    private Boolean is_synched;
+    private java.util.Date transaction_date;
 
     public Sales() {
     }
@@ -21,14 +21,14 @@ public class Sales {
         this.id = id;
     }
 
-    public Sales(Long id, Long store_id, Long customer_id, Float amount, Float total_discount, java.util.Date transacion_date, Boolean is_synced) {
+    public Sales(Long id, Long store_id, Long customer_id, Float amount, Float total_discount, Boolean is_synched, java.util.Date transaction_date) {
         this.id = id;
         this.store_id = store_id;
         this.customer_id = customer_id;
         this.amount = amount;
         this.total_discount = total_discount;
-        this.transacion_date = transacion_date;
-        this.is_synced = is_synced;
+        this.is_synched = is_synched;
+        this.transaction_date = transaction_date;
     }
 
     public Long getId() {
@@ -71,20 +71,20 @@ public class Sales {
         this.total_discount = total_discount;
     }
 
-    public java.util.Date getTransacion_date() {
-        return transacion_date;
+    public Boolean getIs_synched() {
+        return is_synched;
     }
 
-    public void setTransacion_date(java.util.Date transacion_date) {
-        this.transacion_date = transacion_date;
+    public void setIs_synched(Boolean is_synched) {
+        this.is_synched = is_synched;
     }
 
-    public Boolean getIs_synced() {
-        return is_synced;
+    public java.util.Date getTransaction_date() {
+        return transaction_date;
     }
 
-    public void setIs_synced(Boolean is_synced) {
-        this.is_synced = is_synced;
+    public void setTransaction_date(java.util.Date transaction_date) {
+        this.transaction_date = transaction_date;
     }
 
 }

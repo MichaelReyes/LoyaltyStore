@@ -398,7 +398,7 @@ public class CheckoutActivity extends AppCompatActivity implements
             jsonSalesObject.put("customer_id", sales.getCustomer_id());
             jsonSalesObject.put("amount", sales.getAmount());
             jsonSalesObject.put("total_discount", sales.getTotal_discount());
-            jsonSalesObject.put("transaction_date", sales.getTransacion_date());
+            jsonSalesObject.put("transaction_date", sales.getTransaction_date());
 
         }
 
@@ -419,8 +419,7 @@ public class CheckoutActivity extends AppCompatActivity implements
         Sales sales = new Sales();
         sales.setStore_id(retailer.getStoreId());
         sales.setAmount(totalAmount);
-        sales.setTransacion_date(date);
-        sales.setIs_synced(false);
+        sales.setTransaction_date(date);
 
         long salesId = salesDao.insert(sales);
         this.salesId = salesId;
