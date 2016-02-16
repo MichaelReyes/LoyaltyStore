@@ -183,7 +183,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
             for (Sales salesTransaction : sales) {
                 //  Send sales header
-                Log.v(TAG, salesTransaction.getId() + " " + salesTransaction.getTransacion_date() + " " + salesTransaction.getAmount());
+                Log.v(TAG, salesTransaction.getId() + " " + salesTransaction.getTransaction_date()+ " " + salesTransaction.getAmount());
                 dataOutputStream.writeUTF(gson.toJson(salesTransaction));
 
                 String salesConfirmation = dataInputStream.readUTF();
