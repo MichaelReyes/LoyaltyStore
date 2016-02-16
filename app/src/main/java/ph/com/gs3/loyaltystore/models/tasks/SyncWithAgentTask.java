@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import de.greenrobot.dao.query.QueryBuilder;
@@ -143,6 +144,12 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         if ("PRODUCTS".equals(preMessage)) {
             String productsJsonString = dataInputStream.readUTF();
             Log.v(TAG, "Acquired Products: " + productsJsonString);
+
+            Gson gson = new Gson();
+
+            Product[] products = gson.fromJson(productsJsonString, Product[].class);
+            synchedProducts = Arrays.asList(products);
+
         }
 
     }
@@ -153,6 +160,11 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         if ("REWARDS".equals(preMessage)) {
             String rewardsJsonString = dataInputStream.readUTF();
             Log.v(TAG, "Acquired Rewards: " + rewardsJsonString);
+
+            Gson gson = new Gson();
+
+            Reward[] rewards = gson.fromJson(rewardsJsonString, Reward[].class);
+            synchedRewards = Arrays.asList(rewards);
         }
     }
 

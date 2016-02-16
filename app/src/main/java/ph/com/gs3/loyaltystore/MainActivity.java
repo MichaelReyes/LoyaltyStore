@@ -171,6 +171,10 @@ public class MainActivity extends Activity implements
 
         Log.d(TAG, "STORE ID :" + retailer.getStoreId());
 
+        List<Product> productList = productDao.loadAll();
+
+       Log.d(TAG, "PRODUCTS SIZE : " + productList.size());
+
         /*productDao.deleteAll();
 
         Product product1 = new Product();

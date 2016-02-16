@@ -246,6 +246,8 @@ public class CheckoutActivity extends AppCompatActivity implements
     public void onComplete() {
 
         setSalesIdToProductsAndRewards();
+        Intent intent = new Intent(CheckoutActivity.this,MainActivity.class);
+        startActivity(intent);
         finish();
 
 

@@ -224,14 +224,16 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     public void onProductsAcquired(List<Product> products) {
         markSyncProductsDone(products.size());
 
-        productDao.insertInTx(products);
+        Log.d(TAG," SIZE : " + products.size());
+
+        productDao.insertOrReplaceInTx(products);
     }
 
     @Override
     public void onRewardsAcquired(List<Reward> rewards) {
         markSyncRewardsDone(rewards.size());
 
-        rewardDao.insertInTx(rewards);
+        rewardDao.insertOrReplaceInTx(rewards);
     }
 
     @Override
