@@ -39,6 +39,8 @@ public class MainViewFragment extends Fragment {
     private Button bClear;
     private Button bSynchronize;
     private Button bSettings;
+    private Button bMaintenance;
+    private Button bRefresh;
 
     private TextView tvTotal;
     private Activity activity;
@@ -141,6 +143,22 @@ public class MainViewFragment extends Fragment {
             }
         });
 
+        bMaintenance = (Button) rootView.findViewById(R.id.Main_bMaintenace);
+        bMaintenance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mainViewFragmentEventListener.onMaintenanceClicked();
+            }
+        });
+
+        bRefresh = (Button) rootView.findViewById(R.id.Main_bRefresh);
+        bRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setMenuButtons();
+            }
+        });
+
         mainViewFragmentEventListener.onViewReady();
 
         return rootView;
@@ -150,6 +168,8 @@ public class MainViewFragment extends Fragment {
 
         int buttonPerLinearLayoutCount = 3;
         LinearLayout rootLinearLayout = (LinearLayout) rootView.findViewById(R.id.Main_llMenu);
+
+        rootLinearLayout.removeAllViews();
 
         getProducts();
 
@@ -264,6 +284,8 @@ public class MainViewFragment extends Fragment {
         void onSynchronizeClicked();
 
         void onSettingsClicked();
+
+        void onMaintenanceClicked();
     }
 
 }

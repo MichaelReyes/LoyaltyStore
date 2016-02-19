@@ -185,14 +185,30 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Synchronize" />
+                android:text="Synchronize"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/Main_bSettings"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Settings" />
+                android:text="Settings"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/Main_bMaintenace"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Maintenance" />
+
+            <Button
+                android:id="@+id/Main_bRefresh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Refresh" />
 
         </LinearLayout>
 

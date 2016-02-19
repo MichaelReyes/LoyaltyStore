@@ -476,6 +476,12 @@ public class MainActivity extends Activity implements
         startActivity(intent);
     }
 
+    @Override
+    public void onMaintenanceClicked() {
+        Intent intent = new Intent(this, MaintenanceActivity.class);
+        startActivity(intent);
+    }
+
     private String convertToJsonString(List<SalesProduct> salesProducts, List<Reward> rewards) throws JSONException {
 
         JSONObject salesProductsJsonObject;
@@ -494,7 +500,7 @@ public class MainActivity extends Activity implements
                     SalesProductDao.Properties.Id.columnName, salesProduct.getId()
             );
             salesProductsJsonObject.put(
-                    SalesProductDao.Properties.Sales_id.columnName, salesProduct.getSales_id()
+                    SalesProductDao.Properties.Sales_transaction_number.columnName, salesProduct.getSales_transaction_number()
             );
             salesProductsJsonObject.put(
                     SalesProductDao.Properties.Product_id.columnName, salesProduct.getProduct_id()

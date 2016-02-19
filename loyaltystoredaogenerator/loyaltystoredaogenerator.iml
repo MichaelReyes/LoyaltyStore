@@ -9,7 +9,6 @@
     <facet type="java-gradle" name="Java-Gradle">
       <configuration>
         <option name="BUILD_FOLDER_PATH" value="$MODULE_DIR$/build" />
-        <option name="BUILDABLE" value="true" />
       </configuration>
     </facet>
   </component>
@@ -31,3 +30,4 @@
     <orderEntry type="library" exported="" name="freemarker-2.3.22" level="project" />
   </component>
 </module>
+

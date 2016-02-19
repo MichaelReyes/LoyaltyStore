@@ -10,6 +10,7 @@ public class Product {
     private String name;
     private Float unit_cost;
     private String sku;
+    private Boolean is_active;
 
     public Product() {
     }
@@ -18,11 +19,12 @@ public class Product {
         this.id = id;
     }
 
-    public Product(Long id, String name, Float unit_cost, String sku) {
+    public Product(Long id, String name, Float unit_cost, String sku, Boolean is_active) {
         this.id = id;
         this.name = name;
         this.unit_cost = unit_cost;
         this.sku = sku;
+        this.is_active = is_active;
     }
 
     public Long getId() {
@@ -55,6 +57,14 @@ public class Product {
 
     public void setSku(String sku) {
         this.sku = sku;
+    }
+
+    public Boolean getIs_active() {
+        return is_active;
+    }
+
+    public void setIs_active(Boolean is_active) {
+        this.is_active = is_active;
     }
 
 }

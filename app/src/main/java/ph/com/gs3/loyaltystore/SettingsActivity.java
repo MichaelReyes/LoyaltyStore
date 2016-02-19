@@ -50,6 +50,13 @@ public class SettingsActivity extends Activity
     private EditText etServerUrl;
 
     private Button bSave;
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+    }
+
     private Button bRegister;
     private Button bBroadcast;
 

@@ -7,8 +7,8 @@ package ph.com.gs3.loyaltystore.models.sqlite.dao;
 public class SalesHasReward {
 
     private Long id;
-    private Long sales_id;
     private Long reward_id;
+    private String sales_transaction_number;
 
     public SalesHasReward() {
     }
@@ -17,10 +17,10 @@ public class SalesHasReward {
         this.id = id;
     }
 
-    public SalesHasReward(Long id, Long sales_id, Long reward_id) {
+    public SalesHasReward(Long id, Long reward_id, String sales_transaction_number) {
         this.id = id;
-        this.sales_id = sales_id;
         this.reward_id = reward_id;
+        this.sales_transaction_number = sales_transaction_number;
     }
 
     public Long getId() {
@@ -31,20 +31,20 @@ public class SalesHasReward {
         this.id = id;
     }
 
-    public Long getSales_id() {
-        return sales_id;
-    }
-
-    public void setSales_id(Long sales_id) {
-        this.sales_id = sales_id;
-    }
-
     public Long getReward_id() {
         return reward_id;
     }
 
     public void setReward_id(Long reward_id) {
         this.reward_id = reward_id;
+    }
+
+    public String getSales_transaction_number() {
+        return sales_transaction_number;
+    }
+
+    public void setSales_transaction_number(String sales_transaction_number) {
+        this.sales_transaction_number = sales_transaction_number;
     }
 
 }

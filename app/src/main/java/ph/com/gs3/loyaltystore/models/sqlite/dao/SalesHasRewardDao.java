@@ -24,8 +24,8 @@ public class SalesHasRewardDao extends AbstractDao<SalesHasReward, Long> {
     */
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
-        public final static Property Sales_id = new Property(1, Long.class, "sales_id", false, "SALES_ID");
-        public final static Property Reward_id = new Property(2, Long.class, "reward_id", false, "REWARD_ID");
+        public final static Property Reward_id = new Property(1, Long.class, "reward_id", false, "REWARD_ID");
+        public final static Property Sales_transaction_number = new Property(2, String.class, "sales_transaction_number", false, "SALES_TRANSACTION_NUMBER");
     };
 
 
@@ -42,8 +42,8 @@ public class SalesHasRewardDao extends AbstractDao<SalesHasReward, Long> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"SALES_HAS_REWARD\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
-                "\"SALES_ID\" INTEGER," + // 1: sales_id
-                "\"REWARD_ID\" INTEGER);"); // 2: reward_id
+                "\"REWARD_ID\" INTEGER," + // 1: reward_id
+                "\"SALES_TRANSACTION_NUMBER\" TEXT);"); // 2: sales_transaction_number
     }
 
     /** Drops the underlying database table. */
@@ -62,14 +62,14 @@ public class SalesHasRewardDao extends AbstractDao<SalesHasReward, Long> {
             stmt.bindLong(1, id);
         }
  
-        Long sales_id = entity.getSales_id();
-        if (sales_id != null) {
-            stmt.bindLong(2, sales_id);
-        }
- 
         Long reward_id = entity.getReward_id();
         if (reward_id != null) {
-            stmt.bindLong(3, reward_id);
+            stmt.bindLong(2, reward_id);
+        }
+ 
+        String sales_transaction_number = entity.getSales_transaction_number();
+        if (sales_transaction_number != null) {
+            stmt.bindString(3, sales_transaction_number);
         }
     }
 
@@ -84,8 +84,8 @@ public class SalesHasRewardDao extends AbstractDao<SalesHasReward, Long> {
     public SalesHasReward readEntity(Cursor cursor, int offset) {
         SalesHasReward entity = new SalesHasReward( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
-            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // sales_id
-            cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2) // reward_id
+            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // reward_id
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2) // sales_transaction_number
         );
         return entity;
     }
@@ -94,8 +94,8 @@ public class SalesHasRewardDao extends AbstractDao<SalesHasReward, Long> {
     @Override
     public void readEntity(Cursor cursor, SalesHasReward entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
-        entity.setSales_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
-        entity.setReward_id(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
+        entity.setReward_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
+        entity.setSales_transaction_number(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
      }
     
     /** @inheritdoc */

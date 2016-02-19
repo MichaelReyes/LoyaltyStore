@@ -77,7 +77,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     private ProgressDialog progressDialog;
 
-    private long salesId;
+    private String salesTransactionNumber;
 
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "EEE MMM d HH:mm:ss zzz yyyy");
@@ -85,7 +85,7 @@ public class CheckoutActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        salesId = -1;
+        salesTransactionNumber = "";
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkout);
@@ -279,13 +279,13 @@ public class CheckoutActivity extends AppCompatActivity implements
     //In case the connection to customer device failed and store decided to cancel it.
     private void removeSalesRecord(){
 
-        if(salesId != -1){
+        if(salesTransactionNumber != ""){
 
             List<Sales> salesList = salesDao.queryRaw(
                     "WHERE " +
                     SalesDao.Properties.Id.columnName + 
                     "=?",
-                    new String[]{salesId + ""}
+                    new String[]{salesTransactionNumber + ""}
             );
             
             for(Sales sales : salesList){
@@ -296,23 +296,23 @@ public class CheckoutActivity extends AppCompatActivity implements
             
             List<SalesProduct> salesProductList = salesProductDao.queryRaw(
                     "WHERE " +
-                    SalesProductDao.Properties.Sales_id.columnName +
+                    SalesProductDao.Properties.Sales_transaction_number.columnName +
                     "=?",
-                    new String[]{salesId + ""}
+                    new String[]{salesTransactionNumber + ""}
             );
 
             for(SalesProduct salesProduct : salesProductList){
 
-                salesProduct.setSales_id(null);
+                salesProduct.setSales_transaction_number("");
                 salesProductDao.update(salesProduct);
 
             }
 
             List<SalesHasReward> salesHasRewardList = salesHasRewardDao.queryRaw(
                     "WHERE " +
-                    SalesHasRewardDao.Properties.Sales_id.columnName +
+                    SalesHasRewardDao.Properties.Sales_transaction_number.columnName +
                     "=?",
-                    new String[]{salesId + ""});
+                    new String[]{salesTransactionNumber + ""});
 
             for(SalesHasReward salesHasReward : salesHasRewardList){
 
@@ -374,7 +374,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             for (Product product : products) {
 
-                jsonSalesProductsObject.put("sales_id", salesProduct.getSales_id());
+                jsonSalesProductsObject.put("sales_transaction_number", salesProduct.getSales_transaction_number());
                 jsonSalesProductsObject.put("product_id", salesProduct.getProduct_id());
                 jsonSalesProductsObject.put("product_name", product.getName());
                 jsonSalesProductsObject.put("unit_cost", product.getUnit_cost());
@@ -389,12 +389,13 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         jsonObject.put(DATA_TYPE_JSON_SALES_PRODUCT, jsonArray);
 
-        List<Sales> salesList = salesDao.queryRaw(" WHERE " + SalesDao.Properties.Id.columnName + "=?",
-                new String[]{salesProducts.get(0).getSales_id() + ""});
+        List<Sales> salesList = salesDao.queryRaw(" WHERE " + SalesDao.Properties.Transaction_number.columnName + "=?",
+                new String[]{salesProducts.get(0).getSales_transaction_number() + ""});
 
         for (Sales sales : salesList) {
 
             jsonSalesObject.put("id", sales.getId());
+            jsonSalesObject.put("transaction_number", sales.getTransaction_number());
             jsonSalesObject.put("store_id", sales.getStore_id());
             jsonSalesObject.put("store_name", retailer.getStoreName());
             jsonSalesObject.put("customer_id", sales.getCustomer_id());
@@ -410,52 +411,53 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     }
 
-    private long generateSalesID() {
+    private Sales generateSales() {
 
 
         SimpleDateFormat formatter = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+                "yyyyMMdd_HHmmss", Locale.ENGLISH);
         Date date = new Date();
-        String currDateTime = formatter.format(date);
+        String stringDateTime = formatter.format(date);
 
         Sales sales = new Sales();
+        sales.setTransaction_number(retailer.getStoreId() + "_" + stringDateTime);
         sales.setStore_id(retailer.getStoreId());
         sales.setAmount(totalAmount);
         sales.setTransaction_date(date);
 
         long salesId = salesDao.insert(sales);
-        this.salesId = salesId;
+        this.salesTransactionNumber = retailer.getStoreId() + "_" + stringDateTime;
 
-        return salesId;
+        return sales;
     }
 
     private void setSalesIdToProductsAndRewards() {
 
-        if (salesId == -1) {
+        if (salesTransactionNumber == "") {
 
-            long salesId = generateSalesID();
+            Sales sales = generateSales();
 
             for (SalesProduct salesProduct : salesProducts) {
 
-                salesProduct.setSales_id(salesId);
+                salesProduct.setSales_transaction_number(sales.getTransaction_number());
                 salesProductDao.insert(salesProduct);
 
             }
 
-            setSalesHasReward(salesId);
+            setSalesHasReward(sales);
 
         }
 
 
     }
 
-    private void setSalesHasReward(long salesId) {
+    private void setSalesHasReward(Sales sales) {
 
         for (Reward reward : rewards) {
 
             SalesHasReward salesHasReward = new SalesHasReward();
-            salesHasReward.setSales_id(salesId);
             salesHasReward.setReward_id(reward.getId());
+            salesHasReward.setSales_transaction_number(sales.getTransaction_number());
 
             salesHasRewardDao.insert(salesHasReward);
 
@@ -469,7 +471,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         List<Sales> salesList = salesDao.queryRaw(
                 "WHERE " + SalesDao.Properties.Id.columnName + "=?",
-                new String[]{salesId + ""}
+                new String[]{salesTransactionNumber + ""}
         );
 
         for (Sales sales : salesList) {

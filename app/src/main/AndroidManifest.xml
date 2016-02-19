@@ -54,11 +54,25 @@
             android:screenOrientation="portrait"></activity>
         <activity
             android:name=".SynchronizeActivity"
-            android:label="@string/title_activity_sync"></activity>
+            android:label="@string/title_activity_sync"
+            android:screenOrientation="landscape"></activity>
         <activity
             android:name=".SynchronizeWithAgentActivity"
             android:launchMode = "singleInstance"
-            android:label="Sync With Agent"></activity>
+            android:label="Sync With Agent"
+            android:screenOrientation="landscape"></activity>
+
+        <activity
+            android:name=".MaintenanceActivity"
+            android:launchMode = "singleInstance"
+            android:label="Maintenance"
+            android:screenOrientation="landscape"></activity>
+
+        <activity
+            android:name=".SalesActivity"
+            android:launchMode = "singleInstance"
+            android:label="Sales"
+            android:screenOrientation="landscape"></activity>
 
     </application>
 

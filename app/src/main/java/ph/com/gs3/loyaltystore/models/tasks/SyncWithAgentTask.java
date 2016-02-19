@@ -201,7 +201,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                 String salesConfirmation = dataInputStream.readUTF();
                 if ("SALES_RECEIVED".equals(salesConfirmation)) {
                     //  Send sales rewards
-                    List<SalesHasReward> salesRewardList = salesHasRewardDao.queryBuilder().where(SalesHasRewardDao.Properties.Sales_id.eq(salesTransaction.getId())).list();
+                    List<SalesHasReward> salesRewardList = salesHasRewardDao.queryBuilder().where(SalesHasRewardDao.Properties.Sales_transaction_number.eq(salesTransaction.getTransaction_number())).list();
                     dataOutputStream.writeUTF(gson.toJson(salesRewardList));
                 } else {
                     Log.e(TAG, "Sales sync failed, expected SALES_RECEIVED");
@@ -211,7 +211,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                 String salesRewardsConfirmation = dataInputStream.readUTF();
 
                 if ("SALES_REWARDS_RECEIVED".equals(salesRewardsConfirmation)) {
-                    List<SalesProduct> salesProductList = salesProductDao.queryBuilder().where(SalesProductDao.Properties.Sales_id.eq(salesTransaction.getId())).list();
+                    List<SalesProduct> salesProductList = salesProductDao.queryBuilder().where(SalesProductDao.Properties.Sales_transaction_number.eq(salesTransaction.getTransaction_number())).list();
                     Log.e(TAG, salesProductList.size() + " products under sales: " + salesTransaction.getId() + " will be sent");
                     dataOutputStream.writeUTF(gson.toJson(salesProductList));
                 } else {

@@ -14,6 +14,7 @@ public class LoyaltyStoreDAOGenerator {
         product.addStringProperty("name");
         product.addFloatProperty("unit_cost");
         product.addStringProperty("sku");
+        product.addBooleanProperty("is_active");
 
         Entity reward = schema.addEntity("Reward");
         reward.addIdProperty();
@@ -31,6 +32,7 @@ public class LoyaltyStoreDAOGenerator {
 
         Entity sales = schema.addEntity("Sales");
         sales.addIdProperty().autoincrement().primaryKey();
+        sales.addStringProperty("transaction_number");
         sales.addLongProperty("store_id");
         sales.addLongProperty("customer_id");
         sales.addFloatProperty("amount");
@@ -52,12 +54,12 @@ public class LoyaltyStoreDAOGenerator {
 
         Entity salesHasReward = schema.addEntity("SalesHasReward");
         salesHasReward.addIdProperty().autoincrement();
-        salesHasReward.addLongProperty("sales_id");
         salesHasReward.addLongProperty("reward_id");
+        salesHasReward.addStringProperty("sales_transaction_number");
 
         Entity salesProduct = schema.addEntity("SalesProduct");
         salesProduct.addIdProperty().autoincrement().primaryKey();
-        salesProduct.addLongProperty("sales_id");
+        salesProduct.addStringProperty("sales_transaction_number");
         salesProduct.addLongProperty("product_id");
         salesProduct.addIntProperty("quantity");
         salesProduct.addFloatProperty("sub_total");

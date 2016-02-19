@@ -62,7 +62,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/Sync_tvSyncProductsLabel"
-                android:text="12 Products Synchronized" />
+                android:text="Ready to Sync" />
 
             <ProgressBar
                 android:id="@+id/Sync_pbSyncProductsProgress"
@@ -94,7 +94,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/Sync_tvSyncRewardsLabel"
-                android:text="2 Rewards Synchronized" />
+                android:text="Ready to Sync" />
 
             <ProgressBar
                 android:id="@+id/Sync_pbSyncRewardsProgress"
@@ -127,7 +127,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/Sync_tvSyncSalesLabel"
-                android:text="25 Sales Transactions Synchronized" />
+                android:text="Ready to Sync" />
 
             <ProgressBar
                 android:id="@+id/Sync_pbSyncSalesProgress"
