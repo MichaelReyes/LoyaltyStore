@@ -65,7 +65,7 @@ public class RewardDiscountListAdapter extends BaseAdapter {
 
         switch (reward.getReward_condition()) {
 
-            case "Number of Products Purchased / Product Purchased":
+            case "product_purchase":
 
                 String sql = " WHERE " + ProductDao.Properties.Id.columnName + "=?";
 
@@ -81,9 +81,9 @@ public class RewardDiscountListAdapter extends BaseAdapter {
 
                 break;
 
-            case "Purchase Amount":
+            case "purchase_amount":
                 viewHolder.tvRewardName.setText(
-                        reward.getReward_condition() + " " +
+                        "Purchase Amount " +
                                 reward.getCondition().toLowerCase() + " " +
                                 reward.getCondition_value()
                 );

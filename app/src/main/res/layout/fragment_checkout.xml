@@ -133,6 +133,7 @@
             android:text="Remarks : " />
 
         <EditText
+            android:id="@+id/Checkout_etRemarks"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 

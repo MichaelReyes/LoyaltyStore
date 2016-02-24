@@ -60,6 +60,7 @@ public class WifiDirectConnectivityDataPresenter implements
         wifiDirectBroadcastReceiver = new WifiDirectBroadcastReceiver(wifiP2pManager, channel);
     }
 
+
     public void onResume() {
 
         // register this as an observer of the wifi direct connectivity state

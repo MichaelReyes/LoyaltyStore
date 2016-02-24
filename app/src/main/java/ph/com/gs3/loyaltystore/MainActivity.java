@@ -8,11 +8,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings.Secure;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,7 +40,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 
-public class MainActivity extends Activity implements
+public class MainActivity extends AppCompatActivity implements
         MainViewFragment.MainViewFragmentEventListener {
 
     public static final String TAG = MainActivity.class.getSimpleName();
@@ -71,10 +73,10 @@ public class MainActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        mainActivity = this;
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mainActivity = this;
 
         retailer = Retailer.getDeviceRetailerFromSharedPreferences(this);
 
@@ -136,8 +138,39 @@ public class MainActivity extends Activity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        switch (id) {
+
+            case R.id.action_Main_Sync:
+                navigateToActivity(SynchronizeWithAgentActivity.class);
+                break;
+            case R.id.action_Main_Items_To_Return:
+                navigateToActivity(ViewItemReturnActivity.class);
+                break;
+            case R.id.action_Main_Expenses:
+                navigateToActivity(ExpensesActivity.class);
+                break;
+            case R.id.action_Main_Sales:
+                navigateToActivity(SalesActivity.class);
+                break;
+            case R.id.action_Main_Settings:
+                navigateToActivity(SettingsActivity.class);
+                break;
+        }
+
         return super.onOptionsItemSelected(item);
+
     }
+
+    private void navigateToActivity(Class activityClass) {
+
+        Intent intent = new Intent(this, activityClass);
+        startActivity(intent);
+
+    }
+
 
     @Override
     protected void onResume() {
@@ -169,11 +202,11 @@ public class MainActivity extends Activity implements
     @Override
     public void onViewReady() {
 
-        Log.d(TAG, "STORE ID :" + retailer.getStoreId());
+        //Log.d(TAG, "STORE ID :" + retailer.getStoreId());
 
         List<Product> productList = productDao.loadAll();
 
-       Log.d(TAG, "PRODUCTS SIZE : " + productList.size());
+       //Log.d(TAG, "PRODUCTS SIZE : " + productList.size());
 
         /*productDao.deleteAll();
 
@@ -364,11 +397,11 @@ public class MainActivity extends Activity implements
     }
 
     @Override
-    public void onProductClicked(final String productName) {
+    public void onProductClicked(final Product product) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("");
-        builder.setMessage(productName);
+        builder.setMessage(product.getName());
 
         final EditText input = new EditText(this);
 
@@ -385,7 +418,15 @@ public class MainActivity extends Activity implements
                     int quantity = Integer.parseInt(input.getText().toString());
 
                     if (quantity != 0) {
-                        onAddSalesProduct(productName, quantity);
+
+                        if(quantity>9999){
+
+                            Toast.makeText(MainActivity.this, "Invalid input", Toast.LENGTH_SHORT).show();
+
+                        }else{
+                            onAddSalesProduct(product, quantity);
+                        }
+
                     }
 
                 }
@@ -465,7 +506,7 @@ public class MainActivity extends Activity implements
     @Override
     public void onSynchronizeClicked() {
 
-        Intent intent = new Intent(this, SynchronizeActivity.class);
+        Intent intent = new Intent(this, SynchronizeWithAgentActivity.class);
         startActivity(intent);
 
     }
@@ -478,6 +519,11 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onMaintenanceClicked() {
+
+        if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
+            stopService(discoverPeersOnBackgroundIntent);
+        }
+
         Intent intent = new Intent(this, MaintenanceActivity.class);
         startActivity(intent);
     }
@@ -572,20 +618,45 @@ public class MainActivity extends Activity implements
 
     }
 
-    private void onAddSalesProduct(String productName, int quantity) {
+    private void onAddSalesProduct(Product product, int quantity) {
 
         float totalAmount = mainViewFragment.getTotalAmount();
 
-        String sql = " WHERE " + ProductDao.Properties.Name.columnName + "=?";
+        float subTotal = product.getUnit_cost() * quantity;
+        totalAmount += subTotal;
 
-        List<Product> products = productDao.queryRaw(sql, new String[]{productName});
+        int productIndexInList = productExistInList(product);
+
+        if (productIndexInList == -1) {
+
+            SalesProduct salesProduct = new SalesProduct();
+            salesProduct.setProduct_id(product.getId());
+            salesProduct.setQuantity(quantity);
+            salesProduct.setSub_total(subTotal);
+            salesProduct.setSale_type("SALE");
+
+            salesProducts.add(salesProduct);
+
+        } else {
+            SalesProduct salesProduct = salesProducts.get(productIndexInList);
+            salesProduct.setQuantity(quantity + salesProduct.getQuantity());
+            salesProduct.setSub_total(subTotal + salesProduct.getSub_total());
+        }
+
+        mainViewFragment.setTotalAmount(totalAmount);
+
+        salesProductListAdapter.notifyDataSetChanged();
+
+        /*String sql = " WHERE " + ProductDao.Properties.Name.columnName + "=?";
+
+        List<Product> products = productDao.queryRaw(sql, new String[]{productSelected.getName()});
 
         for (Product product : products) {
 
             float subTotal = product.getUnit_cost() * quantity;
             totalAmount += subTotal;
 
-            int productIndexInList = productExistInList(product.getId());
+            int productIndexInList = productExistInList(product);
 
             if (productIndexInList == -1) {
 
@@ -607,16 +678,16 @@ public class MainActivity extends Activity implements
 
             salesProductListAdapter.notifyDataSetChanged();
 
-        }
+        }*/
 
     }
 
-    private int productExistInList(long productId) {
+    private int productExistInList(Product product) {
 
         int index = -1;
 
         for (int i = 0; i < salesProducts.size(); i++) {
-            if (salesProducts.get(i).getProduct_id() == productId) {
+            if (salesProducts.get(i).getProduct_id() == product.getId()) {
                 index = i;
             }
         }
@@ -647,10 +718,11 @@ public class MainActivity extends Activity implements
             List<Reward> rewardsForProductList =
                     rewardDao.queryRaw(sql, new String[]{productId + ""});
 
+            //Log.d(TAG,"FOUND REWARD SIZE : " + rewardsForProductList.size());
 
             for (Reward reward : rewardsForProductList) {
 
-                Log.d(TAG, reward.toString());
+                //Log.d(TAG, reward.toString());
 
                 if (isRewardValid(reward.getValid_from(), reward.getValid_until())) {
 
@@ -659,7 +731,10 @@ public class MainActivity extends Activity implements
                             reward.getCondition_value(),
                             salesProduct.getQuantity())) {
 
-                        if (reward.getCondition().toUpperCase().equals("EQUAL TO")) {
+
+                        //Log.d(TAG, "BETWEEN CONDITION :" + reward.getCondition().toUpperCase());
+
+                        if (reward.getCondition().toUpperCase().equals("EQUAL TO") || reward.getCondition().equals("=") ) {
 
                             for (int rewardCount = 1;
                                  rewardCount <= salesProduct.getQuantity() / reward.getCondition_value();
@@ -695,7 +770,7 @@ public class MainActivity extends Activity implements
                 " =? ";
 
         List<Reward> rewardsForProductList =
-                rewardDao.queryRaw(sql, new String[]{"Purchase Amount"});
+                rewardDao.queryRaw(sql, new String[]{"purchase_amount"});
 
         for (Reward reward : rewardsForProductList) {
 
@@ -706,7 +781,7 @@ public class MainActivity extends Activity implements
                         reward.getCondition_value(),
                         totalPurchaseAmount)) {
 
-                    if (reward.getCondition().toUpperCase().equals("EQUAL TO")) {
+                    if (reward.getCondition().toUpperCase().equals("EQUAL TO") || reward.getCondition().equals("=")) {
 
                         for (int rewardCount = 1;
                              rewardCount <= totalPurchaseAmount / reward.getCondition_value();
@@ -739,6 +814,8 @@ public class MainActivity extends Activity implements
         if (currDate.compareTo(dtValidFrom) != -1 && currDate.compareTo(dtValidUntil) != 1) {
             isValid = true;
         }
+
+        //Log.d(TAG, "REWARD VALIDITY : " + isValid);
 
         return isValid;
 
@@ -781,21 +858,38 @@ public class MainActivity extends Activity implements
 
         boolean result = false;
 
+        //Log.d(TAG, "CONDITION : " + condition + " : CONDITION VALUE : " + conditionValue + " : VALUE : " + value);
+
         switch (condition.toUpperCase()) {
 
             case "GREATER THAN":
                 result = (value > conditionValue) ? true : false;
                 break;
+            case ">":
+                result = (value > conditionValue) ? true : false;
+                break;
             case "GREATER THAN OR EQUAL TO":
+                result = (value >= conditionValue) ? true : false;
+                break;
+            case ">=":
                 result = (value >= conditionValue) ? true : false;
                 break;
             case "LESS THAN":
                 result = (value < conditionValue) ? true : false;
                 break;
+            case "<":
+                result = (value < conditionValue) ? true : false;
+                break;
             case "LESS THAN OR EQUAL TO":
                 result = (value <= conditionValue) ? true : false;
                 break;
+            case "<=":
+                result = (value <= conditionValue) ? true : false;
+                break;
             case "EQUAL TO":
+                result = (value >= conditionValue) ? true : false;
+                break;
+            case "=":
                 result = (value >= conditionValue) ? true : false;
                 break;
 

@@ -48,7 +48,7 @@ public class MaintenanceActivity extends Activity {
         bSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onStartActivity(SynchronizeActivity.class);
+                onStartActivity(SynchronizeWithAgentActivity.class);
             }
         });
 

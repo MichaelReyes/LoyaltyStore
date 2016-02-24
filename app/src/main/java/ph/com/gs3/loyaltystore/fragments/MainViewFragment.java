@@ -171,7 +171,7 @@ public class MainViewFragment extends Fragment {
 
         rootLinearLayout.removeAllViews();
 
-        getProducts();
+        getActiveProducts();
 
         LinearLayout menuRow = createNewMenuRow();
 
@@ -181,7 +181,7 @@ public class MainViewFragment extends Fragment {
 
             if (buttonPerLinearLayoutCount != 0) {
 
-                menuRow.addView(createButtonMenu(product.getName()));
+                menuRow.addView(createButtonMenu(product));
 
                 buttonPerLinearLayoutCount -= 1;
             } else {
@@ -190,7 +190,7 @@ public class MainViewFragment extends Fragment {
                 buttonPerLinearLayoutCount = 2;
                 menuRow = createNewMenuRow();
 
-                menuRow.addView(createButtonMenu(product.getName()));
+                menuRow.addView(createButtonMenu(product));
 
             }
 
@@ -200,7 +200,7 @@ public class MainViewFragment extends Fragment {
 
             while (buttonPerLinearLayoutCount != 0) {
 
-                menuRow.addView(createButtonMenu(""));
+                menuRow.addView(createButtonMenu(null));
 
                 buttonPerLinearLayoutCount -= 1;
             }
@@ -214,9 +214,10 @@ public class MainViewFragment extends Fragment {
         }
     }
 
-    private void getProducts() {
+    private void getActiveProducts() {
 
         products = productDao.loadAll();
+        //products =  productDao.queryBuilder().where(ProductDao.Properties.Is_active.eq(true)).list();
 
     }
 
@@ -232,26 +233,30 @@ public class MainViewFragment extends Fragment {
 
     }
 
-    private Button createButtonMenu(final String name) {
+    private Button createButtonMenu(final Product product) {
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT);
         params.weight = 1;
         Button buttonMenu = new Button(activity);
         buttonMenu.setLayoutParams(params);
         buttonMenu.setTextSize(TypedValue.COMPLEX_UNIT_PT, 7);
-        buttonMenu.setText(name);
 
-        if (name.equals("")) {
+        if (product == null) {
             buttonMenu.setVisibility(View.INVISIBLE);
         } else {
+
+            final String name = product.getName();
+
             buttonMenu.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                    mainViewFragmentEventListener.onProductClicked(name);
+                    mainViewFragmentEventListener.onProductClicked(product);
 
                 }
             });
+
+            buttonMenu.setText(name);
         }
 
         return buttonMenu;
@@ -273,7 +278,7 @@ public class MainViewFragment extends Fragment {
 
         void onViewReady();
 
-        void onProductClicked(String productName);
+        void onProductClicked(Product product);
 
         void onCheckOut();
 

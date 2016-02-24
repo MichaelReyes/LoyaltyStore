@@ -1,6 +1,7 @@
 package ph.com.gs3.loyaltystore.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,9 +64,11 @@ public class RewardFreeItemListAdapter extends BaseAdapter {
 
         viewHolder = (RewardViewHolder) row.getTag();
 
+        Log.d("FREE ITEM : ", reward.getReward_condition());
+
         switch (reward.getReward_condition()) {
 
-            case "Number of Products Purchased / Product Purchased":
+            case "product_purchase":
 
                 String sql = " WHERE " + ProductDao.Properties.Id.columnName + "=?";
 
@@ -83,7 +86,7 @@ public class RewardFreeItemListAdapter extends BaseAdapter {
 
 
                 break;
-            case "Purchase Amount":
+            case "purchase_amount":
                 viewHolder.tvRewardName.setText(
                         reward.getReward_condition() + " " +
                                 reward.getCondition().toLowerCase() + " " +
@@ -92,7 +95,15 @@ public class RewardFreeItemListAdapter extends BaseAdapter {
                 break;
         }
 
-        viewHolder.tvFreeItemName.setText(reward.getReward_value());
+        List<Product> products = productDao.queryBuilder().where(ProductDao.Properties.Id.eq(reward.getReward_value())).list();
+
+        for (Product product : products){
+
+            viewHolder.tvFreeItemName.setText(product.getName());
+
+        }
+
+
 
         return row;
     }

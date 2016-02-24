@@ -39,6 +39,7 @@ public class LoyaltyStoreDAOGenerator {
         sales.addFloatProperty("total_discount");
         sales.addBooleanProperty("is_synced");
         sales.addDateProperty("transaction_date");
+        sales.addStringProperty("remarks");
 
         Entity customer = schema.addEntity("Customer");
         customer.addIdProperty();
@@ -73,6 +74,35 @@ public class LoyaltyStoreDAOGenerator {
         store.addIntProperty("is_active");
         store.addDateProperty("created_at");
         store.addDateProperty("updated_at");
+
+        Entity itemsReturn = schema.addEntity("ItemReturn");
+        itemsReturn.addIdProperty().autoincrement();
+        itemsReturn.addLongProperty("store_id");
+        itemsReturn.addStringProperty("item");
+        itemsReturn.addStringProperty("product_name");
+        itemsReturn.addFloatProperty("quantity");
+        itemsReturn.addStringProperty("remarks");
+        itemsReturn.addBooleanProperty("is_synced");
+
+        Entity cashReturn = schema.addEntity("CashReturn");
+        cashReturn.addIdProperty().autoincrement();
+        cashReturn.addLongProperty("store_id");
+        cashReturn.addStringProperty("item");
+        cashReturn.addStringProperty("type");
+        cashReturn.addFloatProperty("amount");
+        cashReturn.addStringProperty("remarks");
+        cashReturn.addStringProperty("deposited_to_bank");
+        cashReturn.addDateProperty("time_of_deposit");
+        cashReturn.addStringProperty("Image");
+        cashReturn.addBooleanProperty("is_synced");
+
+        Entity expenses = schema.addEntity("Expenses");
+        expenses.addIdProperty().autoincrement();
+        expenses.addLongProperty("store_id");
+        expenses.addStringProperty("description");
+        expenses.addFloatProperty("amount");
+        expenses.addDateProperty("date");
+        expenses.addBooleanProperty("is_synced");
 
         new DaoGenerator().generateAll(schema, "../app/src/main/java");
 

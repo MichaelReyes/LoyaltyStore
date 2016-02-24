@@ -31,6 +31,7 @@ public class SalesDao extends AbstractDao<Sales, Long> {
         public final static Property Total_discount = new Property(5, Float.class, "total_discount", false, "TOTAL_DISCOUNT");
         public final static Property Is_synced = new Property(6, Boolean.class, "is_synced", false, "IS_SYNCED");
         public final static Property Transaction_date = new Property(7, java.util.Date.class, "transaction_date", false, "TRANSACTION_DATE");
+        public final static Property Remarks = new Property(8, String.class, "remarks", false, "REMARKS");
     };
 
 
@@ -53,7 +54,8 @@ public class SalesDao extends AbstractDao<Sales, Long> {
                 "\"AMOUNT\" REAL," + // 4: amount
                 "\"TOTAL_DISCOUNT\" REAL," + // 5: total_discount
                 "\"IS_SYNCED\" INTEGER," + // 6: is_synced
-                "\"TRANSACTION_DATE\" INTEGER);"); // 7: transaction_date
+                "\"TRANSACTION_DATE\" INTEGER," + // 7: transaction_date
+                "\"REMARKS\" TEXT);"); // 8: remarks
     }
 
     /** Drops the underlying database table. */
@@ -106,6 +108,11 @@ public class SalesDao extends AbstractDao<Sales, Long> {
         if (transaction_date != null) {
             stmt.bindLong(8, transaction_date.getTime());
         }
+ 
+        String remarks = entity.getRemarks();
+        if (remarks != null) {
+            stmt.bindString(9, remarks);
+        }
     }
 
     /** @inheritdoc */
@@ -125,7 +132,8 @@ public class SalesDao extends AbstractDao<Sales, Long> {
             cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // amount
             cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5), // total_discount
             cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0, // is_synced
-            cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)) // transaction_date
+            cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)), // transaction_date
+            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8) // remarks
         );
         return entity;
     }
@@ -141,6 +149,7 @@ public class SalesDao extends AbstractDao<Sales, Long> {
         entity.setTotal_discount(cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5));
         entity.setIs_synced(cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0);
         entity.setTransaction_date(cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)));
+        entity.setRemarks(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
      }
     
     /** @inheritdoc */

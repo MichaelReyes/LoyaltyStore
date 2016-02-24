@@ -1,12 +1,20 @@
 package ph.com.gs3.loyaltystore;
 
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,21 +22,28 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import ph.com.gs3.loyaltystore.adapters.AgentDeviceListAdapter;
+import ph.com.gs3.loyaltystore.models.receivers.NetworkChangeStatusReciever;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
+import ph.com.gs3.loyaltystore.models.tasks.SearchAgentTask;
 import ph.com.gs3.loyaltystore.models.tasks.SyncWithAgentTask;
+import ph.com.gs3.loyaltystore.models.values.DeviceInfo;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
 
 /**
  * Created by Bryan-PC on 15/02/2016.
  */
-public class SynchronizeWithAgentActivity extends Activity implements WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener, SyncWithAgentTask.SyncWithAgentTaskListener {
+public class SynchronizeWithAgentActivity extends AppCompatActivity implements
+        WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener,
+        SyncWithAgentTask.SyncWithAgentTaskListener {
 
     public static final String TAG = SynchronizeWithAgentActivity.class.getSimpleName();
 
@@ -57,6 +72,18 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     private ProductDao productDao;
     private RewardDao rewardDao;
 
+    private NetworkChangeStatusReciever networkChangeStatusReciever;
+
+    private AgentDeviceListAdapter agentDeviceListAdapter;
+    private List<WifiP2pDevice> agentDeviceList;
+
+    private ListView lvAgentDevice;
+
+    private ProgressDialog progressDialog;
+
+    private SearchAgentTask searchAgentTask;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -71,6 +98,18 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
 
 
     private void initializeConnectivity() {
+
+        networkChangeStatusReciever = new NetworkChangeStatusReciever();
+
+        retailer = Retailer.getDeviceRetailerFromSharedPreferences(this);
+
+        wifiDirectConnectivityDataPresenter = new WifiDirectConnectivityDataPresenter(
+                this, retailer.getDeviceInfo()
+        );
+
+        agentDevice = new WifiP2pDevice();
+
+        /*
         agentDevice = (WifiP2pDevice) getIntent().getExtras().get(EXTRA_AGENT_DEVICE);
 
         if (agentDevice != null) {
@@ -82,9 +121,19 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
             Toast.makeText(this, "Agent Device Unavailable", Toast.LENGTH_LONG).show();
             finish();
         }
+        */
+
+        agentDeviceList = new ArrayList<>();
+        agentDeviceListAdapter = new AgentDeviceListAdapter(this,agentDeviceList);
+
+        lvAgentDevice = (ListView) findViewById(R.id.Sync_lvDeviceList);
+        lvAgentDevice.setAdapter(agentDeviceListAdapter);
+
+        wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.AGENT);
+
     }
 
-    private void initializeDataAccessObjects(){
+    private void initializeDataAccessObjects() {
 
         productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
         rewardDao = LoyaltyStoreApplication.getInstance().getSession().getRewardDao();
@@ -95,12 +144,15 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     protected void onResume() {
         super.onResume();
         wifiDirectConnectivityDataPresenter.onResume();
+        //registerReceiver(networkChangeStatusReciever, networkChangeStatusReciever.getIntentFilter());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         wifiDirectConnectivityDataPresenter.onDestroy();
+        //unregisterReceiver(networkChangeStatusReciever);
+
         wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -115,6 +167,8 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     }
 
     private void initializeViews() {
+
+        progressDialog = new ProgressDialog(this);
 
         tvConnectivity = (TextView) findViewById(R.id.Sync_tvConnectivity);
 
@@ -198,9 +252,28 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
     @Override
     public void onNewPeersDiscovered(List<WifiP2pDevice> wifiP2pDevices) {
 
-//        if (wifiDirectConnectivityDataPresenter.getLastConnectivityState().isConnectedToDevice()) {
-//            synchronize();
-//        }
+        this.agentDeviceList.clear();
+        this.agentDeviceList.addAll(wifiP2pDevices);
+        agentDeviceListAdapter.notifyDataSetChanged();
+
+        /*
+        if(agentDeviceList.size() > 0){
+            hideDialog();
+            searchAgentTask.cancel(true);
+
+            connectToAgent();
+
+        }
+        */
+
+    }
+
+    private void connectToAgent(){
+
+        agentDevice = agentDeviceList.get(0);
+
+        wifiDirectConnectivityDataPresenter.connectToCustomer(agentDevice, 3002);
+        Toast.makeText(SynchronizeWithAgentActivity.this, "Connecting", Toast.LENGTH_SHORT).show();
 
     }
 
@@ -217,21 +290,61 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
 
     @Override
     public void onConnectionTerminated() {
-        finish();
+        //finish();
+    }
+
+    @Override
+    public void onSyncComplete() {
+        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+
+        wifiManager.setWifiEnabled(false);
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        wifiManager.setWifiEnabled(true);
+
     }
 
     @Override
     public void onProductsAcquired(List<Product> products) {
         markSyncProductsDone(products.size());
 
-        Log.d(TAG," SIZE : " + products.size());
+        //setProductsAsInActive();
+
+        productDao.deleteAll();
 
         productDao.insertOrReplaceInTx(products);
+    }
+
+    private void setProductsAsInActive() {
+
+        List<Product> productList = productDao.loadAll();
+
+        for (Product product : productList) {
+
+            product.setIs_active(false);
+            productDao.update(product);
+
+        }
+
+
     }
 
     @Override
     public void onRewardsAcquired(List<Reward> rewards) {
         markSyncRewardsDone(rewards.size());
+
+        for (Reward reward : rewards) {
+
+            Log.d(TAG, "ACQUIRED REWARDS :" + reward.getReward());
+
+        }
+
+        rewardDao.deleteAll();
 
         rewardDao.insertOrReplaceInTx(rewards);
     }
@@ -245,4 +358,118 @@ public class SynchronizeWithAgentActivity extends Activity implements WifiDirect
 
 //        finish();
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_sync_with_agent, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        switch (id) {
+
+            case R.id.action_SWA_sync_to_agent :
+
+                if(!(agentDeviceList.size() > 0)){
+                    startAgentDeviceSearch();
+                }else{
+                    connectToAgent();
+                }
+
+
+                break;
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void startAgentDeviceSearch(){
+
+        showProgressDialog();
+        hideDialogLater(10000);
+
+        searchAgentTask = new SearchAgentTask(
+                this,
+                wifiDirectConnectivityDataPresenter
+        );
+        searchAgentTask.execute();
+
+    }
+
+    private void showProgressDialog(){
+
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("Searching for agent...");
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(true);
+        progressDialog.show();
+
+    }
+
+    private void hideDialog(){
+
+        if(progressDialog.isShowing()){
+
+            progressDialog.hide();
+
+        }
+
+    }
+
+    protected void hideDialogLater(int hideAfterMillis) {
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+
+                        searchAgentTask.cancel(true);
+
+                        if (progressDialog.isShowing()) {
+                            hideDialog();
+
+                            if(agentDeviceList.size() <= 0){
+
+                                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        switch (which){
+                                            case DialogInterface.BUTTON_POSITIVE:
+                                                //Yes button clicked
+
+                                                if(!(agentDeviceList.size() > 0)){
+                                                    startAgentDeviceSearch();
+                                                }else{
+                                                    connectToAgent();
+                                                }
+
+                                                break;
+
+                                            case DialogInterface.BUTTON_NEGATIVE:
+                                                //No button clicked
+                                                break;
+                                        }
+                                    }
+                                };
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(SynchronizeWithAgentActivity.this);
+                                builder
+                                        .setMessage("No agent device found. Would you like to search again?")
+                                        .setPositiveButton("Yes", dialogClickListener)
+                                        .setNegativeButton("No", dialogClickListener).show();
+
+                            }else{
+                                connectToAgent();
+                            }
+
+                        }
+                    }
+                },
+                hideAfterMillis);
+    }
+
+
 }

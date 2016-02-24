@@ -23,6 +23,10 @@ import java.util.List;
 import de.greenrobot.dao.query.QueryBuilder;
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.models.WifiDirectConnectivityState;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpensesDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
@@ -51,10 +55,13 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
     private SalesProductDao salesProductDao;
     private SalesHasRewardDao salesHasRewardDao;
     private SalesDao salesDao;
+    private ItemReturnDao itemReturnDao;
+    private ExpensesDao expensesDao;
 
     private List<Product> synchedProducts = new ArrayList<>();
     private List<Reward> synchedRewards = new ArrayList<>();
     private List<Sales> synchedSales = new ArrayList<>();
+    private List<ItemReturn> synchedItemReturns = new ArrayList<>();
 
     public SyncWithAgentTask(Context context, int port, SyncWithAgentTaskListener listener) {
         this.context = context;
@@ -64,6 +71,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         salesProductDao = LoyaltyStoreApplication.getSession().getSalesProductDao();
         salesHasRewardDao = LoyaltyStoreApplication.getSession().getSalesHasRewardDao();
         salesDao = LoyaltyStoreApplication.getSession().getSalesDao();
+        itemReturnDao = LoyaltyStoreApplication.getSession().getItemReturnDao();
     }
 
     @Override
@@ -102,6 +110,11 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             publishProgress(ProgressType.REWARDS);
             sendSales(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.SALES);
+            sendItemReturn(dataOutputStream, dataInputStream);
+            //TODO publish progress for item returns
+            sendExpenses(dataOutputStream, dataInputStream);
+            //TODO publish progress for expenses
+
 
             dataInputStream.close();
             dataOutputStream.close();
@@ -129,6 +142,13 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             listener.onSalesSent(synchedSales);
         }
 
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+
+        listener.onSyncComplete();
     }
 
     private void sendClientReadyConfirmation(DataOutputStream dataOutputStream) throws IOException {
@@ -222,6 +242,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                 String salesProductsConfirmation = dataInputStream.readUTF();
                 if ("SALES_PRODUCTS_RECEIVED".equals(salesProductsConfirmation)) {
                     salesTransaction.setIs_synced(true);
+                    salesDao.update(salesTransaction);
 //                    salesDao.update(salesTransaction);
                 } else {
                     Log.e(TAG, "Sales sync failed, expected SALES_PRODUCTS_RECEIVED");
@@ -234,6 +255,100 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
     }
 
+    private void sendItemReturn(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
+
+        String preMessage = dataInputStream.readUTF();
+
+        if ("ITEM_RETURN".equals(preMessage)) {
+
+            Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
+            JSONObject storeJSON = new JSONObject();
+            try {
+                storeJSON.put("id", retailer.getStoreId());
+                storeJSON.put("device_id", retailer.getDeviceId());
+                storeJSON.put("name", retailer.getStoreName());
+                dataOutputStream.writeUTF(storeJSON.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+                dataOutputStream.writeUTF("ITEM_RETURN_END");
+                return;
+            }
+
+            QueryBuilder qBuilder = itemReturnDao.queryBuilder();
+            qBuilder.whereOr(ItemReturnDao.Properties.Is_synced.eq(false), ItemReturnDao.Properties.Is_synced.isNull());
+            List<ItemReturn> itemReturns = qBuilder.list();
+
+            Gson gson = new Gson();
+
+            for (ItemReturn itemReturn : itemReturns) {
+                //  Send sales header
+                Log.v(TAG, itemReturn.getId() + " " + itemReturn.getItem()+ " " + itemReturn.getQuantity());
+                dataOutputStream.writeUTF(gson.toJson(itemReturn));
+
+                String itemReturnConfirmation = dataInputStream.readUTF();
+                if ("ITEM_RETURN_RECEIVED".equals(itemReturnConfirmation)) {
+                    //  Send sales rewards
+                    itemReturn.setIs_synced(true);
+                    itemReturnDao.update(itemReturn);
+                } else {
+                    Log.e(TAG, "item return sync failed, expected ITEM_RETURN_RECEIVED");
+                    break;
+                }
+
+            }
+        }
+
+        dataOutputStream.writeUTF("ITEM_RETURN_END");
+
+    }
+
+    private void sendExpenses(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
+
+        String preMessage = dataInputStream.readUTF();
+
+        if ("EXPENSES".equals(preMessage)) {
+
+            Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
+            JSONObject storeJSON = new JSONObject();
+            try {
+                storeJSON.put("id", retailer.getStoreId());
+                storeJSON.put("device_id", retailer.getDeviceId());
+                storeJSON.put("name", retailer.getStoreName());
+                dataOutputStream.writeUTF(storeJSON.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+                dataOutputStream.writeUTF("EXPENSES_END");
+                return;
+            }
+
+            QueryBuilder qBuilder = expensesDao.queryBuilder();
+            qBuilder.whereOr(ExpensesDao.Properties.Is_synced.eq(false), ExpensesDao.Properties.Is_synced.isNull());
+            List<Expenses> expensesList = qBuilder.list();
+
+            Gson gson = new Gson();
+
+            for (Expenses expenses : expensesList) {
+                //  Send sales header
+                Log.v(TAG, expenses.getId() + " " + expenses.getDescription()+ " " + expenses.getAmount());
+                dataOutputStream.writeUTF(gson.toJson(expenses));
+
+                String expensesConfirmation = dataInputStream.readUTF();
+                if ("EXPENSES_RECEIVED".equals(expensesConfirmation)) {
+                    //  Send sales rewards
+                    expenses.setIs_synced(true);
+                    expensesDao.update(expenses);
+                } else {
+                    Log.e(TAG, "expenses sync failed, expected EXPENSES_RECEIVED");
+                    break;
+                }
+
+            }
+        }
+
+        dataOutputStream.writeUTF("EXPENSES_END");
+
+    }
+
     public interface SyncWithAgentTaskListener {
 
         void onProductsAcquired(List<Product> products);
@@ -241,6 +356,8 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         void onRewardsAcquired(List<Reward> rewards);
 
         void onSalesSent(List<Sales> sales);
+
+        void onSyncComplete();
     }
 
 }

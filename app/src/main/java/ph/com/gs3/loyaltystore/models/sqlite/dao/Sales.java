@@ -14,6 +14,7 @@ public class Sales {
     private Float total_discount;
     private Boolean is_synced;
     private java.util.Date transaction_date;
+    private String remarks;
 
     public Sales() {
     }
@@ -22,7 +23,7 @@ public class Sales {
         this.id = id;
     }
 
-    public Sales(Long id, String transaction_number, Long store_id, Long customer_id, Float amount, Float total_discount, Boolean is_synced, java.util.Date transaction_date) {
+    public Sales(Long id, String transaction_number, Long store_id, Long customer_id, Float amount, Float total_discount, Boolean is_synced, java.util.Date transaction_date, String remarks) {
         this.id = id;
         this.transaction_number = transaction_number;
         this.store_id = store_id;
@@ -31,6 +32,7 @@ public class Sales {
         this.total_discount = total_discount;
         this.is_synced = is_synced;
         this.transaction_date = transaction_date;
+        this.remarks = remarks;
     }
 
     public Long getId() {
@@ -95,6 +97,14 @@ public class Sales {
 
     public void setTransaction_date(java.util.Date transaction_date) {
         this.transaction_date = transaction_date;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
     }
 
 }

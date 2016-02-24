@@ -65,6 +65,9 @@ public class RewardViewFragment extends Fragment {
 
         String dataJsonString = args.getString(CheckoutActivity.EXTRA_DATA_JSON_STRING);
         try {
+
+            Log.d(TAG, "DATA JSON STRING : " + dataJsonString);
+
             JSONObject jsonObject = new JSONObject(dataJsonString);
             JSONArray rewardsJsonArray = jsonObject.getJSONArray(Reward.class.getSimpleName());
 
@@ -113,7 +116,7 @@ public class RewardViewFragment extends Fragment {
         for(Reward reward : rewards){
 
             switch (reward.getReward_type().toUpperCase()){
-                case "FREE PRODUCT":
+                case "FREE_PRODUCT":
 
                     Log.d(TAG, reward.getId() + " ~ " +
                             reward.getReward_condition() +

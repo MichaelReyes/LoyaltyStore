@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckedTextView;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import org.json.JSONException;
@@ -39,6 +40,8 @@ public class CheckOutViewFragment extends Fragment {
     private Button bComplete;
     private Button bCompleteWithRewards;
     private Button bCancel;
+
+    private EditText etRemarks;
 
     private Toolbar toolbar;
     private TabLayout tabLayout;
@@ -93,6 +96,8 @@ public class CheckOutViewFragment extends Fragment {
 
             }
         });
+
+        etRemarks = (EditText) rootView.findViewById(R.id.Checkout_etRemarks);
 
         bUpdate = (Button) rootView.findViewById(R.id.Checkout_bUpdate);
         bUpdate.setOnClickListener(new View.OnClickListener() {
@@ -155,6 +160,12 @@ public class CheckOutViewFragment extends Fragment {
         adapter.addFragment(new SalesProductsViewFragment(), "Receipt");
         adapter.addFragment(new RewardViewFragment(), "Rewards");
         viewPager.setAdapter(adapter);
+    }
+
+    public String getRemarks(){
+
+        return etRemarks.getText().toString();
+
     }
 
     public interface CheckoutViewFragmentEventListener {

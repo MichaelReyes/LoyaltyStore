@@ -4,27 +4,34 @@
 
 
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_Main_Sync"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="Send my Sales"
         app:showAsAction="ifRoom|withText" />
 
     <item
-        android:id="@+id/action_broadcast_notification"
+        android:id="@+id/action_Main_Items_To_Return"
         android:orderInCategory="100"
-        android:title="Broadcast Advertisement"
+        android:title="Items to Return"
         app:showAsAction="ifRoom|withText" />
 
     <item
-        android:id="@+id/action_login"
+        android:id="@+id/action_Main_Expenses"
         android:orderInCategory="100"
-        android:title="@string/action_login"
+        android:title="Expenses"
         app:showAsAction="ifRoom|withText" />
 
     <item
-        android:id="@+id/action_sync"
+        android:id="@+id/action_Main_Sales"
         android:orderInCategory="100"
-        android:title="@string/action_sync"
+        android:title="Sales"
         app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/action_Main_Settings"
+        android:orderInCategory="100"
+        android:title="Settings"
+        app:showAsAction="ifRoom|withText" />
+
 
 </menu>

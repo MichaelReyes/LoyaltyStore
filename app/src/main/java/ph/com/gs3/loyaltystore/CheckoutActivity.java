@@ -424,6 +424,7 @@ public class CheckoutActivity extends AppCompatActivity implements
         sales.setStore_id(retailer.getStoreId());
         sales.setAmount(totalAmount);
         sales.setTransaction_date(date);
+        sales.setRemarks(checkOutViewFragment.getRemarks());
 
         long salesId = salesDao.insert(sales);
         this.salesTransactionNumber = retailer.getStoreId() + "_" + stringDateTime;

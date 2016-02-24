@@ -73,6 +73,7 @@ public class SalesListAdapter extends BaseAdapter {
         viewHolder.tvTransactionDate.setText(formatter.format(sales.getTransaction_date()));
         viewHolder.tvTransactionNumber.setText(sales.getTransaction_number());
         viewHolder.tvAmount.setText(String.valueOf(sales.getAmount()));
+        viewHolder.tvRemarks.setText(sales.getRemarks() == null ? "" : sales.getRemarks());
 
         return row;
     }
@@ -81,13 +82,14 @@ public class SalesListAdapter extends BaseAdapter {
 
         final TextView tvTransactionDate;
         final TextView tvTransactionNumber;
-        final TextView tvAmount;;
+        final TextView tvAmount;
+        final TextView tvRemarks;
 
         public SalesProductViewHolder(View view) {
             tvTransactionDate = (TextView) view.findViewById(R.id.Sales_tvTransactionDate);
             tvTransactionNumber = (TextView) view.findViewById(R.id.Sales_tvTransactionNumber);
             tvAmount = (TextView) view.findViewById(R.id.Sales_tvAmount);
-
+            tvRemarks = (TextView) view.findViewById(R.id.Sales_tvRemarks);
         }
 
     }
