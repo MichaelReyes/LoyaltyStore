@@ -46,8 +46,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.65"
                 android:text="Transaction Number :"
-                android:textSize="7pt"
-                android:textColor="#000000" />
+                android:textSize="7pt" />
 
             <TextView
                 android:id="@+id/Sales_tvTransactionNumber"
@@ -70,8 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.50"
                 android:text="Remarks :"
-                android:textSize="7pt"
-                android:textColor="#000000" />
+                android:textSize="7pt" />
 
             <TextView
                 android:id="@+id/Sales_tvRemarks"
@@ -94,8 +92,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.50"
                 android:text="Total Amount :"
-                android:textSize="7pt"
-                android:textColor="#000000" />
+                android:textSize="7pt" />
 
             <TextView
                 android:id="@+id/Sales_tvAmount"

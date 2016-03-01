@@ -7,10 +7,12 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.R;
+import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
@@ -91,7 +93,10 @@ public class RewardDiscountListAdapter extends BaseAdapter {
 
         }
 
-        viewHolder.tvDiscount.setText(reward.getReward_value());
+        Constants constants = new Constants();
+        DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
+
+        viewHolder.tvDiscount.setText(decimalFormat.format(Float.parseFloat(reward.getReward_value())));
 
         return row;
     }

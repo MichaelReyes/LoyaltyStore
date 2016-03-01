@@ -4,23 +4,30 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.TimePicker;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
+import ph.com.gs3.loyaltystore.AddItemToReturnActivity;
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
@@ -28,7 +35,6 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
-import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 /**
  * Created by Bryan-PC on 02/02/2016.
@@ -37,12 +43,15 @@ public class AddItemToReturnViewFragment extends Fragment {
 
     public static final String TAG = AddItemToReturnViewFragment.class.getSimpleName();
 
-    private static final String ITEM_VALUE_TRAY = "Tray";
-    private static final String ITEM_VALUE_SPOILAGE = "Spoilage";
-    private static final String ITEM_VALUE_CASH = "Cash";
+    public static final String ITEM_VALUE_TRAY = "Tray";
+    public static final String ITEM_VALUE_SPOILAGE = "Spoilage";
+    public static final String ITEM_VALUE_CASH = "Cash";
 
-    private static final String CASH_TYPE_VALUE_CASH_ON_HAND = "Cash on Hand";
-    private static final String CASH_TYPE_VALUE_CASH_ON_BANK = "Cash on Bank";
+    public static final String CASH_TYPE_VALUE_CASH_ON_HAND = "Cash on Hand";
+    public static final String CASH_TYPE_VALUE_CASH_ON_BANK = "Cash on Bank";
+
+    private static final SimpleDateFormat formatter = new SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
 
     private AddItemToReturnViewFragmentEventListener addItemToReturnViewFragmentEventListener;
 
@@ -57,16 +66,28 @@ public class AddItemToReturnViewFragment extends Fragment {
     private EditText etBank;
     private EditText etTimeOfDeposit;
 
+    private TextView tvDateTimeOfDeposit;
+
     private Button bSave;
     private Button bCancel;
+    private Button bChangeDateTimeOfDeposit;
+
+    private DatePicker dpDateOfDeposit;
+    private TimePicker tpTimeOfDeposit;
 
     private ImageView ivDepositSlip;
 
     private LinearLayout llProduct;
     private LinearLayout llCashType;
     private LinearLayout llBankDepositDetails;
+    private LinearLayout llDateTimeOfDepositPicker;
+    private LinearLayout llDateTimeOfDeposit;
 
     private Button bSelectImage;
+
+    private List<String> spinnerItemArray;
+    private List<String> spinnerProductArray;
+    private List<String> spinnerCashTypeArray;
 
     private View rootView;
 
@@ -90,10 +111,9 @@ public class AddItemToReturnViewFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         rootView = inflater.inflate(R.layout.fragment_add_item_to_return, container, false);
 
-        List<String> spinnerItemArray = new ArrayList<String>();
+        spinnerItemArray = new ArrayList<String>();
         spinnerItemArray.add(ITEM_VALUE_TRAY);
         spinnerItemArray.add(ITEM_VALUE_SPOILAGE);
         spinnerItemArray.add(ITEM_VALUE_CASH);
@@ -116,7 +136,7 @@ public class AddItemToReturnViewFragment extends Fragment {
             }
         });
 
-        List<String> spinnerCashTypeArray = new ArrayList<String>();
+        spinnerCashTypeArray = new ArrayList<String>();
         spinnerCashTypeArray.add(CASH_TYPE_VALUE_CASH_ON_HAND);
         spinnerCashTypeArray.add(CASH_TYPE_VALUE_CASH_ON_BANK);
 
@@ -139,6 +159,7 @@ public class AddItemToReturnViewFragment extends Fragment {
         });
 
         sProduct = (Spinner) rootView.findViewById(R.id.ITR_sProduct);
+        setProductToList();
 
         etQuantityOrAmount = (EditText) rootView.findViewById(R.id.ITR_etQuantityOrAmount);
         etRemarks = (EditText) rootView.findViewById(R.id.ITR_etRemarks);
@@ -177,10 +198,114 @@ public class AddItemToReturnViewFragment extends Fragment {
             }
         });
 
+        dpDateOfDeposit = (DatePicker) rootView.findViewById(R.id.ITR_dpDateOfDeposit);
+        tpTimeOfDeposit = (TimePicker) rootView.findViewById(R.id.ITR_tpTimeOfDeposit);
+
+
+        llDateTimeOfDeposit = (LinearLayout) rootView.findViewById(R.id.ITR_llDateTimeOfDeposit);
+        llDateTimeOfDepositPicker = (LinearLayout) rootView.findViewById(R.id.ITR_llDateTimeOfDepositPicker);
+
+        tvDateTimeOfDeposit = (TextView) rootView.findViewById(R.id.ITR_tvDateTimeOfDeposit);
+        bChangeDateTimeOfDeposit = (Button) rootView.findViewById(R.id.ITR_bChangeDateTimeOfDeposit);
+        bChangeDateTimeOfDeposit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                llDateTimeOfDeposit.setVisibility(View.GONE);
+                llDateTimeOfDepositPicker.setVisibility(View.VISIBLE);
+            }
+        });
+
+        if (activity.getIntent().hasExtra(AddItemToReturnActivity.EXTRA_ITEM_RETURN_ID) &&
+                activity.getIntent().hasExtra(AddItemToReturnActivity.EXTRA_ITEM_RETURN_VALUE)) {
+
+            long itemReturnId =  activity.getIntent().getLongExtra(AddItemToReturnActivity.EXTRA_ITEM_RETURN_ID,-1);
+            String itemReturnValue = activity.getIntent().getStringExtra(AddItemToReturnActivity.EXTRA_ITEM_RETURN_VALUE);
+
+
+            onEditItemReturn(itemReturnValue,itemReturnId);
+
+        }
+
         addItemToReturnViewFragmentEventListener.onViewReady();
 
 
         return rootView;
+    }
+
+    private void onEditItemReturn(String item, long id) {
+
+        ItemReturnDao itemReturnDao = LoyaltyStoreApplication.getSession().getItemReturnDao();
+        CashReturnDao cashReturnDao = LoyaltyStoreApplication.getSession().getCashReturnDao();
+
+        sItem.setSelection(getItemIndexInSpinner(spinnerItemArray, item));
+
+        if (item.equals(ITEM_VALUE_TRAY) || item.equals(ITEM_VALUE_SPOILAGE)) {
+
+            List<ItemReturn> itemReturnList =
+                    itemReturnDao.queryBuilder().where(ItemReturnDao.Properties.Id.eq(id)).list();
+
+            for (ItemReturn itemReturn : itemReturnList) {
+
+                etQuantityOrAmount.setText(String.valueOf(itemReturn.getQuantity()));
+                etRemarks.setText(itemReturn.getRemarks());
+
+                if (item.equals(ITEM_VALUE_SPOILAGE)) {
+
+                    sProduct.setVisibility(View.VISIBLE);
+                    sProduct.setSelection(getItemIndexInSpinner(
+                            spinnerProductArray,
+                            itemReturn.getProduct_name()
+                    ));
+
+
+                }
+
+            }
+
+
+        } else if (item.equals(ITEM_VALUE_CASH)) {
+
+            List<CashReturn> cashReturns =
+                    cashReturnDao.queryBuilder().where(CashReturnDao.Properties.Id.eq(id)).list();
+
+            for(CashReturn cashReturn : cashReturns){
+
+                sCashType.setSelection(getItemIndexInSpinner(spinnerCashTypeArray,cashReturn.getType()));
+                etQuantityOrAmount.setText(String.valueOf(cashReturn.getAmount()));
+                etRemarks.setText(cashReturn.getRemarks());
+
+                if(cashReturn.getType().equals(CASH_TYPE_VALUE_CASH_ON_BANK)){
+
+                    llBankDepositDetails.setVisibility(View.VISIBLE);
+
+                    etBank.setText(cashReturn.getDeposited_to_bank());
+
+                    llDateTimeOfDepositPicker.setVisibility(View.GONE);
+                    llDateTimeOfDeposit.setVisibility(View.VISIBLE);
+
+                    tvDateTimeOfDeposit.setText(formatter.format(cashReturn.getTime_of_deposit()));
+
+                }
+
+            }
+
+        }
+
+    }
+
+    private int getItemIndexInSpinner(List<String> spinnerArray, String item) {
+
+        int spinnerItemIndex = -1;
+
+        for (int i = 0; i < spinnerArray.size(); i++) {
+
+            if (spinnerArray.get(i).equals(item)) {
+                spinnerItemIndex = i;
+            }
+
+        }
+        return spinnerItemIndex;
+
     }
 
 
@@ -194,7 +319,7 @@ public class AddItemToReturnViewFragment extends Fragment {
 
         ProductDao productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
 
-        List<String> spinnerArray = new ArrayList<String>();
+        spinnerProductArray = new ArrayList<String>();
 
         String sql =
                 "SELECT " + ProductDao.Properties.Name.columnName + " FROM " + ProductDao.TABLENAME;
@@ -204,13 +329,13 @@ public class AddItemToReturnViewFragment extends Fragment {
         if (cursor.moveToFirst()) {
             while (cursor.moveToNext()) {
 
-                spinnerArray.add(cursor.getString(0));
+                spinnerProductArray.add(cursor.getString(0));
 
             }
         }
 
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                activity, android.R.layout.simple_spinner_item, spinnerArray);
+                activity, android.R.layout.simple_spinner_item, spinnerProductArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sProduct.setAdapter(adapter);
 
@@ -266,66 +391,89 @@ public class AddItemToReturnViewFragment extends Fragment {
         ivDepositSlip.setImageBitmap(bitmap);
     }
 
-    public void save(Retailer retailer) {
+    public String getItem() {
 
-        String item = sItem.getSelectedItem().toString();
+        return sItem.getSelectedItem().toString();
 
-        ItemReturnDao itemReturnDao =
-                LoyaltyStoreApplication.getInstance().getSession().getItemReturnDao();
+    }
 
-        ItemReturn itemReturn = new ItemReturn();
+    public String getCashType() {
 
-        CashReturnDao cashReturnDao =
-                LoyaltyStoreApplication.getInstance().getSession().getCashReturnDao();
+        return sCashType.getSelectedItem().toString();
 
-        CashReturn cashReturn = new CashReturn();
+    }
 
-        switch (item) {
-            case ITEM_VALUE_TRAY:
+    public String getQuantityOrAmount() {
 
-                Log.d("SAVING", "SAVING");
+        return etQuantityOrAmount.getText().toString();
 
-                itemReturn.setItem(item);
-                itemReturn.setQuantity(Float.valueOf(etQuantityOrAmount.getText().toString()));
-                itemReturn.setRemarks(etRemarks.getText().toString());
-                itemReturn.setIs_synced(false);
-                itemReturn.setStore_id(retailer.getStoreId());
+    }
 
-                itemReturnDao.insert(itemReturn);
+    public String getProduct() {
 
-                break;
-            case ITEM_VALUE_SPOILAGE:
+        return sProduct.getSelectedItem().toString();
 
-                itemReturn.setItem(item);
-                itemReturn.setProduct_name(sProduct.getSelectedItem().toString());
-                itemReturn.setQuantity(Float.valueOf(etQuantityOrAmount.getText().toString()));
-                itemReturn.setRemarks(etRemarks.getText().toString());
-                itemReturn.setIs_synced(false);
-                itemReturn.setStore_id(retailer.getStoreId());
+    }
 
-                itemReturnDao.insert(itemReturn);
+    public String getBank() {
 
-                break;
-            case ITEM_VALUE_CASH:
+        return etBank.getText().toString();
 
-                cashReturn.setItem(item);
-                cashReturn.setAmount(Float.valueOf(etQuantityOrAmount.getText().toString()));
-                cashReturn.setRemarks(etRemarks.getText().toString());
-                cashReturn.setType(sCashType.getSelectedItem().toString());
-                cashReturn.setIs_synced(false);
-                cashReturn.setStore_id(retailer.getStoreId());
+    }
 
-                if(sCashType.getSelectedItem().equals(CASH_TYPE_VALUE_CASH_ON_BANK)){
+    public Date getDepositDateTime() {
 
-                    cashReturn.setDeposited_to_bank(etBank.getText().toString());
-                    cashReturn.setTime_of_deposit(new Date());
+        int day = dpDateOfDeposit.getDayOfMonth();
+        int month = dpDateOfDeposit.getMonth();
+        int year = dpDateOfDeposit.getYear();
+        int hour;
+        if (Build.VERSION.SDK_INT >= 23)
+            hour = tpTimeOfDeposit.getHour();
+        else
+            hour = tpTimeOfDeposit.getCurrentHour();
+
+        int minute;
+
+        if (Build.VERSION.SDK_INT >= 23)
+            minute = tpTimeOfDeposit.getMinute();
+        else
+            minute = tpTimeOfDeposit.getCurrentMinute();
+
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day, hour, minute);
+
+        return calendar.getTime();
+
+    }
+
+
+    public boolean validate(String item) {
+
+        boolean isValid = true;
+
+        if ("".equals(etQuantityOrAmount.getText().toString().trim())) {
+            etQuantityOrAmount.setError("This field is required.");
+            isValid = false;
+        }
+
+        if (item.equals(ITEM_VALUE_CASH)) {
+
+            if ((sCashType.getSelectedItem().toString().equals(CASH_TYPE_VALUE_CASH_ON_BANK))) {
+
+                if ("".equals(etBank.getText().toString().trim())) {
+
+                    etBank.setError("This field is required.");
+                    isValid = false;
 
                 }
 
-                cashReturnDao.insert(cashReturn);
+            }
 
-                break;
+
         }
+
+        return isValid;
 
     }
 

@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements
 
         List<Product> productList = productDao.loadAll();
 
-       //Log.d(TAG, "PRODUCTS SIZE : " + productList.size());
+        //Log.d(TAG, "PRODUCTS SIZE : " + productList.size());
 
         /*productDao.deleteAll();
 
@@ -378,16 +378,16 @@ public class MainActivity extends AppCompatActivity implements
 
         products = productDao.loadAll();
 
-        if(products.isEmpty()){
+        if (products.isEmpty()) {
 
-            if(retailer.getStoreName().equals("") && retailer.getServerUrl().equals("")){
+            if (retailer.getStoreName().equals("") && retailer.getServerUrl().equals("")) {
 
-                Intent intent = new Intent(this,SettingsActivity.class);
+                Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
 
             }
 
-        }else{
+        } else {
 
             mainViewFragment.setMenuButtons();
 
@@ -419,11 +419,11 @@ public class MainActivity extends AppCompatActivity implements
 
                     if (quantity != 0) {
 
-                        if(quantity>9999){
+                        if (quantity > 9999) {
 
                             Toast.makeText(MainActivity.this, "Invalid input", Toast.LENGTH_SHORT).show();
 
-                        }else{
+                        } else {
                             onAddSalesProduct(product, quantity);
                         }
 
@@ -449,28 +449,57 @@ public class MainActivity extends AppCompatActivity implements
 
         if (!salesProducts.isEmpty()) {
 
-            checkForRewards();
+            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case DialogInterface.BUTTON_POSITIVE:
+                            //Yes button clicked
+                            checkout();
 
-            if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
-                stopService(new Intent(MainActivity.this,DiscoverPeersOnBackgroundService.class));
-            }
+                            break;
 
-            Intent intent = new Intent(this, CheckoutActivity.class);
-            try {
-                intent.putExtra(CheckoutActivity.EXTRA_DATA_JSON_STRING,
-                        convertToJsonString(salesProducts, rewards));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            //No button clicked
+                            break;
+                    }
+                }
+            };
 
-
-            intent.putExtra(CheckoutActivity.EXTRA_TOTAL_AMOUNT, mainViewFragment.getTotalAmount());
-            intent.putExtra(RewardViewFragment.EXTRA_TOTAL_DISCOUNT, totalDiscount);
-
-            startActivity(intent);
-
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Are you sure you want to checkout?").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
 
         }
+
+
+    }
+
+    private void checkout() {
+
+        checkForRewards();
+
+        if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
+            stopService(new Intent(MainActivity.this, DiscoverPeersOnBackgroundService.class));
+        }
+
+        Intent intent = new Intent(this, CheckoutActivity.class);
+        try {
+            intent.putExtra(CheckoutActivity.EXTRA_DATA_JSON_STRING,
+                    convertToJsonString(salesProducts, rewards));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        intent.putExtra(
+                CheckoutActivity.EXTRA_TOTAL_AMOUNT,
+                mainViewFragment.getTotalAmount() - totalDiscount
+        );
+        intent.putExtra(RewardViewFragment.EXTRA_TOTAL_DISCOUNT, totalDiscount);
+
+        startActivity(intent);
+
+
     }
 
     @Override
@@ -734,7 +763,7 @@ public class MainActivity extends AppCompatActivity implements
 
                         //Log.d(TAG, "BETWEEN CONDITION :" + reward.getCondition().toUpperCase());
 
-                        if (reward.getCondition().toUpperCase().equals("EQUAL TO") || reward.getCondition().equals("=") ) {
+                        if (reward.getCondition().toUpperCase().equals("EQUAL TO") || reward.getCondition().equals("=")) {
 
                             for (int rewardCount = 1;
                                  rewardCount <= salesProduct.getQuantity() / reward.getCondition_value();
@@ -815,8 +844,6 @@ public class MainActivity extends AppCompatActivity implements
             isValid = true;
         }
 
-        //Log.d(TAG, "REWARD VALIDITY : " + isValid);
-
         return isValid;
 
     }
@@ -825,9 +852,9 @@ public class MainActivity extends AppCompatActivity implements
 
         switch (reward.getReward_type().toUpperCase()) {
 
-            case "FREE PRODUCT":
+            case "FREE_PRODUCT":
 
-                String sql = " WHERE " + ProductDao.Properties.Name.columnName + "=?";
+                String sql = " WHERE " + ProductDao.Properties.Id.columnName + "=?";
 
 
                 List<Product> products = productDao.queryRaw(sql,

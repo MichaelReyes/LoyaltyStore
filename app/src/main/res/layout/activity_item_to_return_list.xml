@@ -16,7 +16,17 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Item Returns"
+                android:textSize="12pt"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
             <ListView
+                android:layout_margin="5dp"
                 android:id="@+id/ITR_lvItems"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -26,13 +36,28 @@
 
         </LinearLayout>
 
+        <View
+            android:layout_width="2dp"
+            android:layout_height="fill_parent"
+            android:background="#C0C0C0"/>
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cash Returns"
+                android:textSize="12pt"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
             <ListView
+                android:layout_margin="5dp"
                 android:id="@+id/ITR_lvCash"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -45,10 +70,10 @@
 
     </LinearLayout>
 
-    <Button
+    <!--<Button
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.10"
         android:text="Back" />
-
+-->
 </LinearLayout>

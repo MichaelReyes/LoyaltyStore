@@ -3,14 +3,21 @@ package ph.com.gs3.loyaltystore.models.tasks;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.List;
 
+import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.models.WifiDirectConnectivityState;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesDao;
 
 /**
  * Created by Ervinne Sodusta on 8/18/2015.
@@ -26,6 +33,8 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
     private SendPurchaseInfoForValidationTaskEventListener sendPurchaseInfoForValidationTaskEventListener;
 
     private String customerDeviceId;
+
+    private boolean isFirstUse = false;
 
     public SendPurchaseInfoForValidationTask(int port,
                                              String jsonStringPurchaseInfo,
@@ -60,6 +69,7 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
             }
 
             awaitClientId(dataInputStream);
+            awaitClientTransactionHistory(dataInputStream);
 
             sendPurchaseInfo(dataOutputStream);
 
@@ -82,7 +92,7 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
 
-        sendPurchaseInfoForValidationTaskEventListener.onPurchaseInfoSent(customerDeviceId);
+        sendPurchaseInfoForValidationTaskEventListener.onPurchaseInfoSent(customerDeviceId,isFirstUse);
     }
 
     private void awaitClientReadyConfirmation(DataInputStream dataInputStream) throws IOException {
@@ -92,10 +102,42 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
 
     }
 
-    private void awaitClientId(DataInputStream dataInputStream) throws IOException{
+    private void awaitClientId(DataInputStream dataInputStream) throws IOException {
 
         customerDeviceId = dataInputStream.readUTF();
-        Log.d(TAG,"Customer Id : " + customerDeviceId);
+        Log.d(TAG, "Customer Id : " + customerDeviceId);
+
+    }
+
+    private void awaitClientTransactionHistory(DataInputStream dataInputStream) throws IOException {
+
+        String preMesssage = dataInputStream.readUTF();
+
+        if("TRANSACTIONS".equals(preMesssage)){
+
+            String transactionsJsonString = dataInputStream.readUTF();
+
+            Log.d(TAG, "Transactions recieved : " + transactionsJsonString);
+
+            Gson gson = new Gson();
+
+            List<Sales> salesListFromCustomerDevice = Arrays.asList(
+                    gson.fromJson(transactionsJsonString, Sales[].class)
+            );
+
+            SalesDao salesDao = LoyaltyStoreApplication.getSession().getSalesDao();
+
+            List<Sales> salesListByCustomerDeviceId = salesDao.queryBuilder()
+                    .where(SalesDao.Properties.Customer_id.eq(customerDeviceId))
+                    .list();
+
+            if(salesListFromCustomerDevice.size() <= 0 && salesListByCustomerDeviceId.size() <= 0){
+
+                isFirstUse = true;
+
+            }
+
+        }
 
     }
 
@@ -109,7 +151,7 @@ public class SendPurchaseInfoForValidationTask extends AsyncTask<Void, Void, Voi
 
     public interface SendPurchaseInfoForValidationTaskEventListener {
 
-        void onPurchaseInfoSent(String customerDeviceId);
+        void onPurchaseInfoSent(String customerDeviceId, boolean isFirstUse);
 
     }
 

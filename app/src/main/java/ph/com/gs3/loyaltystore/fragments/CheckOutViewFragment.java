@@ -69,7 +69,7 @@ public class CheckOutViewFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_checkout, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_checkout_landscape, container, false);
 
         lvDeviceList = (ListView) rootView.findViewById(R.id.Checkout_lvDeviceList);
         lvDeviceList.setAdapter(customerDeviceListAdapter);

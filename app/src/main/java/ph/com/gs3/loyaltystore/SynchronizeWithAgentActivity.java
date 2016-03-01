@@ -27,6 +27,9 @@ import java.util.List;
 
 import ph.com.gs3.loyaltystore.adapters.AgentDeviceListAdapter;
 import ph.com.gs3.loyaltystore.models.receivers.NetworkChangeStatusReciever;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
@@ -83,6 +86,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     private SearchAgentTask searchAgentTask;
 
+    private WifiManager wifiManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,10 +98,18 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         initializeViews();
         initializeDataAccessObjects();
 
+        if (!(agentDeviceList.size() > 0)) {
+            startAgentDeviceSearch();
+        } else {
+            connectToAgent();
+        }
+
     }
 
 
     private void initializeConnectivity() {
+
+        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
 
         networkChangeStatusReciever = new NetworkChangeStatusReciever();
 
@@ -124,7 +136,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         */
 
         agentDeviceList = new ArrayList<>();
-        agentDeviceListAdapter = new AgentDeviceListAdapter(this,agentDeviceList);
+        agentDeviceListAdapter = new AgentDeviceListAdapter(this, agentDeviceList);
 
         lvAgentDevice = (ListView) findViewById(R.id.Sync_lvDeviceList);
         lvAgentDevice.setAdapter(agentDeviceListAdapter);
@@ -152,6 +164,12 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         super.onDestroy();
         wifiDirectConnectivityDataPresenter.onDestroy();
         //unregisterReceiver(networkChangeStatusReciever);
+
+
+        if (wifiManager.isWifiEnabled()) {
+            wifiManager.setWifiEnabled(false);
+            wifiManager.setWifiEnabled(true);
+        }
 
         wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
             @Override
@@ -256,19 +274,11 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         this.agentDeviceList.addAll(wifiP2pDevices);
         agentDeviceListAdapter.notifyDataSetChanged();
 
-        /*
-        if(agentDeviceList.size() > 0){
-            hideDialog();
-            searchAgentTask.cancel(true);
-
-            connectToAgent();
-
-        }
-        */
+        hideDialog();
 
     }
 
-    private void connectToAgent(){
+    private void connectToAgent() {
 
         agentDevice = agentDeviceList.get(0);
 
@@ -293,21 +303,6 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         //finish();
     }
 
-    @Override
-    public void onSyncComplete() {
-        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-
-        wifiManager.setWifiEnabled(false);
-
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        wifiManager.setWifiEnabled(true);
-
-    }
 
     @Override
     public void onProductsAcquired(List<Product> products) {
@@ -353,10 +348,26 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
     public void onSalesSent(List<Sales> sales) {
         markSyncSalesDone(sales.size());
 
+
+//        finish();
+    }
+
+    @Override
+    public void onItemReturnSent(List<ItemReturn> itemReturns) {
+
+    }
+
+    @Override
+    public void onCashReturnSent(List<CashReturn> cashReturns) {
+
+    }
+
+    @Override
+    public void onExpensesSent(List<Expenses> expensesList) {
+
         bSync.setVisibility(View.GONE);
         bClose.setVisibility(View.VISIBLE);
 
-//        finish();
     }
 
     @Override
@@ -372,11 +383,11 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
         switch (id) {
 
-            case R.id.action_SWA_sync_to_agent :
+            case R.id.action_SWA_sync_to_agent:
 
-                if(!(agentDeviceList.size() > 0)){
+                if (!(agentDeviceList.size() > 0)) {
                     startAgentDeviceSearch();
-                }else{
+                } else {
                     connectToAgent();
                 }
 
@@ -388,7 +399,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-    private void startAgentDeviceSearch(){
+    private void startAgentDeviceSearch() {
 
         showProgressDialog();
         hideDialogLater(10000);
@@ -401,21 +412,30 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     }
 
-    private void showProgressDialog(){
+    private void showProgressDialog() {
 
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setMessage("Searching for agent...");
         progressDialog.setIndeterminate(true);
-        progressDialog.setCancelable(true);
+        progressDialog.setCancelable(false);
+
+        progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                checkAgentDeviceList();
+            }
+        });
+
         progressDialog.show();
 
     }
 
-    private void hideDialog(){
+    private void hideDialog() {
 
-        if(progressDialog.isShowing()){
+        if (progressDialog.isShowing()) {
 
-            progressDialog.hide();
+            progressDialog.dismiss();
+
 
         }
 
@@ -428,48 +448,49 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
                         searchAgentTask.cancel(true);
 
-                        if (progressDialog.isShowing()) {
-                            hideDialog();
-
-                            if(agentDeviceList.size() <= 0){
-
-                                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        switch (which){
-                                            case DialogInterface.BUTTON_POSITIVE:
-                                                //Yes button clicked
-
-                                                if(!(agentDeviceList.size() > 0)){
-                                                    startAgentDeviceSearch();
-                                                }else{
-                                                    connectToAgent();
-                                                }
-
-                                                break;
-
-                                            case DialogInterface.BUTTON_NEGATIVE:
-                                                //No button clicked
-                                                break;
-                                        }
-                                    }
-                                };
-
-                                AlertDialog.Builder builder = new AlertDialog.Builder(SynchronizeWithAgentActivity.this);
-                                builder
-                                        .setMessage("No agent device found. Would you like to search again?")
-                                        .setPositiveButton("Yes", dialogClickListener)
-                                        .setNegativeButton("No", dialogClickListener).show();
-
-                            }else{
-                                connectToAgent();
-                            }
-
-                        }
+                        hideDialog();
+                        //checkAgentDeviceList();
                     }
                 },
                 hideAfterMillis);
     }
 
+    private void checkAgentDeviceList() {
+
+        if (agentDeviceList.size() <= 0) {
+
+            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case DialogInterface.BUTTON_POSITIVE:
+                            //Yes button clicked
+
+                            if (!(agentDeviceList.size() > 0)) {
+                                startAgentDeviceSearch();
+                            } else {
+                                connectToAgent();
+                            }
+
+                            break;
+
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            //No button clicked
+                            break;
+                    }
+                }
+            };
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(SynchronizeWithAgentActivity.this);
+            builder
+                    .setMessage("No agent device found. Would you like to search again?")
+                    .setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
+
+        } else {
+            connectToAgent();
+        }
+
+    }
 
 }

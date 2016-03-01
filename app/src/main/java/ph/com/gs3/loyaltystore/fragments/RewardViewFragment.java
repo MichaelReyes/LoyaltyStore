@@ -15,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import ph.com.gs3.loyaltystore.CheckoutActivity;
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.adapters.RewardDiscountListAdapter;
 import ph.com.gs3.loyaltystore.adapters.RewardFreeItemListAdapter;
+import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
 
@@ -157,8 +159,11 @@ public class RewardViewFragment extends Fragment {
             }
         });
 
+        Constants constants = new Constants();
+        DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
+
         tvTotalDiscount = (TextView) rootView.findViewById(R.id.Rewards_tvTotalDiscount);
-        tvTotalDiscount.setText(Float.toString(totalDiscount));
+        tvTotalDiscount.setText(decimalFormat.format(totalDiscount));
 
         return rootView;
     }

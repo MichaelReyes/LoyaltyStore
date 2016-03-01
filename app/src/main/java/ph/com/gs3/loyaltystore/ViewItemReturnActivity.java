@@ -3,8 +3,11 @@ package ph.com.gs3.loyaltystore;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -52,8 +55,63 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
         lvItemReturn = (ListView) findViewById(R.id.ITR_lvItems);
         lvItemReturn.setAdapter(itemReturnListAdapter);
+        lvItemReturn.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                ItemReturn itemReturn = (ItemReturn) itemReturnListAdapter.getItem(position);
+
+                if(!itemReturn.getIs_synced()){
+
+                    Intent intent = new Intent(ViewItemReturnActivity.this,AddItemToReturnActivity.class);
+                    intent.putExtra(
+                            AddItemToReturnActivity.EXTRA_ITEM_RETURN_ID,
+                            itemReturn.getId()
+                    );
+                    intent.putExtra(
+                            AddItemToReturnActivity.EXTRA_ITEM_RETURN_VALUE,
+                            itemReturn.getItem()
+                    );
+
+                    startActivity(intent);
+
+                }
+
+
+            }
+        });
+
         lvCashReturn = (ListView) findViewById(R.id.ITR_lvCash);
         lvCashReturn.setAdapter(cashReturnListAdapter);
+        lvCashReturn.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                CashReturn cashReturn = (CashReturn) cashReturnListAdapter.getItem(position);
+
+                Log.d(TAG, " Is synced :" + cashReturn.getIs_synced());
+
+                if(!cashReturn.getIs_synced()){
+
+                    Log.d(TAG, " NOT SYNCED ");
+
+                    Intent intent = new Intent(ViewItemReturnActivity.this,AddItemToReturnActivity.class);
+                    intent.putExtra(
+                            AddItemToReturnActivity.EXTRA_ITEM_RETURN_ID,
+                            cashReturn.getId()
+                    );
+                    intent.putExtra(
+                            AddItemToReturnActivity.EXTRA_ITEM_RETURN_VALUE,
+                            cashReturn.getItem()
+                    );
+
+                    startActivity(intent);
+
+               }
+
+            }
+        });
+
 
         initializeDataAccessObjects();
         setDataToList();
@@ -69,8 +127,13 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
     private void setDataToList(){
 
-        List<ItemReturn> itemReturns = itemReturnDao.queryBuilder()
-                .where(ItemReturnDao.Properties.Is_synced.eq(false)).list();
+        itemReturnList.clear();
+        cashReturnList.clear();
+
+        /*List<ItemReturn> itemReturns = itemReturnDao.queryBuilder()
+                .where(ItemReturnDao.Properties.Is_synced.eq(false)).list();*/
+
+        List<ItemReturn> itemReturns = itemReturnDao.loadAll();
 
         for(ItemReturn itemReturn : itemReturns){
 
@@ -80,8 +143,10 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
         itemReturnListAdapter.notifyDataSetChanged();
 
-        List<CashReturn> cashReturns = cashReturnDao.queryBuilder()
-                .where(CashReturnDao.Properties.Is_synced.eq(false)).list();
+        /*List<CashReturn> cashReturns = cashReturnDao.queryBuilder()
+                .where(CashReturnDao.Properties.Is_synced.eq(false)).list();*/
+
+        List<CashReturn> cashReturns = cashReturnDao.loadAll();
 
         for(CashReturn cashReturn : cashReturns){
 
@@ -96,6 +161,8 @@ public class ViewItemReturnActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        setDataToList();
+        Log.d(TAG, "ON RESUME");
     }
 
     @Override
@@ -124,5 +191,11 @@ public class ViewItemReturnActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }

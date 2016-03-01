@@ -7,12 +7,14 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.R;
+import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
 
@@ -70,9 +72,12 @@ public class SalesListAdapter extends BaseAdapter {
 
         viewHolder = (SalesProductViewHolder) row.getTag();
 
+        Constants constants = new Constants();
+        DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
+
         viewHolder.tvTransactionDate.setText(formatter.format(sales.getTransaction_date()));
         viewHolder.tvTransactionNumber.setText(sales.getTransaction_number());
-        viewHolder.tvAmount.setText(String.valueOf(sales.getAmount()));
+        viewHolder.tvAmount.setText(decimalFormat.format(sales.getAmount()));
         viewHolder.tvRemarks.setText(sales.getRemarks() == null ? "" : sales.getRemarks());
 
         return row;

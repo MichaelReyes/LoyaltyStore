@@ -20,6 +20,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import ph.com.gs3.loyaltystore.fragments.AddItemToReturnViewFragment;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 /**
@@ -30,9 +34,15 @@ public class AddItemToReturnActivity extends Activity implements
 
     public static final String TAG = AddItemToReturnActivity.class.getSimpleName();
 
+    public static final String EXTRA_ITEM_RETURN_VALUE = "ITEM_RETURN";
+    public static final String EXTRA_ITEM_RETURN_ID = "ITEM_RETURN_ID";
+
     private static final int REQUEST_CAMERA = 0, SELECT_FILE = 1;
 
     private AddItemToReturnViewFragment addItemToReturnViewFragment;
+
+    private long itemReturnId;
+    private String itemReturnValue;
 
     private Retailer retailer;
 
@@ -53,6 +63,17 @@ public class AddItemToReturnActivity extends Activity implements
                     R.id.container_items_to_return,
                     addItemToReturnViewFragment, AddItemToReturnViewFragment.TAG).commit();
         }
+
+        getExtras();
+
+    }
+
+    private void getExtras(){
+
+        Intent intent = this.getIntent();
+
+        itemReturnId = intent.getLongExtra(EXTRA_ITEM_RETURN_ID,-1);
+        itemReturnValue = intent.getStringExtra(EXTRA_ITEM_RETURN_VALUE);
 
     }
 
@@ -166,9 +187,88 @@ public class AddItemToReturnActivity extends Activity implements
 
     @Override
     public void onSave() {
-        addItemToReturnViewFragment.save(retailer);
 
-        finish();
+        String item = addItemToReturnViewFragment.getItem();
+
+        ItemReturnDao itemReturnDao =
+                LoyaltyStoreApplication.getInstance().getSession().getItemReturnDao();
+
+        ItemReturn itemReturn = new ItemReturn();
+
+        CashReturnDao cashReturnDao =
+                LoyaltyStoreApplication.getInstance().getSession().getCashReturnDao();
+
+        CashReturn cashReturn = new CashReturn();
+
+        if (addItemToReturnViewFragment.validate(item)) {
+
+
+            switch (item) {
+                case AddItemToReturnViewFragment.ITEM_VALUE_TRAY:
+
+                    if(itemReturnId != -1){
+
+                        itemReturn.setId(itemReturnId);
+
+                    }
+
+                    itemReturn.setItem(item);
+                    itemReturn.setQuantity(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
+                    itemReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
+                    itemReturn.setStore_id(retailer.getStoreId());
+                    itemReturn.setIs_synced(false);
+
+                    itemReturnDao.insertOrReplaceInTx(itemReturn);
+
+                    break;
+                case AddItemToReturnViewFragment.ITEM_VALUE_SPOILAGE:
+
+                    itemReturn.setItem(item);
+                    itemReturn.setProduct_name(addItemToReturnViewFragment.getProduct());
+                    itemReturn.setQuantity(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
+                    itemReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
+                    itemReturn.setIs_synced(false);
+                    itemReturn.setStore_id(retailer.getStoreId());
+
+                    if(itemReturnId != -1){
+                        itemReturn.setId(itemReturnId);
+                    }
+
+                    itemReturnDao.insertOrReplaceInTx(itemReturn);
+
+                    break;
+                case AddItemToReturnViewFragment.ITEM_VALUE_CASH:
+
+                    cashReturn.setItem(item);
+                    cashReturn.setAmount(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
+                    cashReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
+                    cashReturn.setType(addItemToReturnViewFragment.getCashType());
+                    cashReturn.setIs_synced(false);
+                    cashReturn.setStore_id(retailer.getStoreId());
+
+                    if(addItemToReturnViewFragment.getCashType().equals(AddItemToReturnViewFragment.CASH_TYPE_VALUE_CASH_ON_BANK)) {
+
+                        cashReturn.setDeposited_to_bank(addItemToReturnViewFragment.getBank());
+                        cashReturn.setTime_of_deposit(addItemToReturnViewFragment.getDepositDateTime());
+
+                    }
+
+                    if(itemReturnId != -1){
+
+                        cashReturn.setId(itemReturnId);
+
+                    }
+
+                    cashReturnDao.insertOrReplaceInTx(cashReturn);
+
+                    break;
+            }
+
+            finish();
+
+        }
+
+
     }
 
     @Override

@@ -15,11 +15,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import ph.com.gs3.loyaltystore.CheckoutActivity;
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
+import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
 
@@ -84,8 +86,11 @@ public class SalesProductsViewFragment extends Fragment {
             total  += salesProducts.get(i).getSub_total();
         }
 
+        Constants constants = new Constants();
+        DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
+
         tvAmount = (TextView) rootView.findViewById(R.id.Transaction_tvAmount);
-        tvAmount.setText(Float.toString(total));
+        tvAmount.setText(decimalFormat.format(total));
 
         salesProductListAdapter = new SalesProductListAdapter(getActivity(),salesProducts);
         salesProductListAdapter.notifyDataSetChanged();

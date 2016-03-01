@@ -1,6 +1,8 @@
 package ph.com.gs3.loyaltystore;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -246,7 +248,7 @@ public class CheckoutActivity extends AppCompatActivity implements
     public void onComplete() {
 
         setSalesIdToProductsAndRewards();
-        Intent intent = new Intent(CheckoutActivity.this,MainActivity.class);
+        Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
 
@@ -277,31 +279,31 @@ public class CheckoutActivity extends AppCompatActivity implements
 
 
     //In case the connection to customer device failed and store decided to cancel it.
-    private void removeSalesRecord(){
+    private void removeSalesRecord() {
 
-        if(salesTransactionNumber != ""){
+        if (salesTransactionNumber != "") {
 
             List<Sales> salesList = salesDao.queryRaw(
                     "WHERE " +
-                    SalesDao.Properties.Id.columnName + 
-                    "=?",
-                    new String[]{salesTransactionNumber + ""}
-            );
-            
-            for(Sales sales : salesList){
-                
-                salesDao.delete(sales);
-                
-            }
-            
-            List<SalesProduct> salesProductList = salesProductDao.queryRaw(
-                    "WHERE " +
-                    SalesProductDao.Properties.Sales_transaction_number.columnName +
-                    "=?",
+                            SalesDao.Properties.Id.columnName +
+                            "=?",
                     new String[]{salesTransactionNumber + ""}
             );
 
-            for(SalesProduct salesProduct : salesProductList){
+            for (Sales sales : salesList) {
+
+                salesDao.delete(sales);
+
+            }
+
+            List<SalesProduct> salesProductList = salesProductDao.queryRaw(
+                    "WHERE " +
+                            SalesProductDao.Properties.Sales_transaction_number.columnName +
+                            "=?",
+                    new String[]{salesTransactionNumber + ""}
+            );
+
+            for (SalesProduct salesProduct : salesProductList) {
 
                 salesProduct.setSales_transaction_number("");
                 salesProductDao.update(salesProduct);
@@ -310,11 +312,11 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             List<SalesHasReward> salesHasRewardList = salesHasRewardDao.queryRaw(
                     "WHERE " +
-                    SalesHasRewardDao.Properties.Sales_transaction_number.columnName +
-                    "=?",
+                            SalesHasRewardDao.Properties.Sales_transaction_number.columnName +
+                            "=?",
                     new String[]{salesTransactionNumber + ""});
 
-            for(SalesHasReward salesHasReward : salesHasRewardList){
+            for (SalesHasReward salesHasReward : salesHasRewardList) {
 
                 salesHasRewardDao.delete(salesHasReward);
 
@@ -468,7 +470,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
 
     @Override
-    public void onPurchaseInfoSent(String customerDeviceId) {
+    public void onPurchaseInfoSent(String customerDeviceId, final boolean isFirstUse) {
 
         List<Sales> salesList = salesDao.queryRaw(
                 "WHERE " + SalesDao.Properties.Id.columnName + "=?",
@@ -482,27 +484,82 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         }
 
-
         wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 hideSubmitDocumentDialog();
-                CheckoutActivity.this.finish();
+
+                if (isFirstUse) {
+
+                    onClientFirstUse();
+
+                } else {
+                    CheckoutActivity.this.finish();
+
+                    MainActivity.mainActivity.finish();
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
+
                 Toast.makeText(CheckoutActivity.this, "Purchase Information Sent", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailure(int reason) {
                 hideSubmitDocumentDialog();
-                CheckoutActivity.this.finish();
+                if (isFirstUse) {
+
+                    onClientFirstUse();
+
+                } else {
+                    CheckoutActivity.this.finish();
+
+                    MainActivity.mainActivity.finish();
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
                 Toast.makeText(CheckoutActivity.this, "Purchase information sent, but failed to disconnect to peer, please restart your wifi", Toast.LENGTH_SHORT).show();
             }
         });
 
-        MainActivity.mainActivity.finish();
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+    }
+
+    private void onClientFirstUse() {
+
+        List<Reward> rewardList = rewardDao.queryBuilder()
+                .where(RewardDao.Properties.Reward_condition.eq("first_use")).list();
+
+        if (rewardList.size() > 0) {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Customer has rewards for first use \n");
+
+            String message = "";
+
+            for (Reward reward : rewardList) {
+
+                message += reward.getReward() + "\n";
+
+            }
+
+            builder.setMessage(message);
+
+            builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                    CheckoutActivity.this.finish();
+
+                    MainActivity.mainActivity.finish();
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
+            });
+
+            builder.show();
+
+        }
     }
 
     protected void showSubmitDocumentDialog(String message) {

@@ -39,31 +39,32 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Name"
-                android:textColor="#000000" />
+                android:text="Name" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Qty."
-                android:textColor="#000000" />
+                android:text="Qty." />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Cost"
-                android:textColor="#000000" />
+                android:text="Cost" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Total"
-                android:textColor="#000000" />
+                android:text="Total" />
 
         </LinearLayout>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="2dp"
+            android:background="#C0C0C0" />
 
         <ListView
             android:id="@+id/Sales_lvSalesProducts"

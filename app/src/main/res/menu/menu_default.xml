@@ -6,7 +6,7 @@
     <item
         android:id="@+id/action_Main_Sync"
         android:orderInCategory="100"
-        android:title="Send my Sales"
+        android:title="Send and Recieve"
         app:showAsAction="ifRoom|withText" />
 
     <item

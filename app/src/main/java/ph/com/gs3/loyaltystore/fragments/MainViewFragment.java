@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,11 +16,13 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
+import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
@@ -263,14 +266,20 @@ public class MainViewFragment extends Fragment {
     }
 
     public void setTotalAmount(float total) {
-        tvTotal.setText(Float.toString(total));
+
+        Constants constants = new Constants();
+        DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
+
+        tvTotal.setText(decimalFormat.format(total));
     }
 
     public float getTotalAmount() {
 
         String totalAmountString = tvTotal.getText().toString();
 
-        return Float.parseFloat(totalAmountString);
+        Log.d(TAG, " REPLACED : "  + Float.parseFloat(totalAmountString.replaceAll("[,.]", "")));
+
+        return Float.parseFloat(totalAmountString.replace(",", ""));
 
     }
 
