@@ -3,8 +3,11 @@ package ph.com.gs3.loyaltystore;
 import android.app.Activity;
 import android.os.Bundle;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import de.greenrobot.dao.query.QueryBuilder;
 import ph.com.gs3.loyaltystore.adapters.SalesListAdapter;
@@ -18,7 +21,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
 /**
  * Created by Bryan-PC on 18/02/2016.
  */
-public class SalesActivity extends Activity implements SalesViewFragment.SalesViewFragmentListener{
+public class SalesActivity extends Activity implements SalesViewFragment.SalesViewFragmentListener {
 
     public static final String TAG = SalesActivity.class.getSimpleName();
 
@@ -32,6 +35,9 @@ public class SalesActivity extends Activity implements SalesViewFragment.SalesVi
 
     private SalesDao salesDao;
     private SalesProductDao salesProductDao;
+
+    private static final SimpleDateFormat formatter = new SimpleDateFormat(
+            "yyyy-MM-dd", Locale.ENGLISH);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,15 +88,54 @@ public class SalesActivity extends Activity implements SalesViewFragment.SalesVi
 
         salesList.clear();
 
-        List<Sales> sList = salesDao.queryBuilder().orderDesc(
-                SalesDao.Properties.Transaction_date
-        ).list();
+        List<Sales> sList = new ArrayList<>();
 
-        for(Sales sales : sList){
+        if (salesViewFragment.getFilterDate().equals("[No Date Selected]")) {
+            sList = salesDao.queryBuilder().orderDesc(
+                    SalesDao.Properties.Transaction_date
+            ).list();
+        } else {
+            /*String sql =
+                    "WHERE DATE("
+                            + SalesDao.Properties.Transaction_date.columnName +
+                            ") = '" +  java.sql.Date.valueOf(salesViewFragment.getFilterDate()) + "'" +
+                            " ORDER BY " + SalesDao.Properties.Transaction_date.columnName + " DESC";
 
+            sList = salesDao.queryRaw(sql,null);*/
+
+            /*sList = salesDao.queryBuilder()
+                    .where(SalesDao.Properties.Transaction_date.eq(java.sql.Date.valueOf(salesViewFragment.getFilterDate())))
+                    .orderDesc(
+                            SalesDao.Properties.Transaction_date
+                    ).list();*/
+
+            List<Sales> salesRecords = salesDao.loadAll();
+
+            for(Sales sales : salesRecords){
+
+                Date dtSales =  java.sql.Date.valueOf(
+                        formatter.format(sales.getTransaction_date())
+                );
+
+                Date dtFilter =  java.sql.Date.valueOf(salesViewFragment.getFilterDate());
+
+                if(dtSales.compareTo(dtFilter) == 0){
+                    sList.add(sales);
+                }
+            }
+
+        }
+
+        float totalSalesAmount = 0;
+
+        for (Sales sales : sList) {
+
+            totalSalesAmount += sales.getAmount();
             salesList.add(sales);
 
         }
+
+        salesViewFragment.setTotalSalesAmount(totalSalesAmount);
 
         salesListAdapter.notifyDataSetChanged();
 
@@ -105,7 +150,7 @@ public class SalesActivity extends Activity implements SalesViewFragment.SalesVi
         qBuilder.where(SalesProductDao.Properties.Sales_transaction_number.eq(sales.getTransaction_number()));
         List<SalesProduct> salesProducts = qBuilder.list();
 
-        for(SalesProduct salesProduct : salesProducts){
+        for (SalesProduct salesProduct : salesProducts) {
 
             salesProductList.add(salesProduct);
 
@@ -115,4 +160,8 @@ public class SalesActivity extends Activity implements SalesViewFragment.SalesVi
 
     }
 
+    @Override
+    public void onDateSelected() {
+        onViewReady();
+    }
 }

@@ -358,6 +358,31 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     }
 
+    private JSONObject generateSalesToJsonObject() throws JSONException {
+
+        JSONObject jsonSalesObject = new JSONObject();
+
+        List<Sales> salesList = salesDao.queryRaw(" WHERE " + SalesDao.Properties.Transaction_number.columnName + "=?",
+                new String[]{salesProducts.get(0).getSales_transaction_number() + ""});
+
+        for (Sales sales : salesList) {
+
+            jsonSalesObject.put("id", sales.getId());
+            jsonSalesObject.put("transaction_number", sales.getTransaction_number());
+            jsonSalesObject.put("store_id", sales.getStore_id());
+            jsonSalesObject.put("store_name", retailer.getStoreName());
+            jsonSalesObject.put("customer_id", sales.getCustomer_id());
+            jsonSalesObject.put("amount", sales.getAmount());
+            jsonSalesObject.put("total_discount", sales.getTotal_discount());
+            jsonSalesObject.put("transaction_date", sales.getTransaction_date());
+
+        }
+
+        return jsonSalesObject;
+
+
+    }
+
     private String generateDataToJsonString() throws JSONException {
 
         JSONArray jsonArray = new JSONArray();
