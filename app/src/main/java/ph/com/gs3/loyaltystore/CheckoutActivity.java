@@ -2,12 +2,15 @@ package ph.com.gs3.loyaltystore;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -35,6 +38,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesHasReward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesHasRewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
+import ph.com.gs3.loyaltystore.models.tasks.SendPurchaseInfoAndRewardsTask;
 import ph.com.gs3.loyaltystore.models.tasks.SendPurchaseInfoForValidationTask;
 import ph.com.gs3.loyaltystore.models.values.DeviceInfo;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
@@ -46,7 +50,8 @@ import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
 public class CheckoutActivity extends AppCompatActivity implements
         CheckOutViewFragment.CheckoutViewFragmentEventListener,
         WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener,
-        SendPurchaseInfoForValidationTask.SendPurchaseInfoForValidationTaskEventListener {
+        SendPurchaseInfoForValidationTask.SendPurchaseInfoForValidationTaskEventListener,
+        SendPurchaseInfoAndRewardsTask.SendPurchaseInfoAndRewardsTaskListener{
 
     public static final String TAG = CheckoutActivity.class.getSimpleName();
     public static final String EXTRA_DATA_JSON_STRING = "data_json_string";
@@ -80,6 +85,12 @@ public class CheckoutActivity extends AppCompatActivity implements
     private ProgressDialog progressDialog;
 
     private String salesTransactionNumber;
+
+    private WifiManager wifiManager;
+
+    private String customerDeviceId;
+
+    private boolean isFirstUse = false;
 
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "EEE MMM d HH:mm:ss zzz yyyy");
@@ -117,6 +128,8 @@ public class CheckoutActivity extends AppCompatActivity implements
                     checkOutViewFragment,
                     CheckOutViewFragment.TAG).commit();
         }
+
+        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
 
         wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.CUSTOMER);
 
@@ -213,6 +226,16 @@ public class CheckoutActivity extends AppCompatActivity implements
         super.onDestroy();
         wifiDirectConnectivityDataPresenter.onDestroy();
         progressDialog.dismiss();
+        resetWifi();
+    }
+
+    private void resetWifi() {
+        if (wifiManager.isWifiEnabled()) {
+            wifiManager.setWifiEnabled(false);
+            wifiManager.setWifiEnabled(true);
+        } else {
+            wifiManager.setWifiEnabled(true);
+        }
     }
 
 
@@ -340,17 +363,27 @@ public class CheckoutActivity extends AppCompatActivity implements
         String jsonStringPurchaseInfo = null;
 
         try {
-            jsonStringPurchaseInfo = generateDataToJsonString();
+            /*jsonStringPurchaseInfo = generateDataToJsonString();
+
+            SendPurchaseInfoForValidationTask sendPurchaseInfoForValidationTask =
+                    new SendPurchaseInfoForValidationTask(
+                            3001,
+                            jsonStringPurchaseInfo, this
+                    );
+            sendPurchaseInfoForValidationTask.execute();*/
+
+            SendPurchaseInfoAndRewardsTask sendPurchaseInfoAndRewardsTask =
+                    new SendPurchaseInfoAndRewardsTask(
+                            CheckoutActivity.this,
+                            3001,
+                            generateSalesToJsonObject(),
+                            this
+                            );
+            sendPurchaseInfoAndRewardsTask.execute();
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        SendPurchaseInfoForValidationTask sendPurchaseInfoForValidationTask =
-                new SendPurchaseInfoForValidationTask(
-                        3001,
-                        jsonStringPurchaseInfo, this
-                );
-        sendPurchaseInfoForValidationTask.execute();
     }
 
     @Override
@@ -439,7 +472,6 @@ public class CheckoutActivity extends AppCompatActivity implements
     }
 
     private Sales generateSales() {
-
 
         SimpleDateFormat formatter = new SimpleDateFormat(
                 "yyyyMMdd_HHmmss", Locale.ENGLISH);
@@ -544,6 +576,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                     Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
                     startActivity(intent);
                 }
+
                 Toast.makeText(CheckoutActivity.this, "Purchase information sent, but failed to disconnect to peer, please restart your wifi", Toast.LENGTH_SHORT).show();
             }
         });
@@ -558,7 +591,7 @@ public class CheckoutActivity extends AppCompatActivity implements
         if (rewardList.size() > 0) {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Customer has rewards for first use \n");
+            builder.setTitle("CUSTOMER HAS REWARD(S) FOR FIRST USE \n");
 
             String message = "";
 
@@ -625,5 +658,85 @@ public class CheckoutActivity extends AppCompatActivity implements
                     }
                 },
                 hideAfterMillis);
+    }
+
+    @Override
+    public void onCustomerIdAcquired(String customerDeviceId) {
+        this.customerDeviceId = customerDeviceId;
+        Log.d(TAG,"ACQUIRED CUSTOMER DEVICE ID : " + customerDeviceId);
+    }
+
+    @Override
+    public void onCustomerTransactionRecordsAcquired(boolean isFirstUse) {
+        Log.d(TAG, "IS FIRST USE : " + isFirstUse);
+        this.isFirstUse = isFirstUse;
+    }
+
+    @Override
+    public void onSalesSent() {
+        Log.d(TAG, "SALES SENT");
+    }
+
+    @Override
+    public void onRewardsSent() {
+        Log.d(TAG, "REWARD SENT");
+
+        List<Sales> salesList = salesDao.queryRaw(
+                "WHERE " + SalesDao.Properties.Id.columnName + "=?",
+                new String[]{salesTransactionNumber + ""}
+        );
+
+        for (Sales sales : salesList) {
+
+            sales.setCustomer_id(Long.valueOf(customerDeviceId));
+            salesDao.update(sales);
+
+        }
+
+        disconnectPeers();
+
+    }
+
+    private void disconnectPeers(){
+
+        wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                hideSubmitDocumentDialog();
+
+                if (isFirstUse) {
+
+                    onClientFirstUse();
+
+                } else {
+                    CheckoutActivity.this.finish();
+
+                    MainActivity.mainActivity.finish();
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
+
+                Toast.makeText(CheckoutActivity.this, "Purchase Information Sent", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                hideSubmitDocumentDialog();
+                if (isFirstUse) {
+
+                    onClientFirstUse();
+
+                } else {
+                    CheckoutActivity.this.finish();
+
+                    MainActivity.mainActivity.finish();
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
+                Toast.makeText(CheckoutActivity.this, "Purchase information sent, but failed to disconnect to peer, please restart your wifi", Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 }

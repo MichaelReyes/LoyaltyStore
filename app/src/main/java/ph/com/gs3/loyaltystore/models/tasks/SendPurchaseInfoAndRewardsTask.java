@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,6 +20,8 @@ import java.util.List;
 
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.models.WifiDirectConnectivityState;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesHasReward;
@@ -40,7 +43,10 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
     private SendPurchaseInfoAndRewardsTaskListener sendPurchaseInfoAndRewardsTaskListener;
 
     private String customerDeviceId;
+    private boolean isFirstUse = false;
+    private boolean hasRewards = false;
 
+    private ProductDao productDao;
     private RewardDao rewardDao;
     private SalesProductDao salesProductDao;
     private SalesHasRewardDao salesHasRewardDao;
@@ -48,7 +54,7 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
     private List<Reward> rewards;
 
     public enum ProgressType {
-        CUSTOMER_ID, SALES, REWARDS
+        CUSTOMER_ID, CUSTOMER_TRANSACTION_RECORD_COUNT, SALES, REWARDS, CLAIM_REWARDS
     }
 
     public SendPurchaseInfoAndRewardsTask(Context context,
@@ -64,11 +70,12 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
 
     }
 
-    private void initializeDateAccessObjects(){
+    private void initializeDateAccessObjects() {
 
         salesProductDao = LoyaltyStoreApplication.getSession().getSalesProductDao();
         salesHasRewardDao = LoyaltyStoreApplication.getSession().getSalesHasRewardDao();
         rewardDao = LoyaltyStoreApplication.getSession().getRewardDao();
+        productDao = LoyaltyStoreApplication.getSession().getProductDao();
 
     }
 
@@ -77,16 +84,20 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
         super.onProgressUpdate(progressTypes);
 
         if (progressTypes[0] == ProgressType.CUSTOMER_ID) {
-            //listener here
+            sendPurchaseInfoAndRewardsTaskListener.onCustomerIdAcquired(customerDeviceId);
+        }   else if (progressTypes[0] == ProgressType.CUSTOMER_TRANSACTION_RECORD_COUNT) {
+            sendPurchaseInfoAndRewardsTaskListener.onCustomerTransactionRecordsAcquired(isFirstUse);
         } else if (progressTypes[0] == ProgressType.SALES) {
-
+            sendPurchaseInfoAndRewardsTaskListener.onSalesSent();
         } else if (progressTypes[0] == ProgressType.REWARDS) {
-
+            sendPurchaseInfoAndRewardsTaskListener.onRewardsSent();
         }
     }
 
     @Override
     protected Void doInBackground(Void... params) {
+
+        Log.d(TAG, "SendPurchaseInfoAndRewardsTask STARTED!");
 
         WifiDirectConnectivityState connectivityState = WifiDirectConnectivityState.getInstance();
 
@@ -112,15 +123,20 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
 
             acquireCustomerId(dataInputStream);
             publishProgress(ProgressType.CUSTOMER_ID);
-            sendSales(dataOutputStream,dataInputStream);
+            acquireCustomerTransactionRecordCount(dataInputStream);
+            publishProgress(ProgressType.CUSTOMER_TRANSACTION_RECORD_COUNT);
+            sendSales(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.SALES);
             sendRewards(dataOutputStream);
             publishProgress(ProgressType.REWARDS);
 
+            /*if(hasRewards){
+                acquireClaimedRewards(dataInputStream);
+                publishProgress(ProgressType.CLAIM_REWARDS);
+            }*/
 
-        }catch (IOException e){
-            e.printStackTrace();
-        } catch (JSONException e) {
+
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
 
@@ -136,14 +152,49 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
 
     private void acquireCustomerId(DataInputStream dataInputStream) throws IOException {
 
-        customerDeviceId = dataInputStream.readUTF();
-        Log.d(TAG, "Customer Id : " + customerDeviceId);
+        String preMessage = dataInputStream.readUTF();
+
+        if ("CUSTOMER_ID".equals(preMessage)) {
+            customerDeviceId = dataInputStream.readUTF();
+            Log.d(TAG, "Customer Id : " + customerDeviceId);
+        }
 
     }
+
+    private void acquireCustomerTransactionRecordCount(DataInputStream dataInputStream) throws IOException {
+
+        String preMessage = dataInputStream.readUTF();
+
+        if ("CUSTOMER_TRANSACTION_RECORD_COUNT".equals(preMessage)) {
+            int customerTransactionRecordCount = Integer.valueOf(dataInputStream.readUTF());
+            if(customerTransactionRecordCount <= 0){
+                isFirstUse = true;
+            }
+        }
+
+
+    }
+
+    private void acquireClaimedRewards(DataInputStream dataInputStream) throws IOException{
+
+        String preMessage = dataInputStream.readUTF();
+
+        if("CLAIMED_REWARDS".equals(preMessage)){
+
+            String claimed = dataInputStream.readUTF();
+
+            Log.d(TAG,"CLAIMED : " + claimed);
+
+        }
+
+    }
+
     private void sendSales(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException, JSONException {
 
         String preMessage = dataInputStream.readUTF();
         Gson gson = new Gson();
+
+        Log.d(TAG, "PRE MESSAGE : " + preMessage);
 
         if ("SALES".equals(preMessage)) {
 
@@ -175,6 +226,11 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
                                 .where(
                                         SalesHasRewardDao.Properties.Sales_transaction_number.eq(salesTransactionNumber)
                                 ).list();
+
+                if(salesRewardList.size() > 0){
+                    hasRewards = true;
+                }
+
                 dataOutputStream.writeUTF(gson.toJson(salesRewardList));
 
             } else {
@@ -190,8 +246,43 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
                                 .where(
                                         SalesProductDao.Properties.Sales_transaction_number.eq(salesTransactionNumber)
                                 ).list();
+
+                JSONArray jsonArray = new JSONArray();
+                JSONObject jsonObject;
+
+                for (SalesProduct salesProduct : salesProductList) {
+
+                    jsonObject = new JSONObject();
+                    jsonObject.put("id", salesProduct.getId());
+                    jsonObject.put("product_id", salesProduct.getProduct_id());
+                    jsonObject.put("quantity", salesProduct.getQuantity());
+                    jsonObject.put("sale_type", salesProduct.getSale_type());
+                    jsonObject.put("sales_transaction_number", salesProduct.getSales_transaction_number());
+                    jsonObject.put("sub_total", salesProduct.getSub_total());
+
+                    List<Product> products =
+                            productDao
+                                    .queryBuilder()
+                                    .where(
+                                            ProductDao.Properties.Id.eq(
+                                                    salesProduct.getProduct_id()
+                                            )
+                                    )
+                                    .list();
+
+                    for(Product product : products){
+                        jsonObject.put("product_name", product.getName());
+                        jsonObject.put("unit_cost", product.getUnit_cost());
+                        jsonObject.put("sku", product.getSku());
+                    }
+
+                    jsonArray.put(jsonObject);
+
+                }
+
                 Log.e(TAG, salesProductList.size() + " products under sales: " + salesTransactionNumber + " will be sent");
-                dataOutputStream.writeUTF(gson.toJson(salesProductList));
+                //dataOutputStream.writeUTF(gson.toJson(salesProductList));
+                dataOutputStream.writeUTF(jsonArray.toString());
             } else {
                 Log.e(TAG, "Sales sync failed, expected SALES_REWARDS_RECEIVED");
             }
@@ -223,6 +314,14 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
     }
 
     public interface SendPurchaseInfoAndRewardsTaskListener {
+
+        void onCustomerIdAcquired(String customerDeviceId);
+
+        void onCustomerTransactionRecordsAcquired(boolean isFirstUse);
+
+        void onSalesSent();
+
+        void onRewardsSent();
 
     }
 }
