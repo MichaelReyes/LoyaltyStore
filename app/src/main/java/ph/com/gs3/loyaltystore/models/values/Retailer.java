@@ -18,6 +18,7 @@ public class Retailer implements Serializable {
     private String advertisment;
     private String storeName;
     private String serverUrl;
+    private String macAddress;
     private int servicePortNumber;
 
     public static Retailer getDeviceRetailerFromSharedPreferences(Context context) {
@@ -31,6 +32,7 @@ public class Retailer implements Serializable {
         retailer.advertisment = settings.getString("ADVERTISEMENT", "");
         retailer.servicePortNumber = settings.getInt("SERVICE_PORT_NUMBER", 3001);
         retailer.serverUrl = settings.getString("SERVER_URL", "");
+        retailer.macAddress = settings.getString("MAC_ADDRESS","");
 
         return retailer;
     }

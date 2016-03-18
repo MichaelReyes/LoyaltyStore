@@ -11,6 +11,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -38,6 +39,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesHasReward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesHasRewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
+import ph.com.gs3.loyaltystore.models.tasks.AcquireClaimedRewardsTask;
 import ph.com.gs3.loyaltystore.models.tasks.SendPurchaseInfoAndRewardsTask;
 import ph.com.gs3.loyaltystore.models.tasks.SendPurchaseInfoForValidationTask;
 import ph.com.gs3.loyaltystore.models.values.DeviceInfo;
@@ -51,13 +53,20 @@ public class CheckoutActivity extends AppCompatActivity implements
         CheckOutViewFragment.CheckoutViewFragmentEventListener,
         WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener,
         SendPurchaseInfoForValidationTask.SendPurchaseInfoForValidationTaskEventListener,
-        SendPurchaseInfoAndRewardsTask.SendPurchaseInfoAndRewardsTaskListener{
+        SendPurchaseInfoAndRewardsTask.SendPurchaseInfoAndRewardsTaskListener,
+        AcquireClaimedRewardsTask.AcquireClaimedRewardsTaskListener {
 
     public static final String TAG = CheckoutActivity.class.getSimpleName();
     public static final String EXTRA_DATA_JSON_STRING = "data_json_string";
     public static final String EXTRA_TOTAL_AMOUNT = "total_amount";
     public static final String DATA_TYPE_JSON_SALES = "sales";
     public static final String DATA_TYPE_JSON_SALES_PRODUCT = "sales_product";
+
+    private enum ActionType {
+        SEND_SALES, ACQUIRE_CLAIMED_REWARDS
+    }
+
+    private ActionType actionType = ActionType.SEND_SALES;
 
     private CheckOutViewFragment checkOutViewFragment;
 
@@ -91,6 +100,7 @@ public class CheckoutActivity extends AppCompatActivity implements
     private String customerDeviceId;
 
     private boolean isFirstUse = false;
+    private boolean hideProgressDialogLater = false;
 
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "EEE MMM d HH:mm:ss zzz yyyy");
@@ -285,9 +295,12 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         if (customerDevice != null) {
             wifiDirectConnectivityDataPresenter.connectToCustomer(customerDevice, 3001);
-            showSubmitDocumentDialog("Waiting for user ...");
+            showProgressDialog("Waiting for user ...");
+            setProgressDialogCancelButtonVisibility(View.INVISIBLE);
             hideDialogLater(30000, "User did not respond after 30 seconds, please try again later.", true);
+            hideProgressDialogLater = true;
         }
+
 
     }
 
@@ -299,7 +312,6 @@ public class CheckoutActivity extends AppCompatActivity implements
         finish();
 
     }
-
 
     //In case the connection to customer device failed and store decided to cancel it.
     private void removeSalesRecord() {
@@ -372,14 +384,26 @@ public class CheckoutActivity extends AppCompatActivity implements
                     );
             sendPurchaseInfoForValidationTask.execute();*/
 
-            SendPurchaseInfoAndRewardsTask sendPurchaseInfoAndRewardsTask =
-                    new SendPurchaseInfoAndRewardsTask(
-                            CheckoutActivity.this,
-                            3001,
-                            generateSalesToJsonObject(),
-                            this
-                            );
-            sendPurchaseInfoAndRewardsTask.execute();
+            Log.d(TAG, "ACTION TYPE : " + actionType);
+
+            if (actionType.equals(ActionType.SEND_SALES)) {
+                SendPurchaseInfoAndRewardsTask sendPurchaseInfoAndRewardsTask =
+                        new SendPurchaseInfoAndRewardsTask(
+                                CheckoutActivity.this,
+                                3001,
+                                generateSalesToJsonObject(),
+                                this
+                        );
+                sendPurchaseInfoAndRewardsTask.execute();
+            } else if (actionType.equals(ActionType.ACQUIRE_CLAIMED_REWARDS)) {
+                AcquireClaimedRewardsTask acquireClaimedRewardsTask =
+                        new AcquireClaimedRewardsTask(
+                                3001, this
+                        );
+                acquireClaimedRewardsTask.execute();
+
+            }
+
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -545,7 +569,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             @Override
             public void onSuccess() {
-                hideSubmitDocumentDialog();
+                hideProgressDialog();
 
                 if (isFirstUse) {
 
@@ -553,7 +577,6 @@ public class CheckoutActivity extends AppCompatActivity implements
 
                 } else {
                     CheckoutActivity.this.finish();
-
                     MainActivity.mainActivity.finish();
                     Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
                     startActivity(intent);
@@ -564,7 +587,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             @Override
             public void onFailure(int reason) {
-                hideSubmitDocumentDialog();
+                hideProgressDialog();
                 if (isFirstUse) {
 
                     onClientFirstUse();
@@ -620,30 +643,44 @@ public class CheckoutActivity extends AppCompatActivity implements
         }
     }
 
-    protected void showSubmitDocumentDialog(String message) {
+    protected void showProgressDialog(String message) {
 
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setMessage(message);
         progressDialog.setIndeterminate(true);
         progressDialog.setCancelable(false);
+
+        progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                onClaimedRewardsAcquired(new ArrayList<SalesHasReward>());
+            }
+        });
+
         progressDialog.show();
 
     }
 
-    protected void hideSubmitDocumentDialog() {
-        progressDialog.hide();
+    protected void hideProgressDialog() {
+        progressDialog.cancel();
+        progressDialog.dismiss();
     }
 
-    protected void updateSubmitDocumentDialogMessage(String message) {
+    protected void updateProgressDialogMessage(String message) {
         progressDialog.setMessage(message);
+    }
+
+    protected void setProgressDialogCancelButtonVisibility(int visible){
+        progressDialog.getButton(ProgressDialog.BUTTON_NEGATIVE).setVisibility(visible);
     }
 
     protected void hideDialogLater(int hideAfterMillis, final String onHideToastMessage, final boolean disconnectWhenReached) {
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
-                        if (progressDialog.isShowing()) {
-                            hideSubmitDocumentDialog();
+                        if (progressDialog.isShowing() && hideProgressDialogLater) {
+                            hideProgressDialog();
                             if (onHideToastMessage != null) {
                                 Toast.makeText(CheckoutActivity.this, onHideToastMessage, Toast.LENGTH_LONG).show();
                                 wifiDirectConnectivityDataPresenter.cancelconnect();
@@ -654,6 +691,8 @@ public class CheckoutActivity extends AppCompatActivity implements
 
                             }
 
+                            disconnectPeers();
+
                         }
                     }
                 },
@@ -663,23 +702,21 @@ public class CheckoutActivity extends AppCompatActivity implements
     @Override
     public void onCustomerIdAcquired(String customerDeviceId) {
         this.customerDeviceId = customerDeviceId;
-        Log.d(TAG,"ACQUIRED CUSTOMER DEVICE ID : " + customerDeviceId);
     }
 
     @Override
     public void onCustomerTransactionRecordsAcquired(boolean isFirstUse) {
-        Log.d(TAG, "IS FIRST USE : " + isFirstUse);
         this.isFirstUse = isFirstUse;
     }
 
     @Override
     public void onSalesSent() {
-        Log.d(TAG, "SALES SENT");
+        Log.d(TAG, ">>> SALES SENT");
     }
 
     @Override
     public void onRewardsSent() {
-        Log.d(TAG, "REWARD SENT");
+        Log.d(TAG, ">>> REWARD SENT");
 
         List<Sales> salesList = salesDao.queryRaw(
                 "WHERE " + SalesDao.Properties.Id.columnName + "=?",
@@ -693,50 +730,158 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         }
 
-        disconnectPeers();
+        actionType = ActionType.ACQUIRE_CLAIMED_REWARDS;
+        onSendTransactionDone();
 
     }
 
-    private void disconnectPeers(){
+    private void onSendTransactionDone(){
+
+        disconnectPeers();
+
+        List<SalesHasReward> salesHasRewards =
+                salesHasRewardDao
+                        .queryBuilder()
+                        .where(
+                                SalesHasRewardDao.Properties.Sales_transaction_number.eq(
+                                        salesTransactionNumber
+                                )
+                        ).list();
+
+        if(salesHasRewards.size() > 0){
+
+            StringBuilder message = new StringBuilder(); // Using default 16 character size
+
+            message.append("Waiting for the customer to claim....");
+            message.append(System.getProperty("line.separator"));
+            message.append(System.getProperty("line.separator"));
+
+            message.append("CUSTOMER IS QUALIFIED FOR THE FOLLOWING REWARDS.");
+            message.append(System.getProperty("line.separator"));
+            message.append(System.getProperty("line.separator"));
+
+            for(SalesHasReward salesHasReward : salesHasRewards){
+
+                List<Reward> rewardList =
+                        rewardDao
+                                .queryBuilder()
+                                .where(
+                                        RewardDao.Properties.Id.eq(
+                                                salesHasReward.getReward_id()
+                                        )
+                                ).list();
+
+                for(Reward reward : rewardList){
+                    message.append("*");
+                    message.append(reward.getReward());
+                    message.append(System.getProperty("line.separator"));
+                }
+            }
+
+            showProgressDialog(message.toString());
+            setProgressDialogCancelButtonVisibility(View.VISIBLE);
+            hideProgressDialogLater = false;
+
+        }else{
+            closeCheckoutActivity();
+        }
+
+    }
+
+    private void disconnectPeers() {
+
+        hideProgressDialog();
 
         wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
-                hideSubmitDocumentDialog();
 
-                if (isFirstUse) {
-
-                    onClientFirstUse();
-
-                } else {
-                    CheckoutActivity.this.finish();
-
-                    MainActivity.mainActivity.finish();
-                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
-                    startActivity(intent);
-                }
-
+                //closeCheckoutActivity();
                 Toast.makeText(CheckoutActivity.this, "Purchase Information Sent", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailure(int reason) {
-                hideSubmitDocumentDialog();
-                if (isFirstUse) {
 
-                    onClientFirstUse();
-
-                } else {
-                    CheckoutActivity.this.finish();
-
-                    MainActivity.mainActivity.finish();
-                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
-                    startActivity(intent);
-                }
+                //closeCheckoutActivity();
                 Toast.makeText(CheckoutActivity.this, "Purchase information sent, but failed to disconnect to peer, please restart your wifi", Toast.LENGTH_SHORT).show();
             }
         });
 
     }
+
+    @Override
+    public void onClaimedRewardsAcquired(List<SalesHasReward> claimedRewardsList) {
+
+        hideProgressDialog();
+        disconnectPeers();
+
+        if (claimedRewardsList.size() > 0) {
+
+            Log.d(TAG, " ========== CLAIMED REWARDS START ========== ");
+
+            for (SalesHasReward salesHasReward : claimedRewardsList) {
+
+                Log.d(TAG, "TRANSACTION NUMBER : " + salesHasReward.getSales_transaction_number());
+                Log.d(TAG, "REWARD ID : " + salesHasReward.getReward_id());
+
+            }
+
+            Log.d(TAG, " ========== CLAIMED REWARDS END ========== ");
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("CUSTOMER REWARDS CLAIMED \n");
+
+            String message = "";
+
+            for(SalesHasReward salesHasReward : claimedRewardsList){
+
+                List<Reward> rewardList =
+                        rewardDao
+                                .queryBuilder()
+                                .where(
+                                        RewardDao.Properties.Id.eq(
+                                                salesHasReward.getReward_id()
+                                        )
+                                ).list();
+
+                for (Reward reward : rewardList) {
+
+                    message += reward.getReward() + "\n";
+
+                }
+
+            }
+
+
+            builder.setMessage(message);
+
+            builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                    closeCheckoutActivity();
+                }
+            });
+
+            builder.show();
+
+        }else{
+            closeCheckoutActivity();
+        }
+
+
+    }
+
+    private void closeCheckoutActivity() {
+
+        CheckoutActivity.this.finish();
+        MainActivity.mainActivity.finish();
+        Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+        startActivity(intent);
+
+    }
+
 }
+

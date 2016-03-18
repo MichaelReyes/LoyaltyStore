@@ -105,8 +105,11 @@ public class WifiDirectConnectivityDataPresenter implements
 
             try {
                 DeviceInfo deviceInfo = DeviceInfo.unserialize(device.deviceName);
-                Log.v(TAG, device.deviceName);
-                Log.v(TAG, deviceInfo.getType().toString());
+
+                /*
+                    Log.v(TAG, device.deviceName);
+                    Log.v(TAG, deviceInfo.getType().toString());
+                */
 
                 if (deviceInfo.getType() == filterType) {
                     // add here
@@ -206,7 +209,6 @@ public class WifiDirectConnectivityDataPresenter implements
     public void onPeerDeviceConnectionEstablished() {
         WifiDirectConnectivityState observableState = WifiDirectConnectivityState.getInstance();
         Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
-        Log.v(TAG, "Connected to a device");
 
         Log.d(TAG, "Connection established");
         wifiDirectConnectivityPresentationListener.onConnectionEstablished();
