@@ -254,6 +254,18 @@ public class WifiDirectConnectivityDataPresenter implements
 
     public void connectToCustomer(WifiP2pDevice customerDevice, int servicePort) {
 
+        disconnect(new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+
+            }
+
+            @Override
+            public void onFailure(int reason) {
+
+            }
+        });
+
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = customerDevice.deviceAddress;
 
@@ -262,7 +274,7 @@ public class WifiDirectConnectivityDataPresenter implements
         wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                Toast.makeText(context, "Connected.", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "Connected.", Toast.LENGTH_SHORT).show();
             }
 
             @Override

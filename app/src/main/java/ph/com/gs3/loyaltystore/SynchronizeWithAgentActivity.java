@@ -4,9 +4,12 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -18,6 +21,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,7 +36,11 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdown;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdownDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDeliveryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
@@ -56,14 +65,17 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
     protected ProgressBar pbSyncProducts;
     protected ProgressBar pbSyncRewards;
     protected ProgressBar pbSyncSales;
+    protected ProgressBar pbSyncDeliveries;
 
     protected TextView tvSyncProductsLabel;
     protected TextView tvSyncRewardsLabel;
     protected TextView tvSyncSalesLabel;
+    protected TextView tvSyncDeliveriesLabel;
 
     protected TextView tvSyncProductsResult;
     protected TextView tvSyncRewardsResult;
     protected TextView tvSyncSalesResult;
+    protected TextView tvSyncDeliveriesResult;
 
     private Button bSync;
     private Button bClose;
@@ -74,6 +86,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     private ProductDao productDao;
     private RewardDao rewardDao;
+    private ProductDeliveryDao productDeliveryDao;
 
     private NetworkChangeStatusReciever networkChangeStatusReciever;
 
@@ -87,6 +100,8 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
     private SearchAgentTask searchAgentTask;
 
     private WifiManager wifiManager;
+
+    private List<ProductDelivery> productDeliveriesforConfirmation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +164,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
         productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
         rewardDao = LoyaltyStoreApplication.getInstance().getSession().getRewardDao();
+        productDeliveryDao = LoyaltyStoreApplication.getSession().getProductDeliveryDao();
 
     }
 
@@ -193,14 +209,17 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         pbSyncProducts = (ProgressBar) findViewById(R.id.Sync_pbSyncProductsProgress);
         pbSyncRewards = (ProgressBar) findViewById(R.id.Sync_pbSyncRewardsProgress);
         pbSyncSales = (ProgressBar) findViewById(R.id.Sync_pbSyncSalesProgress);
+        pbSyncDeliveries = (ProgressBar) findViewById(R.id.Sync_pbSyncDeliveriesProgress);
 
         tvSyncProductsLabel = (TextView) findViewById(R.id.Sync_tvSyncProductsLabel);
         tvSyncRewardsLabel = (TextView) findViewById(R.id.Sync_tvSyncRewardsLabel);
         tvSyncSalesLabel = (TextView) findViewById(R.id.Sync_tvSyncSalesLabel);
+        tvSyncDeliveriesLabel = (TextView) findViewById(R.id.Sync_tvSyncDeliveriesLabel);
 
         tvSyncProductsResult = (TextView) findViewById(R.id.Sync_tvSyncProductsResult);
         tvSyncRewardsResult = (TextView) findViewById(R.id.Sync_tvSyncRewardsResult);
         tvSyncSalesResult = (TextView) findViewById(R.id.Sync_tvSyncSalesResult);
+        tvSyncDeliveriesResult = (TextView) findViewById(R.id.Sync_tvSyncDeliveriesResult);
 
         bSync = (Button) findViewById(R.id.Sync_bSync);
         bSync.setOnClickListener(new View.OnClickListener() {
@@ -224,7 +243,11 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     private void synchronize() {
         SyncWithAgentTask syncWithAgentTask = new SyncWithAgentTask(this, 3002, this);
-        syncWithAgentTask.execute();
+        //syncWithAgentTask.execute();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+            syncWithAgentTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        else
+            syncWithAgentTask.execute();
 //        Toast.makeText(SynchronizeWithAgentActivity.this, "Synchronizing", Toast.LENGTH_SHORT).show();
         showSyncStarted();
     }
@@ -234,10 +257,12 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         tvSyncProductsResult.setText("Synchronizing");
         tvSyncRewardsResult.setText("Synchronizing");
         tvSyncSalesResult.setText("Synchronizing");
+        tvSyncDeliveriesResult.setText("Synchronizing");
 
         pbSyncProducts.setVisibility(View.VISIBLE);
         pbSyncRewards.setVisibility(View.VISIBLE);
         pbSyncSales.setVisibility(View.VISIBLE);
+        pbSyncDeliveries.setVisibility(View.VISIBLE);
     }
 
     public void markSyncProductsDone(int synchedProductCount) {
@@ -264,6 +289,15 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
             tvSyncSalesResult.setText(syncedSalesCount + " sales transactions synced");
         } else {
             tvSyncSalesResult.setText("Done");
+        }
+    }
+
+    public void markSyncDeliveriesDone(int syncedDeliveriesCount) {
+        pbSyncDeliveries.setVisibility(View.GONE);
+        if (syncedDeliveriesCount > 0) {
+            tvSyncDeliveriesResult.setText(syncedDeliveriesCount + " deliveries synced");
+        } else {
+            tvSyncDeliveriesResult.setText("Done");
         }
     }
 
@@ -313,6 +347,49 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         productDao.deleteAll();
 
         productDao.insertOrReplaceInTx(products);
+
+        Log.v(TAG, "========== PRODUCTS ACQUIRED START ==========");
+
+        for (Product product : products) {
+            long id = productDao.insertOrReplace(product);
+
+            Log.v(TAG, "Product id: " + id);
+            Log.v(TAG, "Product name: " + product.getName());
+            Log.v(TAG, "Product SKU: " + product.getSku());
+            Log.v(TAG, "Product cost: " + product.getUnit_cost());
+            Log.v(TAG, "Product Quantity to deduct: " + product.getDeduct_product_to_quantity());
+
+        }
+
+        Log.v(TAG, "========== PRODUCTS ACQUIRED END ==========");
+
+    }
+
+    @Override
+    public void onProductsBreakdownAcquired(List<ProductBreakdown> productBreakdownList) {
+
+        ProductBreakdownDao productBreakdownDao =
+                LoyaltyStoreApplication.getSession().getProductBreakdownDao();
+
+        productBreakdownDao.deleteAll();
+
+        productBreakdownDao.insertOrReplaceInTx(productBreakdownList);
+
+        List<ProductBreakdown> allProductBreakdown = productBreakdownDao.loadAll();
+
+        Log.d(TAG, "======================= PRODUCT BREAKDOWN =======================");
+
+        for (ProductBreakdown productBreakdown : allProductBreakdown) {
+
+            Log.d(TAG, "id : " + productBreakdown.getId());
+            Log.d(TAG, "name : " + productBreakdown.getName());
+            Log.d(TAG, "product id : " + productBreakdown.getProduct_id() );
+            Log.d(TAG, "quantity : " + productBreakdown.getQuantity() );
+            Log.d(TAG, "ts : " + productBreakdown.getTs() );
+
+        }
+        Log.d(TAG, "==================================================================");
+
     }
 
     private void setProductsAsInActive() {
@@ -345,11 +422,17 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void onProductDeliveriesAcquired(List<ProductDelivery> productDeliveries) {
+        markSyncDeliveriesDone(productDeliveries.size());
+        productDeliveryDao.insertOrReplaceInTx(productDeliveries);
+        productDeliveriesforConfirmation = productDeliveries;
+
+    }
+
+    @Override
     public void onSalesSent(List<Sales> sales) {
         markSyncSalesDone(sales.size());
 
-
-//        finish();
     }
 
     @Override
@@ -408,7 +491,11 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
                 this,
                 wifiDirectConnectivityDataPresenter
         );
-        searchAgentTask.execute();
+        //searchAgentTask.execute();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+            searchAgentTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        else
+            searchAgentTask.execute();
 
     }
 
@@ -435,6 +522,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         if (progressDialog.isShowing()) {
 
             progressDialog.dismiss();
+            searchAgentTask.cancel(true);
 
 
         }
@@ -445,8 +533,6 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
-
-                        searchAgentTask.cancel(true);
 
                         hideDialog();
                         //checkAgentDeviceList();
@@ -493,4 +579,19 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     }
 
+    @Override
+    public void onTaskDone() {
+        if (productDeliveriesforConfirmation.size() > 0) {
+            Intent intent = new Intent(SynchronizeWithAgentActivity.this, ConfirmProductDeliveryActivity.class);
+            Gson gson = new Gson();
+            intent.putExtra(ConfirmProductDeliveryActivity.EXTRA_PRODUCT_DELIVERY_LIST, gson.toJson(productDeliveriesforConfirmation));
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    @Override
+    public void onSocketConnectFailed() {
+        synchronize();
+    }
 }

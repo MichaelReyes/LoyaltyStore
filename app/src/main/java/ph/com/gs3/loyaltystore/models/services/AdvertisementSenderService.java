@@ -7,6 +7,8 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -171,7 +173,12 @@ public class AdvertisementSenderService extends Service
             }
         });
 
-        sendAdvertisementTask.execute();
+        //sendAdvertisementTask.execute();
+
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB)
+            sendAdvertisementTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        else
+            sendAdvertisementTask.execute();
 
     }
 

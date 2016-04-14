@@ -30,6 +30,9 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpensesDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdown;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDeliveryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesDao;
@@ -42,12 +45,12 @@ import ph.com.gs3.loyaltystore.models.values.Retailer;
 /**
  * Created by Ervinne Sodusta on 2/15/2016.
  */
-public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.ProgressType, Void> {
+public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.ProgressType, Boolean> {
 
     public static final String TAG = SyncWithAgentTask.class.getSimpleName();
 
     public enum ProgressType {
-        PRODUCTS, REWARDS, SALES, ITEM_RETURN, CASH_RETURN ,EXPENSES
+        PRODUCTS, PRODUCTS_BREAKDOWN, REWARDS, PRODUCT_DELIVERIES, SALES, ITEM_RETURN, CASH_RETURN, EXPENSES
     }
 
     private Context context;
@@ -60,13 +63,16 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
     private ItemReturnDao itemReturnDao;
     private ExpensesDao expensesDao;
     private CashReturnDao cashReturnDao;
+    private ProductDeliveryDao productDeliveryDao;
 
-    private List<Product> synchedProducts = new ArrayList<>();
-    private List<Reward> synchedRewards = new ArrayList<>();
-    private List<Sales> synchedSales = new ArrayList<>();
-    private List<ItemReturn> synchedItemReturns = new ArrayList<>();
-    private List<CashReturn> synchedCashReturns = new ArrayList<>();
-    private List<Expenses> synchedExpenses = new ArrayList<>();
+    private List<Product> syncedProducts = new ArrayList<>();
+    private List<ProductBreakdown> syncedProductsBreakdown = new ArrayList<>();
+    private List<Reward> syncedRewards = new ArrayList<>();
+    private List<ProductDelivery> syncedProductDeliveries = new ArrayList<>();
+    private List<Sales> syncedSales = new ArrayList<>();
+    private List<ItemReturn> syncedItemReturns = new ArrayList<>();
+    private List<CashReturn> syncedCashReturns = new ArrayList<>();
+    private List<Expenses> syncedExpenses = new ArrayList<>();
 
     public SyncWithAgentTask(Context context, int port, SyncWithAgentTaskListener listener) {
         this.context = context;
@@ -79,10 +85,14 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         itemReturnDao = LoyaltyStoreApplication.getSession().getItemReturnDao();
         expensesDao = LoyaltyStoreApplication.getSession().getExpensesDao();
         cashReturnDao = LoyaltyStoreApplication.getSession().getCashReturnDao();
+        productDeliveryDao = LoyaltyStoreApplication.getSession().getProductDeliveryDao();
+
+        Log.d(TAG, "Instantiated");
+
     }
 
     @Override
-    protected Void doInBackground(Void... params) {
+    protected Boolean doInBackground(Void... params) {
         Log.v(TAG, "Task Started");
         WifiDirectConnectivityState connectivityState = WifiDirectConnectivityState.getInstance();
 
@@ -91,7 +101,12 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
         try {
             if (connectivityState.isServer()) {
-                serverSocket = new ServerSocket(port);
+                /*serverSocket = new ServerSocket(port);
+                socket = serverSocket.accept();*/
+
+                serverSocket = new ServerSocket(); // <-- create an unbound socket first
+                serverSocket.setReuseAddress(true);
+                serverSocket.bind(new InetSocketAddress(port)); // <-- now bind it
                 socket = serverSocket.accept();
             } else {
                 socket = new Socket();
@@ -100,7 +115,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                     socket.connect(new InetSocketAddress(connectivityState.getGroupOwnerAddress(), port));
                 } catch (ConnectException e) {
                     e.printStackTrace();
-                    return null;
+                    return false;
                 }
             }
 
@@ -111,10 +126,16 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                 sendClientReadyConfirmation(dataOutputStream);
             }
 
+            sendStoreInfo(dataOutputStream);
+
             aqcuireProducts(dataInputStream);
             publishProgress(ProgressType.PRODUCTS);
+            aqcuireProductsBreakdown(dataInputStream);
+            publishProgress(ProgressType.PRODUCTS_BREAKDOWN);
             aqcuireRewards(dataInputStream);
             publishProgress(ProgressType.REWARDS);
+            sendAndAcquireProductDelivery(dataOutputStream, dataInputStream);
+            publishProgress(ProgressType.PRODUCT_DELIVERIES);
             sendSales(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.SALES);
             sendItemReturn(dataOutputStream, dataInputStream);
@@ -123,7 +144,6 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             publishProgress(ProgressType.CASH_RETURN);
             sendExpenses(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.EXPENSES);
-
 
             dataInputStream.close();
             dataOutputStream.close();
@@ -136,7 +156,20 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return true;
+    }
+
+    @Override
+    protected void onPostExecute(Boolean aBoolean) {
+        super.onPostExecute(aBoolean);
+
+        if (!aBoolean) {
+            listener.onSocketConnectFailed();
+        } else {
+            listener.onTaskDone();
+        }
+
+
     }
 
     @Override
@@ -144,17 +177,21 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         super.onProgressUpdate(progressTypes);
 
         if (progressTypes[0] == ProgressType.PRODUCTS) {
-            listener.onProductsAcquired(synchedProducts);
+            listener.onProductsAcquired(syncedProducts);
+        } else if (progressTypes[0] == ProgressType.PRODUCTS_BREAKDOWN) {
+            listener.onProductsBreakdownAcquired(syncedProductsBreakdown);
         } else if (progressTypes[0] == ProgressType.REWARDS) {
-            listener.onRewardsAcquired(synchedRewards);
+            listener.onRewardsAcquired(syncedRewards);
+        } else if (progressTypes[0] == ProgressType.PRODUCT_DELIVERIES) {
+            listener.onProductDeliveriesAcquired(syncedProductDeliveries);
         } else if (progressTypes[0] == ProgressType.SALES) {
-            listener.onSalesSent(synchedSales);
+            listener.onSalesSent(syncedSales);
         } else if (progressTypes[0] == ProgressType.ITEM_RETURN) {
-            listener.onItemReturnSent(synchedItemReturns);
-        }else if (progressTypes[0] == ProgressType.CASH_RETURN) {
-            listener.onCashReturnSent(synchedCashReturns);
+            listener.onItemReturnSent(syncedItemReturns);
+        } else if (progressTypes[0] == ProgressType.CASH_RETURN) {
+            listener.onCashReturnSent(syncedCashReturns);
         } else if (progressTypes[0] == ProgressType.EXPENSES) {
-            listener.onExpensesSent(synchedExpenses);
+            listener.onExpensesSent(syncedExpenses);
         }
 
     }
@@ -167,6 +204,21 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
     }
 
+    private void sendStoreInfo(DataOutputStream dataOutputStream) throws IOException {
+        Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
+        JSONObject storeJSON = new JSONObject();
+        try {
+            storeJSON.put("id", retailer.getStoreId());
+            storeJSON.put("device_id", retailer.getDeviceId());
+            storeJSON.put("name", retailer.getStoreName());
+            dataOutputStream.writeUTF(storeJSON.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+            dataOutputStream.writeUTF("STORE_INFO_ERROR");
+            return;
+        }
+    }
+
     private void aqcuireProducts(DataInputStream dataInputStream) throws IOException {
         String preMessage = dataInputStream.readUTF();
 
@@ -177,7 +229,23 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             Gson gson = new Gson();
 
             Product[] products = gson.fromJson(productsJsonString, Product[].class);
-            synchedProducts = Arrays.asList(products);
+            syncedProducts = Arrays.asList(products);
+
+        }
+
+    }
+
+    private void aqcuireProductsBreakdown(DataInputStream dataInputStream) throws IOException {
+        String preMessage = dataInputStream.readUTF();
+
+        if ("PRODUCTS_BREAKDOWN".equals(preMessage)) {
+            String productsBreakdownJsonString = dataInputStream.readUTF();
+            Log.v(TAG, "Acquired Products Breakdown: " + productsBreakdownJsonString);
+
+            Gson gson = new Gson();
+
+            ProductBreakdown[] productsBreakdown = gson.fromJson(productsBreakdownJsonString, ProductBreakdown[].class);
+            syncedProductsBreakdown = Arrays.asList(productsBreakdown);
 
         }
 
@@ -193,7 +261,75 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             Gson gson = new Gson();
 
             Reward[] rewards = gson.fromJson(rewardsJsonString, Reward[].class);
-            synchedRewards = Arrays.asList(rewards);
+            syncedRewards = Arrays.asList(rewards);
+        }
+    }
+
+    private void sendAndAcquireProductDelivery(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
+
+        String productDeliveryConfirmationPreMessage = dataInputStream.readUTF();
+
+        if ("PRODUCT_DELIVERY_CONFIRMATION".equals(productDeliveryConfirmationPreMessage)) {
+
+            QueryBuilder qBuilder = productDeliveryDao.queryBuilder();
+            qBuilder.where(ProductDeliveryDao.Properties.Is_synced.eq(false));
+            List<ProductDelivery> productDeliveryList = qBuilder.list();
+
+            Gson gson = new Gson();
+
+            for (ProductDelivery productDelivery : productDeliveryList) {
+
+                Log.v(TAG, productDelivery.getId() +
+                        " " + productDelivery.getName() +
+                        " " + productDelivery.getQuantity() +
+                        " " + productDelivery.getStatus());
+                dataOutputStream.writeUTF(gson.toJson(productDelivery));
+
+                String productDeliveryReceivedConfirmation = dataInputStream.readUTF();
+                if ("PRODUCT_DELIVERY_CONFIRMATION_RECEIVED".equals(productDeliveryReceivedConfirmation)) {
+                    productDelivery.setIs_synced(true);
+                    productDeliveryDao.update(productDelivery);
+                } else {
+                    Log.e(TAG, "productDelivery sync failed, expected PRODUCT_DELIVERY_CONFIRMATION_RECEIVED");
+                    break;
+                }
+
+            }
+        }
+
+        dataOutputStream.writeUTF("PRODUCT_DELIVERY_END");
+
+        String productDeliveriesPreMessage = dataInputStream.readUTF();
+
+        if ("PRODUCT_DELIVERIES".equals(productDeliveriesPreMessage)) {
+            String productDeliveriesJsonString = dataInputStream.readUTF();
+            Log.d(TAG, "Acquired Product Deliveries: " + productDeliveriesJsonString);
+
+            Gson gson = new Gson();
+            ProductDelivery[] productDeliveries = gson.fromJson(productDeliveriesJsonString, ProductDelivery[].class);
+            syncedProductDeliveries = Arrays.asList(productDeliveries);
+
+            for (ProductDelivery productDelivery : syncedProductDeliveries) {
+
+                productDelivery.setIs_synced(false);
+
+            }
+
+        }
+
+    }
+
+    private void acquireProductDeliveries(DataInputStream dataInputStream) throws IOException {
+        String preMessage = dataInputStream.readUTF();
+
+        if ("PRODUCT_DELIVERIES".equals(preMessage)) {
+            String productDeliveriesJsonString = dataInputStream.readUTF();
+            Log.d(TAG, "Acquired Product Deliveries: " + productDeliveriesJsonString);
+
+            Gson gson = new Gson();
+            ProductDelivery[] productDeliveries = gson.fromJson(productDeliveriesJsonString, ProductDelivery[].class);
+            syncedProductDeliveries = Arrays.asList(productDeliveries);
+
         }
     }
 
@@ -203,7 +339,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
         if ("SALES".equals(preMessage)) {
 
-            Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
+            /*Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
             JSONObject storeJSON = new JSONObject();
             try {
                 storeJSON.put("id", retailer.getStoreId());
@@ -214,7 +350,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                 e.printStackTrace();
                 dataOutputStream.writeUTF("SALES_END");
                 return;
-            }
+            }*/
 
             QueryBuilder qBuilder = salesDao.queryBuilder();
             qBuilder.whereOr(SalesDao.Properties.Is_synced.eq(false), SalesDao.Properties.Is_synced.isNull());
@@ -270,19 +406,6 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
         if ("ITEM_RETURN".equals(preMessage)) {
 
-            Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
-            JSONObject storeJSON = new JSONObject();
-            try {
-                storeJSON.put("id", retailer.getStoreId());
-                storeJSON.put("device_id", retailer.getDeviceId());
-                storeJSON.put("name", retailer.getStoreName());
-                dataOutputStream.writeUTF(storeJSON.toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-                dataOutputStream.writeUTF("ITEM_RETURN_END");
-                return;
-            }
-
             QueryBuilder qBuilder = itemReturnDao.queryBuilder();
             qBuilder.whereOr(ItemReturnDao.Properties.Is_synced.eq(false), ItemReturnDao.Properties.Is_synced.isNull());
             List<ItemReturn> itemReturns = qBuilder.list();
@@ -316,19 +439,6 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         String preMessage = dataInputStream.readUTF();
 
         if ("CASH_RETURN".equals(preMessage)) {
-
-            Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
-            JSONObject storeJSON = new JSONObject();
-            try {
-                storeJSON.put("id", retailer.getStoreId());
-                storeJSON.put("device_id", retailer.getDeviceId());
-                storeJSON.put("name", retailer.getStoreName());
-                dataOutputStream.writeUTF(storeJSON.toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-                dataOutputStream.writeUTF("CASH_RETURN_END");
-                return;
-            }
 
             QueryBuilder qBuilder = cashReturnDao.queryBuilder();
             qBuilder.whereOr(CashReturnDao.Properties.Is_synced.eq(false), CashReturnDao.Properties.Is_synced.isNull());
@@ -364,19 +474,6 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
         if ("EXPENSES".equals(preMessage)) {
 
-            Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
-            JSONObject storeJSON = new JSONObject();
-            try {
-                storeJSON.put("id", retailer.getStoreId());
-                storeJSON.put("device_id", retailer.getDeviceId());
-                storeJSON.put("name", retailer.getStoreName());
-                dataOutputStream.writeUTF(storeJSON.toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-                dataOutputStream.writeUTF("EXPENSES_END");
-                return;
-            }
-
             QueryBuilder qBuilder = expensesDao.queryBuilder();
             qBuilder.whereOr(ExpensesDao.Properties.Is_synced.eq(false), ExpensesDao.Properties.Is_synced.isNull());
             List<Expenses> expensesList = qBuilder.list();
@@ -409,7 +506,11 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
         void onProductsAcquired(List<Product> products);
 
+        void onProductsBreakdownAcquired(List<ProductBreakdown> productBreakdownList);
+
         void onRewardsAcquired(List<Reward> rewards);
+
+        void onProductDeliveriesAcquired(List<ProductDelivery> productDeliveries);
 
         void onSalesSent(List<Sales> sales);
 
@@ -418,6 +519,10 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         void onCashReturnSent(List<CashReturn> cashReturns);
 
         void onExpensesSent(List<Expenses> expensesList);
+
+        void onTaskDone();
+
+        void onSocketConnectFailed();
 
     }
 

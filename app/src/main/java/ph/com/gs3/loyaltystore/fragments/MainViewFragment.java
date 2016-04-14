@@ -221,6 +221,12 @@ public class MainViewFragment extends Fragment {
 
         products = productDao.loadAll();
         //products =  productDao.queryBuilder().where(ProductDao.Properties.Is_active.eq(true)).list();
+        products =
+                productDao
+                        .queryBuilder()
+                        .where(
+                                ProductDao.Properties.Type.eq("Product for Retail")
+                        ).list();
 
     }
 

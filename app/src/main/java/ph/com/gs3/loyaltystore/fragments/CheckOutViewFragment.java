@@ -54,7 +54,6 @@ public class CheckOutViewFragment extends Fragment {
     }
 
 
-
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         this.activity = (FragmentActivity) activity;

@@ -1,7 +1,7 @@
 package ph.com.gs3.loyaltystore;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -21,7 +21,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpensesDao;
 /**
  * Created by Bryan-PC on 24/02/2016.
  */
-public class ExpensesActivity extends Activity {
+public class ExpensesActivity extends AppCompatActivity {
 
     public static final String TAG = ExpensesActivity.class.getSimpleName();
 

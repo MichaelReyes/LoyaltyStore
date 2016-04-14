@@ -1,7 +1,7 @@
 package ph.com.gs3.loyaltystore;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
 /**
  * Created by Bryan-PC on 18/02/2016.
  */
-public class SalesActivity extends Activity implements SalesViewFragment.SalesViewFragmentListener {
+public class SalesActivity extends AppCompatActivity implements SalesViewFragment.SalesViewFragmentListener {
 
     public static final String TAG = SalesActivity.class.getSimpleName();
 

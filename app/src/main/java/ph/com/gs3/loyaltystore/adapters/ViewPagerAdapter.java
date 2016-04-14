@@ -1,6 +1,5 @@
 package ph.com.gs3.loyaltystore.adapters;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -42,4 +41,10 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
     public CharSequence getPageTitle(int position) {
         return mFragmentTitleList.get(position);
     }
+
+    public Fragment getRegisteredFragment(int position) {
+        return mFragmentList.get(position);
+    }
+
+
 }

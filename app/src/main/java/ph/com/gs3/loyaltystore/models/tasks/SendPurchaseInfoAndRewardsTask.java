@@ -42,7 +42,7 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
     private JSONObject jsonObjectSalesData;
     private SendPurchaseInfoAndRewardsTaskListener sendPurchaseInfoAndRewardsTaskListener;
 
-    private String customerDeviceId;
+    private long customerDeviceId;
     private boolean isFirstUse = false;
 
     private ProductDao productDao;
@@ -85,12 +85,16 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
         super.onProgressUpdate(progressTypes);
 
         if (progressTypes[0] == ProgressType.CUSTOMER_ID) {
+            Log.d(TAG, " ProgressType : CUSTOMER_ID ");
             sendPurchaseInfoAndRewardsTaskListener.onCustomerIdAcquired(customerDeviceId);
         } else if (progressTypes[0] == ProgressType.CUSTOMER_TRANSACTION_RECORD_COUNT) {
+            Log.d(TAG, " ProgressType : CUSTOMER_TRANSACTION_RECORD_COUNT ");
             sendPurchaseInfoAndRewardsTaskListener.onCustomerTransactionRecordsAcquired(isFirstUse);
         } else if (progressTypes[0] == ProgressType.SALES) {
+            Log.d(TAG, " ProgressType : SALES ");
             sendPurchaseInfoAndRewardsTaskListener.onSalesSent();
         } else if (progressTypes[0] == ProgressType.REWARDS) {
+            Log.d(TAG, " ProgressType : REWARDS ");
             sendPurchaseInfoAndRewardsTaskListener.onRewardsSent();
         }
     }
@@ -136,6 +140,7 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
             sendRewards(dataOutputStream,dataInputStream);
             publishProgress(ProgressType.REWARDS);
 
+            sendTransactionDoneConfirmation(dataOutputStream);
 
         } catch (IOException | JSONException e) {
             e.printStackTrace();
@@ -156,7 +161,8 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
         String preMessage = dataInputStream.readUTF();
 
         if ("CUSTOMER_ID".equals(preMessage)) {
-            customerDeviceId = dataInputStream.readUTF();
+            String customerDeviceIdString =  dataInputStream.readUTF();
+            customerDeviceId = Long.valueOf(customerDeviceIdString);
             Log.d(TAG, "Customer Id : " + customerDeviceId);
         }
 
@@ -189,7 +195,7 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
             JSONObject storeJSON = new JSONObject();
             try {
 
-                storeJSON.put("id", retailer.getStoreId());
+                storeJSON.put("ID", retailer.getStoreId());
                 storeJSON.put("device_id", retailer.getDeviceId());
                 storeJSON.put("name", retailer.getStoreName());
                 storeJSON.put("mac_address", connectivityState.getCurrentDeviceAddress());
@@ -310,7 +316,7 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
         Gson gson = new Gson();
         String json = gson.toJson(rewards);
 
-        Log.v(TAG, json);
+        Log.v(TAG, "REWARDS :" + json);
 
         dataOutputStream.writeUTF("REWARDS");
         dataOutputStream.writeUTF(json);
@@ -321,9 +327,15 @@ public class SendPurchaseInfoAndRewardsTask extends AsyncTask<Void, SendPurchase
 
     }
 
+    private void sendTransactionDoneConfirmation(DataOutputStream dataOutputStream) throws IOException {
+
+        dataOutputStream.writeUTF("TRANSACTION_DONE_CONFIRMATION");
+
+    }
+
     public interface SendPurchaseInfoAndRewardsTaskListener {
 
-        void onCustomerIdAcquired(String customerDeviceId);
+        void onCustomerIdAcquired(long customerDeviceId);
 
         void onCustomerTransactionRecordsAcquired(boolean isFirstUse);
 

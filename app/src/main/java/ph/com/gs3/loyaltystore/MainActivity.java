@@ -33,6 +33,8 @@ import ph.com.gs3.loyaltystore.models.services.AdvertisementSenderService;
 import ph.com.gs3.loyaltystore.models.services.DiscoverPeersOnBackgroundService;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDeliveryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
@@ -158,6 +160,15 @@ public class MainActivity extends AppCompatActivity implements
             case R.id.action_Main_Settings:
                 navigateToActivity(SettingsActivity.class);
                 break;
+            case R.id.action_Main_Confirm_Delivery:
+                navigateToActivity(ConfirmProductDeliveryActivity.class);
+                break;
+            case R.id.action_Main_Deliveries:
+                navigateToActivity(DeliveryActivity.class);
+                break;
+            case R.id.action_Main_Inventory:
+                navigateToActivity(InventoryActivity.class);
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -189,6 +200,22 @@ public class MainActivity extends AppCompatActivity implements
         totalDiscount = 0;
 
         this.setTitle(retailer.getStoreName());
+
+        ProductDeliveryDao productDeliveryDao = LoyaltyStoreApplication.getSession().getProductDeliveryDao();
+
+        List<ProductDelivery> productDeliveryInSQLite = productDeliveryDao.loadAll();
+
+       /*Log.d(TAG, " +++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+        for(ProductDelivery p : productDeliveryInSQLite){
+
+            Log.d(TAG, " Product Name : " + p.getName());
+            Log.d(TAG, " Status : " + p.getStatus());
+
+        }
+
+        Log.d(TAG, " +++++++++++++++++++++++++++++++++++++++++++++++++++");*/
+
     }
 
     @Override
@@ -483,6 +510,10 @@ public class MainActivity extends AppCompatActivity implements
             stopService(new Intent(MainActivity.this, DiscoverPeersOnBackgroundService.class));
         }
 
+        if (isServiceRunning(DiscoverPeersOnBackgroundService.class)) {
+            stopService(discoverPeersOnBackgroundIntent);
+        }
+
         Intent intent = new Intent(this, CheckoutActivity.class);
         try {
             intent.putExtra(CheckoutActivity.EXTRA_DATA_JSON_STRING,
@@ -490,6 +521,8 @@ public class MainActivity extends AppCompatActivity implements
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        Log.d(TAG, " totalDISCOUNT : " + totalDiscount);
 
         intent.putExtra(
                 CheckoutActivity.EXTRA_TOTAL_AMOUNT,
@@ -741,13 +774,23 @@ public class MainActivity extends AppCompatActivity implements
 
             long productId = salesProduct.getProduct_id();
 
+            Log.d(TAG, "PRODUCT ID : " + productId);
+
+            List<Reward> allRewards = rewardDao.loadAll();
+
+            for(Reward reward : allRewards){
+
+                Log.d(TAG, "Condition_product_id :  " + reward.getCondition_product_id());
+
+            }
+
             String sql = " WHERE " + RewardDao.Properties.Condition_product_id.columnName +
                     " = ?";
 
             List<Reward> rewardsForProductList =
                     rewardDao.queryRaw(sql, new String[]{productId + ""});
 
-            //Log.d(TAG,"FOUND REWARD SIZE : " + rewardsForProductList.size());
+            Log.d(TAG,"FOUND REWARD SIZE : " + rewardsForProductList.size());
 
             for (Reward reward : rewardsForProductList) {
 

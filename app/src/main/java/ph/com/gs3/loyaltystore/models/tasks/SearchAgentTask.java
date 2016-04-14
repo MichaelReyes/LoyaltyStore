@@ -17,14 +17,20 @@ public class SearchAgentTask extends AsyncTask<Void, Void, Void> {
 
     private Context context;
 
-    private WifiDirectConnectivityDataPresenter wifiDirectConnectivityDataPresenter;
+    private boolean cancelled = false;
 
+    private WifiDirectConnectivityDataPresenter wifiDirectConnectivityDataPresenter;
 
     public SearchAgentTask(Context context, WifiDirectConnectivityDataPresenter wifiDirectConnectivityDataPresenter) {
         this.context = context;
         this.wifiDirectConnectivityDataPresenter = wifiDirectConnectivityDataPresenter;
+    }
 
-
+    @Override
+    protected void onCancelled() {
+        super.onCancelled();
+        cancelled = true;
+        Log.d(TAG, "CANCELLED : " + cancelled);
     }
 
     @Override
@@ -32,7 +38,10 @@ public class SearchAgentTask extends AsyncTask<Void, Void, Void> {
 
         Log.d(TAG, "TASK STARTED");
 
-        while (!isCancelled()) {
+        Log.d(TAG, " CANCELLED 1 : " + isCancelled());
+        Log.d(TAG, " CANCELLED 2 : " + cancelled);
+
+        while (!isCancelled() && !cancelled) {
 
             Log.d(TAG, "AGENT FINDER TASK DISCOVERING PEERS");
 
@@ -42,6 +51,7 @@ public class SearchAgentTask extends AsyncTask<Void, Void, Void> {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                return null;
             }
 
         }

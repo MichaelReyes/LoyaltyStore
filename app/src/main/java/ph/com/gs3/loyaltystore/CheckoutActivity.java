@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,7 +31,11 @@ import ph.com.gs3.loyaltystore.adapters.CustomerDeviceListAdapter;
 import ph.com.gs3.loyaltystore.fragments.CheckOutViewFragment;
 import ph.com.gs3.loyaltystore.fragments.RewardViewFragment;
 import ph.com.gs3.loyaltystore.models.WifiDirectConnectivityState;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdown;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdownDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
@@ -97,7 +103,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     private WifiManager wifiManager;
 
-    private String customerDeviceId;
+    private long customerDeviceId;
 
     private boolean isFirstUse = false;
     private boolean hideProgressDialogLater = false;
@@ -281,8 +287,10 @@ public class CheckoutActivity extends AppCompatActivity implements
     public void onComplete() {
 
         setSalesIdToProductsAndRewards();
+
         Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
         startActivity(intent);
+
         finish();
 
 
@@ -343,6 +351,8 @@ public class CheckoutActivity extends AppCompatActivity implements
                 salesProduct.setSales_transaction_number("");
                 salesProductDao.update(salesProduct);
 
+                revertDeductProductQuantity(salesProduct);
+
             }
 
             List<SalesHasReward> salesHasRewardList = salesHasRewardDao.queryRaw(
@@ -356,6 +366,62 @@ public class CheckoutActivity extends AppCompatActivity implements
                 salesHasRewardDao.delete(salesHasReward);
 
             }
+
+        }
+
+    }
+
+    private void revertDeductProductQuantity(SalesProduct salesProduct) {
+
+        List<Product> forRetailerProducts
+                = productDao
+                .queryBuilder()
+                .where(
+                        ProductDao.Properties.Id.eq(salesProduct.getProduct_id())
+                ).limit(1).list();
+
+        if (forRetailerProducts.size() > 0) {
+
+            Product forRetailerProduct = forRetailerProducts.get(0);
+
+            List<Product> forDeliveryProducts
+                    = productDao
+                    .queryBuilder()
+                    .where(
+                            ProductDao.Properties.Id.eq(
+                                    forRetailerProduct.getDeduct_product_to_id()
+                            )
+                    ).limit(1).list();
+
+            if (forDeliveryProducts.size() > 0) {
+                Product product = forDeliveryProducts.get(0);
+
+                double quantityDeducted = forRetailerProduct.getDeduct_product_to_quantity() * salesProduct.getQuantity();
+
+                ItemInventoryDao itemInventoryDao
+                        = LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
+                List<ItemInventory> itemInventoryList
+                        = itemInventoryDao
+                        .queryBuilder()
+                        .where(
+                                ItemInventoryDao.Properties.Product_id.eq(
+                                        product.getId()
+                                )
+                        ).limit(1).list();
+
+                if (itemInventoryList.size() > 0) {
+
+                    ItemInventory itemInventory = itemInventoryList.get(0);
+
+                    itemInventory.setQuantity(itemInventory.getQuantity() + quantityDeducted);
+
+                    itemInventoryDao.insertOrReplace(itemInventory);
+                }
+
+
+            }
+
 
         }
 
@@ -394,13 +460,22 @@ public class CheckoutActivity extends AppCompatActivity implements
                                 generateSalesToJsonObject(),
                                 this
                         );
-                sendPurchaseInfoAndRewardsTask.execute();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                    sendPurchaseInfoAndRewardsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                else
+                    sendPurchaseInfoAndRewardsTask.execute();
             } else if (actionType.equals(ActionType.ACQUIRE_CLAIMED_REWARDS)) {
                 AcquireClaimedRewardsTask acquireClaimedRewardsTask =
                         new AcquireClaimedRewardsTask(
-                                3001, this
+                                3003, this
                         );
-                acquireClaimedRewardsTask.execute();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                    acquireClaimedRewardsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                else
+                    acquireClaimedRewardsTask.execute();
+
+                //acquireClaimedRewardsTask.execute();
 
             }
 
@@ -526,12 +601,143 @@ public class CheckoutActivity extends AppCompatActivity implements
                 salesProduct.setSales_transaction_number(sales.getTransaction_number());
                 salesProductDao.insert(salesProduct);
 
+                deductProductQuantity(salesProduct);
+                deductProductParticularsQuantity(salesProduct);
+
+
             }
 
             setSalesHasReward(sales);
 
         }
 
+    }
+
+    private void deductProductQuantity(SalesProduct salesProduct) {
+
+        List<Product> forRetailerProducts
+                = productDao
+                .queryBuilder()
+                .where(
+                        ProductDao.Properties.Id.eq(salesProduct.getProduct_id())
+                ).limit(1).list();
+
+        if (forRetailerProducts.size() > 0) {
+
+            Product forRetailerProduct = forRetailerProducts.get(0);
+
+            List<Product> forDeliveryProducts
+                    = productDao
+                    .queryBuilder()
+                    .where(
+                            ProductDao.Properties.Id.eq(
+                                    forRetailerProduct.getDeduct_product_to_id()
+                            )
+                    ).limit(1).list();
+
+            if (forDeliveryProducts.size() > 0 && forRetailerProduct.getDeduct_product_to_quantity() != null) {
+                Product product = forDeliveryProducts.get(0);
+
+                double quantityToDeduct = forRetailerProduct.getDeduct_product_to_quantity() * salesProduct.getQuantity();
+
+                ItemInventory itemInventory = getItemInventory(product.getId());
+
+                ItemInventoryDao itemInventoryDao
+                        = LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
+                if(itemInventory != null){
+                    itemInventory.setQuantity(itemInventory.getQuantity() - quantityToDeduct);
+                    itemInventoryDao.insertOrReplace(itemInventory);
+                }
+
+                /*
+                List<ItemInventory> itemInventoryList
+                        = itemInventoryDao
+                        .queryBuilder()
+                        .where(
+                                ItemInventoryDao.Properties.Product_id.eq(
+                                        product.getId()
+                                )
+                        ).limit(1).list();
+
+                if (itemInventoryList.size() > 0) {
+
+                    ItemInventory itemInventory = itemInventoryList.get(0);
+
+                    itemInventory.setQuantity(itemInventory.getQuantity() - quantityToDeduct);
+
+                    itemInventoryDao.insertOrReplace(itemInventory);
+                }
+                */
+            }
+
+        }
+
+    }
+
+    private void deductProductParticularsQuantity(SalesProduct salesProduct) {
+
+        ProductBreakdownDao productBreakdownDao
+                = LoyaltyStoreApplication.getSession().getProductBreakdownDao();
+
+        ItemInventoryDao itemInventoryDao
+                = LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
+        List<Product> productList
+                = productDao
+                    .queryBuilder()
+                    .where(
+                            ProductDao.Properties.Id.eq(
+                                    salesProduct.getProduct_id()
+                            )
+                    ).list();
+
+        for(Product product : productList){
+
+            List<ProductBreakdown> productBreakdownList
+                    = productBreakdownDao
+                        .queryBuilder()
+                        .where(
+                                ProductBreakdownDao.Properties.Ts.eq(
+                                        product.getTs()
+                                )
+                        ).list();
+
+            for(ProductBreakdown productBreakdown : productBreakdownList){
+
+                ItemInventory itemInventory
+                        = getItemInventory(productBreakdown.getProduct_id());
+
+                if(itemInventory != null){
+                    itemInventory.setQuantity(itemInventory.getQuantity() - productBreakdown.getQuantity());
+                    itemInventoryDao.insertOrReplace(itemInventory);
+                }
+
+            }
+
+        }
+
+
+
+    }
+
+    private ItemInventory getItemInventory(long productId) {
+        ItemInventoryDao itemInventoryDao
+                = LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
+        List<ItemInventory> itemInventoryList
+                = itemInventoryDao
+                .queryBuilder()
+                .where(
+                        ItemInventoryDao.Properties.Product_id.eq(
+                                productId
+                        )
+                ).limit(1).list();
+
+        if (itemInventoryList.size() > 0)
+            return itemInventoryList.get(0);
+        else
+            return null;
 
     }
 
@@ -671,7 +877,7 @@ public class CheckoutActivity extends AppCompatActivity implements
         progressDialog.setMessage(message);
     }
 
-    protected void setProgressDialogCancelButtonVisibility(int visible){
+    protected void setProgressDialogCancelButtonVisibility(int visible) {
         progressDialog.getButton(ProgressDialog.BUTTON_NEGATIVE).setVisibility(visible);
     }
 
@@ -700,7 +906,7 @@ public class CheckoutActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onCustomerIdAcquired(String customerDeviceId) {
+    public void onCustomerIdAcquired(long customerDeviceId) {
         this.customerDeviceId = customerDeviceId;
     }
 
@@ -735,7 +941,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     }
 
-    private void onSendTransactionDone(){
+    private void onSendTransactionDone() {
 
         disconnectPeers();
 
@@ -748,7 +954,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                                 )
                         ).list();
 
-        if(salesHasRewards.size() > 0){
+        if (salesHasRewards.size() > 0) {
 
             StringBuilder message = new StringBuilder(); // Using default 16 character size
 
@@ -760,7 +966,7 @@ public class CheckoutActivity extends AppCompatActivity implements
             message.append(System.getProperty("line.separator"));
             message.append(System.getProperty("line.separator"));
 
-            for(SalesHasReward salesHasReward : salesHasRewards){
+            for (SalesHasReward salesHasReward : salesHasRewards) {
 
                 List<Reward> rewardList =
                         rewardDao
@@ -771,7 +977,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                                         )
                                 ).list();
 
-                for(Reward reward : rewardList){
+                for (Reward reward : rewardList) {
                     message.append("*");
                     message.append(reward.getReward());
                     message.append(System.getProperty("line.separator"));
@@ -782,7 +988,7 @@ public class CheckoutActivity extends AppCompatActivity implements
             setProgressDialogCancelButtonVisibility(View.VISIBLE);
             hideProgressDialogLater = false;
 
-        }else{
+        } else {
             closeCheckoutActivity();
         }
 
@@ -798,21 +1004,21 @@ public class CheckoutActivity extends AppCompatActivity implements
             public void onSuccess() {
 
                 //closeCheckoutActivity();
-                Toast.makeText(CheckoutActivity.this, "Purchase Information Sent", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(CheckoutActivity.this, "Purchase Information Sent", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailure(int reason) {
 
                 //closeCheckoutActivity();
-                Toast.makeText(CheckoutActivity.this, "Purchase information sent, but failed to disconnect to peer, please restart your wifi", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(CheckoutActivity.this, "Purchase information sent, but failed to disconnect to peer, please restart your wifi", Toast.LENGTH_SHORT).show();
             }
         });
 
     }
 
     @Override
-    public void onClaimedRewardsAcquired(List<SalesHasReward> claimedRewardsList) {
+    public void onClaimedRewardsAcquired(final List<SalesHasReward> claimedRewardsList) {
 
         hideProgressDialog();
         disconnectPeers();
@@ -835,7 +1041,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             String message = "";
 
-            for(SalesHasReward salesHasReward : claimedRewardsList){
+            for (SalesHasReward salesHasReward : claimedRewardsList) {
 
                 List<Reward> rewardList =
                         rewardDao
@@ -854,21 +1060,88 @@ public class CheckoutActivity extends AppCompatActivity implements
 
             }
 
-
             builder.setMessage(message);
 
             builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
+                    addClaimedRewardsToSalesTransactionRecords(claimedRewardsList);
                     closeCheckoutActivity();
                 }
             });
 
             builder.show();
 
-        }else{
+        } else {
             closeCheckoutActivity();
+        }
+
+
+    }
+
+    private void addClaimedRewardsToSalesTransactionRecords(List<SalesHasReward> salesHasRewards) {
+
+
+        Log.d(TAG, "claimedRewardListCount : " + salesHasRewards.size());
+
+        SimpleDateFormat formatter = new SimpleDateFormat(
+                "yyyyMMdd_HHmmss", Locale.ENGLISH);
+        Date date = new Date();
+        String stringDateTime = formatter.format(date);
+
+        String rewardTransactionNumber = retailer.getStoreId() + "_" + stringDateTime;
+
+        Sales sales = new Sales();
+        sales.setCustomer_id(customerDeviceId);
+        sales.setTransaction_number(rewardTransactionNumber);
+        sales.setRemarks("Free Product(s)");
+        sales.setAmount(Float.valueOf(0));
+        sales.setStore_id(retailer.getStoreId());
+        sales.setTotal_discount(Float.valueOf(0));
+        sales.setTransaction_date(new Date());
+        sales.setIs_synced(false);
+        salesDao.insert(sales);
+
+        for (SalesHasReward salesHasReward : salesHasRewards) {
+
+            List<Reward> rewardList
+                    = rewardDao
+                    .queryBuilder()
+                    .where(
+                            RewardDao.Properties.Id.eq(
+                                    salesHasReward.getReward_id()
+                            )
+                    ).list();
+
+            for (Reward reward : rewardList) {
+
+                List<Product> products =
+                        productDao
+                                .queryBuilder()
+                                .where(
+                                        ProductDao.Properties.Id.eq(
+                                                reward.getCondition_product_id()
+                                        )
+                                ).list();
+
+                for (Product product : products) {
+
+                    SalesProduct salesProduct = new SalesProduct();
+                    salesProduct.setSale_type("FREEBIE");
+                    salesProduct.setSales_transaction_number(rewardTransactionNumber);
+                    salesProduct.setSub_total(Float.valueOf(0));
+                    salesProduct.setProduct_id(product.getId());
+                    salesProduct.setQuantity(1);
+
+                    salesProductDao.insert(salesProduct);
+
+                }
+
+
+            }
+
+
         }
 
 

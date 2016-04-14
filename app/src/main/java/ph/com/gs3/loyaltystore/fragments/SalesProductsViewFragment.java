@@ -41,6 +41,8 @@ public class SalesProductsViewFragment extends Fragment {
 
     private TextView tvAmount;
 
+    private float total = 0;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +75,8 @@ public class SalesProductsViewFragment extends Fragment {
             e.printStackTrace();
         }
 
+        total =(float) args.get(CheckoutActivity.EXTRA_TOTAL_AMOUNT);
+
     }
 
     @Override
@@ -81,10 +85,9 @@ public class SalesProductsViewFragment extends Fragment {
 
         Log.d(TAG,"ON CREATE TRANSACTIONS VIEW");
 
-        float total = 0;
-        for(int i =0;i<salesProducts.size();i++){
+        /*for(int i =0;i<salesProducts.size();i++){
             total  += salesProducts.get(i).getSub_total();
-        }
+        }*/
 
         Constants constants = new Constants();
         DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;

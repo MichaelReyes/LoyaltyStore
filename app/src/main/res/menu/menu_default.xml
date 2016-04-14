@@ -28,6 +28,24 @@
         app:showAsAction="ifRoom|withText" />
 
     <item
+        android:id="@+id/action_Main_Deliveries"
+        android:orderInCategory="100"
+        android:title="Delivery History"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/action_Main_Confirm_Delivery"
+        android:orderInCategory="100"
+        android:title="Deliveries for Confirmation"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/action_Main_Inventory"
+        android:orderInCategory="100"
+        android:title="Inventory"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
         android:id="@+id/action_Main_Settings"
         android:orderInCategory="100"
         android:title="Settings"

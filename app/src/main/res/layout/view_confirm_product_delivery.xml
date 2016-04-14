@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/ProductDelivery_llProductDelivery"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/ProductDelivery_tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="[Product Name]"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/ProductDelivery_tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="[Date]" />
+
+
+            <TextView
+                android:id="@+id/ProductDelivery_tvQuantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="[Quantity]"
+                android:textColor="@android:color/holo_orange_dark" />
+
+            <TextView
+                android:id="@+id/ProductDelivery_tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="[Status]"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="0.25"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/ProductDelivery_bAccept"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/ic_green_circle_checked"
+                android:layout_margin="2dp"
+                android:padding="5dp" />
+
+            <Button
+                android:id="@+id/ProductDelivery_bReject"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/ic_red_circle_reject"
+                android:layout_margin="2dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="2dp">
+
+        <TextView
+            android:id="@+id/SPS_tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Name Here]"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/SPS_tvQuantity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Quantity Here]"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/SPS_tvSales"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Sales Here]"
+            android:textColor="#000000"/>
+
+    </LinearLayout>
+
+</LinearLayout>

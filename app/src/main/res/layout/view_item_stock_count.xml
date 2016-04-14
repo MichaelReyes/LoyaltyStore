@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/ItemStockCount_llItemStockCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="5dp">
+
+        <TextView
+            android:id="@+id/ItemStockCount_tvDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Date Here]"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/ItemStockCount_tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Name Here]"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/ItemStockCount_tvExpectedOutput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Expected Output Here]"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/ItemStockCount_tvPhysicalCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Physical Count Here]"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/ItemStockCount_tvRemarks"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Remarks Here]"
+            android:textColor="#000000"/>
+
+
+        <Button
+            android:id="@+id/ItemStockCount_bRemove"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/minus"
+            android:focusable="false"
+            android:focusableInTouchMode="false"/>
+
+    </LinearLayout>
+
+</LinearLayout>
