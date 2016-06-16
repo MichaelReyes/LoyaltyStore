@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,29 +20,29 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_gravity="right"
-                android:layout_margin="5dp">
+                android:layout_margin="5dp"
+                android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/Sales_tvDateFilter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="[No Date Selected]"
-                    android:id="@+id/Sales_tvDateFilter" />
+                    android:text="[No Date Selected]" />
 
                 <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select Date"
                     android:id="@+id/Sales_bSelectDate"
-                    android:layout_marginLeft="5dp" />
-
-                <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All Records"
+                    android:layout_marginLeft="5dp"
+                    android:text="Select Date" />
+
+                <Button
                     android:id="@+id/Sales_bAll"
-                    android:layout_marginLeft="5dp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="All Records" />
 
             </LinearLayout>
 
@@ -67,14 +67,16 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginLeft="5dp"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginLeft="5dp">
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_gravity="center"
+                android:gravity="center">
 
                 <TextView
                     android:layout_width="0dp"
@@ -83,6 +85,7 @@
                     android:text="Name" />
 
                 <TextView
+                    android:layout_marginLeft="5dp"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -99,6 +102,12 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Total" />
+
+                <ImageButton
+                    android:visibility="invisible"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_revert" />
 
             </LinearLayout>
 
@@ -119,33 +128,50 @@
     <View
         android:layout_width="fill_parent"
         android:layout_height="2dp"
-        android:background="#C0C0C0"
-        />
+        android:background="#C0C0C0" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.10"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_weight="1"
             android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="10pt"
-                android:text="Total Sales Amount : "/>
+                android:text="Total Sales Amount : "
+                android:textSize="10pt" />
 
             <TextView
+                android:id="@+id/Sales_tvTotalSales"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="10pt"
                 android:text="0"
-                android:id="@+id/Sales_tvTotalSales"/>
+                android:textSize="10pt" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <!--<Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Return Item"
+                android:id="@+id/Sales_bReturnItem"/>-->
+
 
         </LinearLayout>
 

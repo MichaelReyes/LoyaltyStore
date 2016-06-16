@@ -8,6 +8,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -17,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.R;
+import ph.com.gs3.loyaltystore.adapters.InventoryViewAdapter;
 import ph.com.gs3.loyaltystore.adapters.ItemStockCountListViewAdapter;
+import ph.com.gs3.loyaltystore.adapters.objects.InventoryRowItem;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCount;
 
@@ -33,14 +36,21 @@ public class ItemStockCountDetailsFragment extends Fragment {
     private LinearLayout llItemsExpectedOutput;
 
     private ListView lvItemsPhysicalCount;
+    private ListView lvExpectedOutput;
 
     private ItemStockCountDetailsFragmentListener listener;
 
-    private ItemStockCountListViewAdapter adapter;
+    private InventoryViewAdapter inventoryAdapter;
+    private ItemStockCountListViewAdapter stockCountAdapter;
 
     private Button bSave;
 
     private List<ItemStockCount> itemStockCountList;
+
+    private int currentFirstVisibleItem;
+    private int currentVisibleItemCount;
+    private int currentScrollState;
+    private int totalItemCount;
 
     public static ItemStockCountDetailsFragment newInstance() {
         ItemStockCountDetailsFragment fragment = new ItemStockCountDetailsFragment();
@@ -67,31 +77,108 @@ public class ItemStockCountDetailsFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_item_stock_count_details, container, false);
 
-        Log.d(TAG,"ItemStockCountDetailsFragment CREATED");
+        Log.d(TAG, "ItemStockCountDetailsFragment CREATED");
 
-        adapter = new ItemStockCountListViewAdapter(context);
+        stockCountAdapter = new ItemStockCountListViewAdapter(context);
+        inventoryAdapter = new InventoryViewAdapter(context);
+
         itemStockCountList = new ArrayList<>();
         llItemsExpectedOutput = (LinearLayout) rootView.findViewById(R.id.ItemStockCountDetails_llItemsExpectedOutput);
+
         lvItemsPhysicalCount = (ListView) rootView.findViewById(R.id.ItemStockCountDetails_lvItemsPhysicalCount);
-        lvItemsPhysicalCount.setAdapter(adapter);
+        lvItemsPhysicalCount.setAdapter(stockCountAdapter);
         lvItemsPhysicalCount.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                listener.onItemStockCountClicked((ItemStockCount) adapter.getItem(position));
+                listener.onItemStockCountClicked((ItemStockCount) stockCountAdapter.getItem(position));
             }
         });
+
+        lvExpectedOutput = (ListView) rootView.findViewById(R.id.ItemStockCountDetails_lvInventory);
+        lvExpectedOutput.setAdapter(inventoryAdapter);
+
+        lvExpectedOutput.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                currentScrollState = scrollState;
+
+                if (totalItemCount == (currentFirstVisibleItem + currentVisibleItemCount))
+                    isScrollCompleted();
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                currentFirstVisibleItem = firstVisibleItem;
+                currentVisibleItemCount = visibleItemCount;
+            }
+        });
+
         bSave = (Button) rootView.findViewById(R.id.ItemStockCountDetails_bSave);
         bSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<ItemStockCount> stockCountList = adapter.getItemStockCountList();
-                listener.onSave(stockCountList);
+                List<ItemStockCount> stockCountList = stockCountAdapter.getItemStockCountList();
+                listener.onSaveItemStockCount(stockCountList);
                 clearList();
             }
         });
-        setProductButtons();
+
+        //setProductButtons();
 
         return rootView;
+    }
+
+    private void isScrollCompleted() {
+        if (this.currentVisibleItemCount > 0 && this.currentScrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+            listener.onLoadMoreInventory();
+        }
+    }
+
+    public void setInventory() {
+
+        List<ItemInventory> itemInventoryList = listener.getItemInventory();
+
+        totalItemCount = 0;
+
+        if (inventoryAdapter != null) {
+            int itemPerRowLimit = 2;
+
+            List<InventoryRowItem> inventoryRowItems = new ArrayList<>();
+
+            InventoryRowItem inventoryRowItem = new InventoryRowItem();
+
+            for (ItemInventory itemInventory : itemInventoryList) {
+
+                if (itemPerRowLimit > 0) {
+                    switch (itemPerRowLimit) {
+                        case 2:
+                            inventoryRowItem.setItem1(itemInventory);
+                            break;
+                        case 1:
+                            inventoryRowItem.setItem2(itemInventory);
+                            break;
+                    }
+                } else {
+                    totalItemCount++;
+                    inventoryRowItems.add(inventoryRowItem);
+                    inventoryRowItem = new InventoryRowItem();
+                    itemPerRowLimit = 2;
+                    inventoryRowItem.setItem1(itemInventory);
+                }
+
+                itemPerRowLimit--;
+
+            }
+
+            if (itemInventoryList.size() > 0){
+                inventoryRowItems.add(inventoryRowItem);
+                totalItemCount++;
+            }
+
+            if (inventoryAdapter != null) {
+                inventoryAdapter.setInventoryRowItems(inventoryRowItems);
+            }
+        }
     }
 
     public void setProductButtons() {
@@ -99,7 +186,7 @@ public class ItemStockCountDetailsFragment extends Fragment {
         int buttonPerLinearLayoutCount = 3;
 
         llItemsExpectedOutput.removeAllViews();
-        List<ItemInventory> itemInventoryList = listener.getItemInventory();
+        List<ItemInventory> itemInventoryList = listener.getItemInventory() == null ? new ArrayList<ItemInventory>() : listener.getItemInventory();
         LinearLayout menuRow = createNewMenuRow();
 
         for (ItemInventory item : itemInventoryList) {
@@ -160,7 +247,7 @@ public class ItemStockCountDetailsFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
 
-                    listener.onItemClicked(item);
+                    listener.onItemClick(item);
 
                 }
             });
@@ -171,34 +258,39 @@ public class ItemStockCountDetailsFragment extends Fragment {
         return buttonMenu;
     }
 
-    public void addStock(ItemStockCount item) {
+    public void addStockCount(ItemStockCount item) {
 
         itemStockCountList.add(item);
         setItemStockCount(itemStockCountList);
+
     }
 
     public void setItemStockCount(List<ItemStockCount> itemStockCountList) {
 
-        if (adapter != null) {
-            Log.d(TAG, "adapter not null");
-            adapter.setItemStockCountList(itemStockCountList);
+        if (stockCountAdapter != null) {
+            Log.d(TAG, "stockCountAdapter not null");
+            stockCountAdapter.setItemStockCountList(itemStockCountList);
         }
 
     }
 
-    public void clearList(){
-        adapter.clearItemStockCountList();
+    public void clearList() {
+        itemStockCountList.clear();
+        stockCountAdapter.setItemStockCountList(new ArrayList<ItemStockCount>());
+        stockCountAdapter.clearItemStockCountList();
     }
 
     public interface ItemStockCountDetailsFragmentListener {
 
         List<ItemInventory> getItemInventory();
 
-        void onItemClicked(ItemInventory item);
+        void onItemClick(ItemInventory item);
 
         void onItemStockCountClicked(ItemStockCount itemStockCount);
 
-        void onSave(List<ItemStockCount> stockCountList);
+        void onSaveItemStockCount(List<ItemStockCount> stockCountList);
+
+        void onLoadMoreInventory();
 
     }
 

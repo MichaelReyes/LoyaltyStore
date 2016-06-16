@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.adapters.AgentDeviceListAdapter;
-import ph.com.gs3.loyaltystore.fragments.SynchronizeViewFragment;
+import ph.com.gs3.loyaltystore.fragments.SearchAgentViewFragment;
 import ph.com.gs3.loyaltystore.models.values.DeviceInfo;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
@@ -18,13 +18,13 @@ import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
 /**
  * Created by Bryan-PC on 11/02/2016.
  */
-public class SynchronizeActivity extends Activity implements
-        SynchronizeViewFragment.SynchronizeViewFragmentEventListener,
+public class SearchAgentActivity extends Activity implements
+        SearchAgentViewFragment.SynchronizeViewFragmentEventListener,
         WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener {
 
-    public static final String TAG = SynchronizeActivity.class.getSimpleName();
+    public static final String TAG = SearchAgentActivity.class.getSimpleName();
 
-    private SynchronizeViewFragment synchronizeViewFragment;
+    private SearchAgentViewFragment searchAgentViewFragment;
 
     private Retailer retailer;
 
@@ -49,16 +49,16 @@ public class SynchronizeActivity extends Activity implements
         agentDeviceList = new ArrayList<>();
         agentDeviceListAdapter = new AgentDeviceListAdapter(this, agentDeviceList);
 
-        synchronizeViewFragment = (SynchronizeViewFragment)
-                getFragmentManager().findFragmentByTag(SynchronizeViewFragment.TAG);
+        searchAgentViewFragment = (SearchAgentViewFragment)
+                getFragmentManager().findFragmentByTag(SearchAgentViewFragment.TAG);
 
 
-        if (synchronizeViewFragment == null) {
-            synchronizeViewFragment = SynchronizeViewFragment.createInstance(agentDeviceListAdapter);
+        if (searchAgentViewFragment == null) {
+            searchAgentViewFragment = SearchAgentViewFragment.createInstance(agentDeviceListAdapter);
             getFragmentManager().beginTransaction().add(
                     R.id.container_synchronize,
-                    synchronizeViewFragment,
-                    SynchronizeViewFragment.TAG
+                    searchAgentViewFragment,
+                    SearchAgentViewFragment.TAG
             ).commit();
         }
 

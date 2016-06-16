@@ -262,7 +262,7 @@ public class InventoryActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onItemClicked(final ItemInventory item) {
+    public void onItemClick(final ItemInventory item) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(item.getName());
@@ -380,7 +380,7 @@ public class InventoryActivity extends AppCompatActivity implements
 
                 Fragment itemInventoryDetailsFragment = viewPagerAdapter.getRegisteredFragment(viewPager.getCurrentItem());
 
-                ((ItemStockCountDetailsFragment) itemInventoryDetailsFragment).addStock(itemStockCount);
+                ((ItemStockCountDetailsFragment) itemInventoryDetailsFragment).addStockCount(itemStockCount);
 
 
                 dialog.dismiss();
@@ -422,7 +422,12 @@ public class InventoryActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onSave(List<ItemStockCount> stockCountList) {
+    public void onLoadMoreInventory() {
+
+    }
+
+    @Override
+    public void onSaveItemStockCount(List<ItemStockCount> stockCountList) {
 
         ItemStockCountDao itemStockCountDao
                 = LoyaltyStoreApplication.getSession().getItemStockCountDao();

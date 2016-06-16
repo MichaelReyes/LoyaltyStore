@@ -1,118 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Item :" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="[Item Here]"
-                android:id="@+id/ITR_tvItem"
-                android:textColor="#000000" />
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:id="@+id/ITR_llProductView">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Product :" />
-
-            <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="[Product Here]"
-                android:id="@+id/ITR_tvProduct"
-                android:textColor="#000000" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                android:id="@+id/ItemReturn_tvProduct"
+                android:textColor="#000000"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
-                android:layout_width="0dp"
+                android:id="@+id/ItemReturn_tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="[Date]"/>
+
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Qty. / Amount :" />
+                android:text="[Type Here]"
+                android:id="@+id/ItemReturn_tvType"
+                android:textColor="@android:color/holo_orange_dark" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="[Quantity or Amount Here]"
-                android:id="@+id/ITR_tvQuantityOrAmount"
-                android:textColor="#000000" />
+                android:id="@+id/ItemReturn_tvQuantityOrAmount"
+                android:textColor="@android:color/holo_orange_dark" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="[Remarks Here]"
+                android:id="@+id/ItemReturn_tvRemarks"
+                android:textColor="@android:color/holo_orange_dark" />
+
+            <TextView
+                android:id="@+id/ItemReturn_tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="[Status]"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
 
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:layout_gravity="center">
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Remarks :" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="[Remarks Here]"
-                android:id="@+id/ITR_tvRemarks"
-                android:textColor="#000000" />
+            <Button
+                android:id="@+id/ItemReturn_bDelete"
+                android:layout_width="50dp"
+                android:layout_height="50dp "
+                android:background="@drawable/minus"
+                android:focusable="false"
+                android:focusableInTouchMode="false" />
 
         </LinearLayout>
-
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.25"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/ITR_bDelete"
-            android:layout_width="50dp"
-            android:layout_height="50dp "
-            android:background="@drawable/minus"
-            android:focusable="false"
-            android:focusableInTouchMode="false" />
-
-    </LinearLayout>
-
 
 </LinearLayout>

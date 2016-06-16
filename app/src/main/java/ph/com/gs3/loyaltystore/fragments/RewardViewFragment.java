@@ -11,23 +11,19 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
 
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import ph.com.gs3.loyaltystore.CheckoutActivity;
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.adapters.RewardDiscountListAdapter;
 import ph.com.gs3.loyaltystore.adapters.RewardFreeItemListAdapter;
 import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
-import ph.com.gs3.loyaltystore.models.sqlite.dao.RewardDao;
 
 ;
 
@@ -65,13 +61,23 @@ public class RewardViewFragment extends Fragment {
 
         Bundle args = this.getArguments();
 
-        String dataJsonString = args.getString(CheckoutActivity.EXTRA_DATA_JSON_STRING);
+        Gson gson = new Gson();
+
+        String rewardsJsonString = args.getString(EXTRA_REWARDS_LIST);
+        Reward[] rewardsArray = gson.fromJson(rewardsJsonString, Reward[].class);
+        rewards = Arrays.asList(rewardsArray);
+
+        /*String dataJsonString = args.getString(CheckoutActivity.EXTRA_DATA_JSON_STRING);
         try {
+
 
             Log.d(TAG, "DATA JSON STRING : " + dataJsonString);
 
             JSONObject jsonObject = new JSONObject(dataJsonString);
-            JSONArray rewardsJsonArray = jsonObject.getJSONArray(Reward.class.getSimpleName());
+
+            Reward[] rewardsArray = gson.fromJson(jsonObject.getJSONArray(Reward.class.getSimpleName()).toString(),Reward[].class);
+            rewards = Arrays.asList(rewardsArray);
+            *//*JSONArray rewardsJsonArray = jsonObject.getJSONArray(Reward.class.getSimpleName());
 
             for(int i=0;i<rewardsJsonArray.length();i++){
 
@@ -95,15 +101,15 @@ public class RewardViewFragment extends Fragment {
                 reward.setCreated_at(formatter.parse(
                                 rewardJsonObject.get(RewardDao.Properties.Created_at.columnName).toString())
                 );
-                /*reward.setUpdated_at(formatter.parse(
+                *//**//*reward.setUpdated_at(formatter.parse(
                                 rewardJsonObject.get(RewardDao.Properties.Updated_at.columnName).toString())
-                );*/
+                );*//**//*
 
                 rewards.add(reward);
-            }
-        } catch (JSONException | ParseException e) {
+            }*//*
+        } catch (JSONException e) {
             e.printStackTrace();
-        }
+        }*/
 
         totalDiscount = args.getFloat(EXTRA_TOTAL_DISCOUNT);
     }

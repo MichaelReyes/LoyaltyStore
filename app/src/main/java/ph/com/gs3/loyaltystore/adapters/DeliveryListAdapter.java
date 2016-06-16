@@ -7,10 +7,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.R;
-import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductForDelivery;
 
 /**
  * Created by Bryan-PC on 05/02/2016.
@@ -18,23 +19,31 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
 public class DeliveryListAdapter extends BaseAdapter {
 
     private Context context;
-    private List<ProductDelivery> productDeliveryList;
+    private List<ProductForDelivery> productForDeliveryList;
 
 
-    public DeliveryListAdapter(Context context, List<ProductDelivery> productDeliveryList) {
+    public DeliveryListAdapter(Context context) {
         this.context = context;
-        this.productDeliveryList = productDeliveryList;
+        this.productForDeliveryList = new ArrayList<>();
+
+    }
+
+    public void setDeliveryList(List<ProductForDelivery> productForDeliveryList){
+
+        this.productForDeliveryList.clear();
+        this.productForDeliveryList.addAll(productForDeliveryList);
+        notifyDataSetChanged();
 
     }
 
     @Override
     public int getCount() {
-        return productDeliveryList.size();
+        return productForDeliveryList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return productDeliveryList.get(position);
+        return productForDeliveryList.get(position);
     }
 
     @Override
@@ -48,7 +57,7 @@ public class DeliveryListAdapter extends BaseAdapter {
         View row = convertView;
         DeliveryViewHolder viewHolder;
 
-        ProductDelivery productDelivery = (ProductDelivery) getItem(position);
+        ProductForDelivery productForDelivery = (ProductForDelivery) getItem(position);
 
         if (row == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -60,9 +69,14 @@ public class DeliveryListAdapter extends BaseAdapter {
 
         viewHolder = (DeliveryViewHolder) row.getTag();
 
-        viewHolder.tvName.setText("Name : " + productDelivery.getName());
-        viewHolder.tvQuantity.setText("Quantity : " + String.valueOf(productDelivery.getQuantity()));
-        viewHolder.tvStatus.setText("Status :" + productDelivery.getStatus());
+        viewHolder.tvName.setText("Name : " + productForDelivery.getName());
+        if ("CASH".equals(productForDelivery.getDistribution_type().toUpperCase()))
+            viewHolder.tvQuantity.setText("Amount : " + String.valueOf(productForDelivery.getCash()));
+        else
+            viewHolder.tvQuantity.setText("Quantity To Deliver : " + String.valueOf(productForDelivery.getQuantity()));
+        //viewHolder.tvQuantity.setText("Quantity : " + String.valueOf(productForDelivery.getQuantity()));
+        viewHolder.tvQuantityReceived.setText("Quantity Received : " + productForDelivery.getQuantity_received());
+        viewHolder.tvStatus.setText("Status :" + productForDelivery.getStatus());
 
         return row;
     }
@@ -71,12 +85,14 @@ public class DeliveryListAdapter extends BaseAdapter {
 
         final TextView tvName;
         final TextView tvQuantity;
+        final TextView tvQuantityReceived;
         final TextView tvStatus;
 
         public DeliveryViewHolder(View view) {
-            tvName = (TextView) view.findViewById(R.id.VD_tvName);
-            tvQuantity = (TextView) view.findViewById(R.id.VD_tvQuantity);
-            tvStatus = (TextView) view.findViewById(R.id.VD_tvStatus);
+            tvName = (TextView) view.findViewById(R.id.ViewDeliveryHistory_tvName);
+            tvQuantity = (TextView) view.findViewById(R.id.ViewDeliveryHistory_tvQuantity);
+            tvQuantityReceived = (TextView) view.findViewById(R.id.ViewDeliveryHistory_tvQuantityReceived);
+            tvStatus = (TextView) view.findViewById(R.id.ViewDeliveryHistory_tvStatus);
 
         }
 

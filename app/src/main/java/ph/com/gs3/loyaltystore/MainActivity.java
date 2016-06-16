@@ -16,6 +16,8 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,9 +28,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
+import ph.com.gs3.loyaltystore.adapters.SalesProductWithReturnListAdapter;
 import ph.com.gs3.loyaltystore.fragments.MainViewFragment;
 import ph.com.gs3.loyaltystore.fragments.RewardViewFragment;
+import ph.com.gs3.loyaltystore.fragments.SalesProductsViewFragment;
 import ph.com.gs3.loyaltystore.models.services.AdvertisementSenderService;
 import ph.com.gs3.loyaltystore.models.services.DiscoverPeersOnBackgroundService;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
@@ -47,11 +50,20 @@ public class MainActivity extends AppCompatActivity implements
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final int MENU_SEND_AND_RECIEVE = 1;
+    private static final int MENU_RETURNS_TO_COMMISSARY = 2;
+    private static final int MENU_EXPENSES = 3;
+    private static final int MENU_SALES = 4;
+    private static final int MENU_DELIVERY_HISTORY = 5;
+    private static final int MENU_DELIVERY_FOR_CONFIRMATION_LIST = 6;
+    private static final int MENU_INVENTORY = 7;
+    private static final int MENU_SETTINGS = 8;
+
     public static Activity mainActivity;
 
     private MainViewFragment mainViewFragment;
 
-    private SalesProductListAdapter salesProductListAdapter;
+    private SalesProductWithReturnListAdapter salesProductWithReturnListAdapter;
 
     private Retailer retailer;
 
@@ -95,12 +107,12 @@ public class MainActivity extends AppCompatActivity implements
         salesProducts = new ArrayList<>();
 
         salesProducts = new ArrayList<>();
-        salesProductListAdapter = new SalesProductListAdapter(this, salesProducts);
+        salesProductWithReturnListAdapter = new SalesProductWithReturnListAdapter(this);
 
         rewards = new ArrayList<>();
 
         if (mainViewFragment == null) {
-            mainViewFragment = MainViewFragment.createInstance(salesProductListAdapter);
+            mainViewFragment = MainViewFragment.createInstance(salesProductWithReturnListAdapter);
             getFragmentManager().beginTransaction().add(R.id.container, mainViewFragment, MainViewFragment.TAG).commit();
         }
 
@@ -132,10 +144,34 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_default, menu);
         return true;
+    }*/
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+
+        menu.add(0, MENU_SEND_AND_RECIEVE, Menu.NONE, "Send and Receive")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(0, MENU_RETURNS_TO_COMMISSARY, Menu.NONE, "Returns To Commissary")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(0, MENU_EXPENSES, Menu.NONE, "Expenses")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(0, MENU_SALES, Menu.NONE, "Sales")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(0, MENU_DELIVERY_HISTORY, Menu.NONE, "Delivery History")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(0, MENU_DELIVERY_FOR_CONFIRMATION_LIST, Menu.NONE, "Delivery For Confirmation List")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(0, MENU_INVENTORY, Menu.NONE, "Inventory")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        menu.add(0, MENU_SETTINGS, Menu.NONE, "Settings")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -143,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements
 
         int id = item.getItemId();
 
-        switch (id) {
+        /*switch (id) {
 
             case R.id.action_Main_Sync:
                 navigateToActivity(SynchronizeWithAgentActivity.class);
@@ -167,6 +203,34 @@ public class MainActivity extends AppCompatActivity implements
                 navigateToActivity(DeliveryActivity.class);
                 break;
             case R.id.action_Main_Inventory:
+                navigateToActivity(InventoryActivity.class);
+                break;
+        }*/
+
+        switch (id) {
+
+            case MENU_SEND_AND_RECIEVE:
+                navigateToActivity(SynchronizeWithAgentActivity.class);
+                break;
+            case MENU_RETURNS_TO_COMMISSARY:
+                navigateToActivity(ViewItemReturnActivity.class);
+                break;
+            case MENU_EXPENSES:
+                navigateToActivity(ExpensesActivity.class);
+                break;
+            case MENU_SALES:
+                navigateToActivity(SalesActivity.class);
+                break;
+            case MENU_SETTINGS:
+                navigateToActivity(SettingsActivity.class);
+                break;
+            case MENU_DELIVERY_FOR_CONFIRMATION_LIST:
+                navigateToActivity(ConfirmProductDeliveryActivity.class);
+                break;
+            case MENU_DELIVERY_HISTORY:
+                navigateToActivity(DeliveryHistoryActivity.class);
+                break;
+            case MENU_INVENTORY:
                 navigateToActivity(InventoryActivity.class);
                 break;
         }
@@ -499,7 +563,6 @@ public class MainActivity extends AppCompatActivity implements
 
         }
 
-
     }
 
     private void checkout() {
@@ -515,12 +578,17 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         Intent intent = new Intent(this, CheckoutActivity.class);
-        try {
+        /*try {
             intent.putExtra(CheckoutActivity.EXTRA_DATA_JSON_STRING,
                     convertToJsonString(salesProducts, rewards));
         } catch (JSONException e) {
             e.printStackTrace();
-        }
+        }*/
+
+        Gson gson = new Gson();
+
+        intent.putExtra(SalesProductsViewFragment.EXTRA_SALES_PRODUCT_LIST, gson.toJson(salesProducts));
+        intent.putExtra(RewardViewFragment.EXTRA_REWARDS_LIST, gson.toJson(rewards));
 
         Log.d(TAG, " totalDISCOUNT : " + totalDiscount);
 
@@ -532,13 +600,12 @@ public class MainActivity extends AppCompatActivity implements
 
         startActivity(intent);
 
-
     }
 
     @Override
     public void onClearTransaction() {
         salesProducts.clear();
-        salesProductListAdapter.notifyDataSetChanged();
+        salesProductWithReturnListAdapter.notifyDataSetChanged();
         mainViewFragment.setTotalAmount(0);
     }
 
@@ -560,7 +627,7 @@ public class MainActivity extends AppCompatActivity implements
 
             totalAmount -= salesProduct.getSub_total();
             this.salesProducts.remove(itemIndexToRemove);
-            salesProductListAdapter.notifyDataSetChanged();
+            salesProductWithReturnListAdapter.notifyDataSetChanged();
             mainViewFragment.setTotalAmount(totalAmount);
         }
     }
@@ -707,7 +774,7 @@ public class MainActivity extends AppCompatActivity implements
 
         mainViewFragment.setTotalAmount(totalAmount);
 
-        salesProductListAdapter.notifyDataSetChanged();
+        salesProductWithReturnListAdapter.notifyDataSetChanged();
 
         /*String sql = " WHERE " + ProductDao.Properties.Name.columnName + "=?";
 

@@ -15,6 +15,7 @@ import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -49,11 +50,13 @@ public class StoreSalesInventoryDetailsFragment extends Fragment {
 
     private TextView tvDateFilter;
 
+    private TextView tvTotalSales;
+
     private SimpleDateFormat formatter;
 
     private View v;
 
-    public static StoreSalesInventoryDetailsFragment newInstance() {
+    public static StoreSalesInventoryDetailsFragment createInstance() {
         StoreSalesInventoryDetailsFragment fragment = new StoreSalesInventoryDetailsFragment();
         return fragment;
     }
@@ -114,6 +117,8 @@ public class StoreSalesInventoryDetailsFragment extends Fragment {
         tvDateFilter = (TextView) v.findViewById(R.id.StoreSalesInventoryDetails_tvDateFilter);
         tvDateFilter.setText(formatter.format(new Date()));
 
+        tvTotalSales = (TextView) v.findViewById(R.id.StoreSalesInventoryDetails_tvTotalSales);
+
         bSelectDate = (Button) v.findViewById(R.id.StoreSalesInventoryDetails_bSelectDate);
         bSelectDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,6 +172,13 @@ public class StoreSalesInventoryDetailsFragment extends Fragment {
             adapter.setSalesProducts(salesProducts);
         }
 
+    }
+
+    public void setTotalSales(float totalSalesAmount){
+
+        DecimalFormat decimalFormat = Constants.DECIMAL_FORMAT;
+
+        tvTotalSales.setText(decimalFormat.format(totalSalesAmount));
     }
 
     public Date getDateFilter(){

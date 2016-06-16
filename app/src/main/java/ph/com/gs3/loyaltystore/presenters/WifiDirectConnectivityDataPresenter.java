@@ -76,7 +76,12 @@ public class WifiDirectConnectivityDataPresenter implements
     public void onDestroy() {
 
         WifiDirectConnectivityState.getInstance().deletePeerConnectivityStateListener(this);
-        context.unregisterReceiver(wifiDirectBroadcastReceiver);
+        try {
+            context.unregisterReceiver(wifiDirectBroadcastReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+
 
     }
 

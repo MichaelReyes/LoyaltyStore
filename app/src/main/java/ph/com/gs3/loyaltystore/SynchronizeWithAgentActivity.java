@@ -27,14 +27,21 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.adapters.AgentDeviceListAdapter;
-import ph.com.gs3.loyaltystore.models.receivers.NetworkChangeStatusReciever;
+import ph.com.gs3.loyaltystore.globals.Constants;
+import ph.com.gs3.loyaltystore.models.receivers.NetworkChangeStatusReceiver;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCount;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdown;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdownDao;
@@ -55,7 +62,8 @@ import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
  */
 public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener,
-        SyncWithAgentTask.SyncWithAgentTaskListener {
+        SyncWithAgentTask.SyncWithAgentTaskListener,
+        NetworkChangeStatusReceiver.NetworkChangeStatusListener {
 
     public static final String TAG = SynchronizeWithAgentActivity.class.getSimpleName();
 
@@ -88,14 +96,15 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
     private RewardDao rewardDao;
     private ProductDeliveryDao productDeliveryDao;
 
-    private NetworkChangeStatusReciever networkChangeStatusReciever;
+    private NetworkChangeStatusReceiver networkChangeStatusReceiver;
 
     private AgentDeviceListAdapter agentDeviceListAdapter;
     private List<WifiP2pDevice> agentDeviceList;
 
     private ListView lvAgentDevice;
 
-    private ProgressDialog progressDialog;
+    private ProgressDialog searchAgnetProgressDialog;
+    private ProgressDialog wifiProgressDialog;
 
     private SearchAgentTask searchAgentTask;
 
@@ -103,11 +112,16 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     private List<ProductDelivery> productDeliveriesforConfirmation;
 
+    private android.os.Handler handler;
+    private Runnable runnable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sync_with_agent);
+
+        handler = new android.os.Handler();
 
         initializeConnectivity();
         initializeViews();
@@ -121,12 +135,9 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     }
 
-
     private void initializeConnectivity() {
 
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-
-        networkChangeStatusReciever = new NetworkChangeStatusReciever();
 
         retailer = Retailer.getDeviceRetailerFromSharedPreferences(this);
 
@@ -136,20 +147,6 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
         agentDevice = new WifiP2pDevice();
 
-        /*
-        agentDevice = (WifiP2pDevice) getIntent().getExtras().get(EXTRA_AGENT_DEVICE);
-
-        if (agentDevice != null) {
-            retailer = Retailer.getDeviceRetailerFromSharedPreferences(this);
-            wifiDirectConnectivityDataPresenter = new WifiDirectConnectivityDataPresenter(
-                    this, retailer.getDeviceInfo()
-            );
-        } else {
-            Toast.makeText(this, "Agent Device Unavailable", Toast.LENGTH_LONG).show();
-            finish();
-        }
-        */
-
         agentDeviceList = new ArrayList<>();
         agentDeviceListAdapter = new AgentDeviceListAdapter(this, agentDeviceList);
 
@@ -158,6 +155,32 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
         wifiDirectConnectivityDataPresenter.discoverPeers(DeviceInfo.Type.AGENT);
 
+    }
+
+    @Override
+    public void onChangeNetworkStatus(boolean isWifiEnabled) throws InterruptedException {
+
+        if (isWifiEnabled) {
+
+            if(wifiProgressDialog.isShowing()){
+                wifiProgressDialog.cancel();
+            }
+
+            if (productDeliveriesforConfirmation.size() > 0) {
+                Intent intent = new Intent(SynchronizeWithAgentActivity.this, ConfirmProductDeliveryActivity.class);
+                Gson gson = new Gson();
+                intent.putExtra(ConfirmProductDeliveryActivity.EXTRA_PRODUCT_DELIVERY_LIST, gson.toJson(productDeliveriesforConfirmation));
+                startActivity(intent);
+                finish();
+            }
+
+        } else {
+            wifiProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            wifiProgressDialog.setMessage("Restarting wifi, Please wait...");
+            wifiProgressDialog.setIndeterminate(true);
+            wifiProgressDialog.setCancelable(false);
+            wifiProgressDialog.show();
+        }
     }
 
     private void initializeDataAccessObjects() {
@@ -179,14 +202,32 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
     protected void onDestroy() {
         super.onDestroy();
         wifiDirectConnectivityDataPresenter.onDestroy();
-        //unregisterReceiver(networkChangeStatusReciever);
 
+        if (networkChangeStatusReceiver != null) {
+            try {
+                unregisterReceiver(networkChangeStatusReceiver);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void restartWifi() {
+
+        networkChangeStatusReceiver = new NetworkChangeStatusReceiver(this);
+        registerReceiver(networkChangeStatusReceiver, networkChangeStatusReceiver.getIntentFilter());
 
         if (wifiManager.isWifiEnabled()) {
             wifiManager.setWifiEnabled(false);
             wifiManager.setWifiEnabled(true);
+        } else {
+            wifiManager.setWifiEnabled(true);
         }
 
+    }
+
+    private void disconnectPeers() {
         wifiDirectConnectivityDataPresenter.disconnect(new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -198,11 +239,14 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
                 Log.v(TAG, "Disconnection failed: " + reason);
             }
         });
+
+        restartWifi();
     }
 
     private void initializeViews() {
 
-        progressDialog = new ProgressDialog(this);
+        searchAgnetProgressDialog = new ProgressDialog(this);
+        wifiProgressDialog = new ProgressDialog(this);
 
         tvConnectivity = (TextView) findViewById(R.id.Sync_tvConnectivity);
 
@@ -308,7 +352,9 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         this.agentDeviceList.addAll(wifiP2pDevices);
         agentDeviceListAdapter.notifyDataSetChanged();
 
-        hideDialog();
+        if (wifiP2pDevices.size() > 0){
+            hideDialog();
+        }
 
     }
 
@@ -317,7 +363,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         agentDevice = agentDeviceList.get(0);
 
         wifiDirectConnectivityDataPresenter.connectToCustomer(agentDevice, 3002);
-        Toast.makeText(SynchronizeWithAgentActivity.this, "Connecting", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SynchronizeWithAgentActivity.this, "Connecting to agent...", Toast.LENGTH_SHORT).show();
 
     }
 
@@ -348,6 +394,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
         productDao.insertOrReplaceInTx(products);
 
+        /*
         Log.v(TAG, "========== PRODUCTS ACQUIRED START ==========");
 
         for (Product product : products) {
@@ -362,6 +409,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
         }
 
         Log.v(TAG, "========== PRODUCTS ACQUIRED END ==========");
+        */
 
     }
 
@@ -377,19 +425,20 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
         List<ProductBreakdown> allProductBreakdown = productBreakdownDao.loadAll();
 
+        /*
         Log.d(TAG, "======================= PRODUCT BREAKDOWN =======================");
 
         for (ProductBreakdown productBreakdown : allProductBreakdown) {
 
             Log.d(TAG, "id : " + productBreakdown.getId());
             Log.d(TAG, "name : " + productBreakdown.getName());
-            Log.d(TAG, "product id : " + productBreakdown.getProduct_id() );
-            Log.d(TAG, "quantity : " + productBreakdown.getQuantity() );
-            Log.d(TAG, "ts : " + productBreakdown.getTs() );
+            Log.d(TAG, "product id : " + productBreakdown.getProduct_id());
+            Log.d(TAG, "quantity : " + productBreakdown.getQuantity());
+            Log.d(TAG, "ts : " + productBreakdown.getTs());
 
         }
         Log.d(TAG, "==================================================================");
-
+        */
     }
 
     private void setProductsAsInActive() {
@@ -436,20 +485,63 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onItemReturnSent(List<ItemReturn> itemReturns) {
+    public void onItemReturnSentAndAcquiredProcessed(List<ItemReturn> itemReturns, List<ItemReturn> processedItemReturns) {
+
+        ItemReturnDao itemReturnDao =
+                LoyaltyStoreApplication.getSession().getItemReturnDao();
+
+        SimpleDateFormat formatter = Constants.SIMPLE_DATE_TIME_FORMAT;
+
+        for (ItemReturn processedItemReturn : processedItemReturns) {
+
+            List<ItemReturn> itemReturnList =
+                    itemReturnDao
+                            .queryBuilder()
+                            .where(
+                                    ItemReturnDao.Properties.Product_name.eq(
+                                            processedItemReturn.getProduct_name()
+                                    )
+                            ).list();
+
+            for (ItemReturn itemReturn : itemReturnList) {
+                try {
+                    Date itemReturnDate = formatter.parse(formatter.format(itemReturn.getDate_created()));
+                    Date processedItemReturnDate = formatter.parse(formatter.format(processedItemReturn.getDate_created()));
+
+                    if (itemReturnDate.compareTo(processedItemReturnDate) == 0) {
+                        itemReturn.setStatus(processedItemReturn.getStatus());
+                        itemReturnDao.insertOrReplace(itemReturn);
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+
+        }
+
 
     }
 
     @Override
-    public void onCashReturnSent(List<CashReturn> cashReturns) {
+    public void onCashReturnSentAndAcquiredProcessed(List<CashReturn> cashReturns, List<CashReturn> processedCashReturns) {
+
+        CashReturnDao cashReturnDao
+                = LoyaltyStoreApplication.getSession().getCashReturnDao();
+
+        cashReturnDao.insertOrReplaceInTx(processedCashReturns);
+
+    }
+
+    @Override
+    public void onItemStockCountSent(List<ItemStockCount> itemStockCountList) {
 
     }
 
     @Override
     public void onExpensesSent(List<Expenses> expensesList) {
 
-        bSync.setVisibility(View.GONE);
-        bClose.setVisibility(View.VISIBLE);
 
     }
 
@@ -466,7 +558,7 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
         switch (id) {
 
-            case R.id.action_SWA_sync_to_agent:
+            case R.id.action_SyncWithAgent_sync_to_agent:
 
                 if (!(agentDeviceList.size() > 0)) {
                     startAgentDeviceSearch();
@@ -484,14 +576,13 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     private void startAgentDeviceSearch() {
 
-        showProgressDialog();
+        showProgressDialog("Searching for agent...");
         hideDialogLater(10000);
 
         searchAgentTask = new SearchAgentTask(
                 this,
                 wifiDirectConnectivityDataPresenter
         );
-        //searchAgentTask.execute();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             searchAgentTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         else
@@ -499,43 +590,52 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     }
 
-    private void showProgressDialog() {
+    private void showProgressDialog(String message) {
 
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage("Searching for agent...");
-        progressDialog.setIndeterminate(true);
-        progressDialog.setCancelable(false);
+        searchAgnetProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        searchAgnetProgressDialog.setMessage(message);
+        searchAgnetProgressDialog.setIndeterminate(true);
+        searchAgnetProgressDialog.setCancelable(false);
 
-        progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        searchAgnetProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
-            public void onDismiss(DialogInterface dialog) {
+            public void onCancel(DialogInterface dialog) {
                 checkAgentDeviceList();
             }
         });
 
-        progressDialog.show();
+        searchAgnetProgressDialog.show();
 
     }
 
     private void hideDialog() {
 
-        if (progressDialog.isShowing()) {
+        if (searchAgnetProgressDialog.isShowing()) {
 
-            progressDialog.dismiss();
+            searchAgnetProgressDialog.cancel();
             searchAgentTask.cancel(true);
 
+            if (runnable != null) {
+                handler.removeCallbacks(runnable);
+            }
+
+            if (networkChangeStatusReceiver != null) {
+                try {
+                    unregisterReceiver(networkChangeStatusReceiver);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+            }
 
         }
 
     }
 
     protected void hideDialogLater(int hideAfterMillis) {
-        new android.os.Handler().postDelayed(
-                new Runnable() {
+        handler.postDelayed(
+                runnable = new Runnable() {
                     public void run() {
-
                         hideDialog();
-                        //checkAgentDeviceList();
                     }
                 },
                 hideAfterMillis);
@@ -581,13 +681,12 @@ public class SynchronizeWithAgentActivity extends AppCompatActivity implements
 
     @Override
     public void onTaskDone() {
-        if (productDeliveriesforConfirmation.size() > 0) {
-            Intent intent = new Intent(SynchronizeWithAgentActivity.this, ConfirmProductDeliveryActivity.class);
-            Gson gson = new Gson();
-            intent.putExtra(ConfirmProductDeliveryActivity.EXTRA_PRODUCT_DELIVERY_LIST, gson.toJson(productDeliveriesforConfirmation));
-            startActivity(intent);
-            finish();
-        }
+
+        disconnectPeers();
+
+        bSync.setVisibility(View.GONE);
+        bClose.setVisibility(View.VISIBLE);
+
     }
 
     @Override

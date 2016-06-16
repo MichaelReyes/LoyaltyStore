@@ -1,148 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
+        android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="Type :" />
-
-            <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="[Type Here]"
-                android:id="@+id/ITR__CR_tvType"
-                android:textColor="#000000"/>
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                android:id="@+id/CashReturn_tvType"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="#000000" />
 
             <TextView
-                android:layout_width="0dp"
+                android:id="@+id/CashReturn_tvDate"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="Qty./Amount :" />
+                android:text="[Date]" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="[Quantity Or Amount Here]"
-                android:id="@+id/ITR_CR_tvQuantityOrAmount"
-                android:textColor="#000000"/>
+                android:text="[Amount Here]"
+                android:id="@+id/CashReturn_tvQuantityOrAmount"
+                android:textColor="@android:color/holo_orange_dark" />
 
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="Remarks :" />
-
-            <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="[Remarks Here]"
-                android:id="@+id/ITR_CR_tvRemarks"
-                android:textColor="#000000"/>
+                android:id="@+id/CashReturn_tvRemarks"
+                android:textColor="@android:color/holo_orange_dark" />
 
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:id="@+id/ITR_CR_llBankDeposit">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:id="@+id/CashReturn_llBankDeposit">
 
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:text="Deposited to Bank :" />
-
-                <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="[Deposited to Bank Here]"
-                    android:id="@+id/ITR_CR_tvBank"
-                    android:textColor="#000000"/>
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                    android:id="@+id/CashReturn_tvBank"
+                    android:textColor="@android:color/holo_orange_dark" />
 
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:text="Date of Deposit :" />
-
-                <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="[Time of Deposit Here]"
-                    android:id="@+id/ITR_CR_tvTimeOfDeposit"
-                    android:textColor="#000000"/>
+                    android:id="@+id/CashReturn_tvTimeOfDeposit"
+                    android:textColor="@android:color/holo_orange_dark" />
+
 
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/CashReturn_tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="[Status]"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
         </LinearLayout>
 
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.25"
-        android:orientation="vertical">
+            <Button
+                android:id="@+id/CashReturn_bDelete"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/minus"
+                android:focusable="false"
+                android:focusableInTouchMode="false" />
 
-        <Button
-            android:id="@+id/ITR_CR_bDelete"
-            android:layout_width="50dp"
-            android:layout_height="50dp "
-            android:background="@drawable/minus"
-            android:focusable="false"
-            android:focusableInTouchMode="false"/>
+        </LinearLayout>
 
     </LinearLayout>
 

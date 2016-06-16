@@ -43,6 +43,17 @@ public class CashReturnListAdapter extends BaseAdapter {
 
     }
 
+    public void setCashReturnList(List<CashReturn> cashReturns){
+        this.cashReturns.clear();
+        this.cashReturns.addAll(cashReturns);
+        notifyDataSetChanged();
+    }
+
+    public void addCashReturn(CashReturn cashReturns){
+        this.cashReturns.add(cashReturns);
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return cashReturns.size();
@@ -80,12 +91,21 @@ public class CashReturnListAdapter extends BaseAdapter {
         Constants constants = new Constants();
         DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
 
-        viewHolder.tvType.setText(cashReturn.getType());
-        viewHolder.tvQuantityOrAmount.setText(decimalFormat.format(cashReturn.getAmount()));
-        viewHolder.tvRemarks.setText(cashReturn.getRemarks() == null ? "" : cashReturn.getRemarks());
-        viewHolder.tvDepositedToBank.setText(cashReturn.getDeposited_to_bank());
+        viewHolder.tvType.setText("Type : " + cashReturn.getCash_type());
+
+        String dateString = cashReturn.getDate_created() != null ? formatter.format(cashReturn.getDate_created()) : "";
+
+        viewHolder.tvDate.setText("Date : " +  dateString );
+
+        viewHolder.tvQuantityOrAmount.setText("Amount : " + decimalFormat.format(cashReturn.getAmount()));
+
+        String remarks = cashReturn.getRemarks() == null ? "" : cashReturn.getRemarks();
+
+        viewHolder.tvRemarks.setText("Remarks : " + remarks);
+        viewHolder.tvDepositedToBank.setText("Bank : " + cashReturn.getDeposited_to_bank());
+        viewHolder.tvStatus.setText("Status : " + cashReturn.getStatus());
         if(cashReturn.getTime_of_deposit() != null){
-            viewHolder.tvTimeOfDeposit.setText(formatter.format(cashReturn.getTime_of_deposit()));
+            viewHolder.tvTimeOfDeposit.setText("Date : " + formatter.format(cashReturn.getTime_of_deposit()));
         }
 
         viewHolder.llBankDeposit.setVisibility(View.VISIBLE);
@@ -139,21 +159,25 @@ public class CashReturnListAdapter extends BaseAdapter {
     private static class CashReturnViewHolder {
 
         final TextView tvType;
+        final TextView tvDate;
         final TextView tvDepositedToBank;
         final TextView tvQuantityOrAmount;
         final TextView tvRemarks;
         final TextView tvTimeOfDeposit;
+        final TextView tvStatus;
         final LinearLayout llBankDeposit;
         final Button bDelete;
 
         public CashReturnViewHolder(View view) {
-            tvType = (TextView) view.findViewById(R.id.ITR__CR_tvType);
-            tvQuantityOrAmount = (TextView) view.findViewById(R.id.ITR_CR_tvQuantityOrAmount);
-            tvRemarks = (TextView) view.findViewById(R.id.ITR_CR_tvRemarks);
-            tvDepositedToBank = (TextView) view.findViewById(R.id.ITR_CR_tvBank);
-            tvTimeOfDeposit = (TextView) view.findViewById(R.id.ITR_CR_tvTimeOfDeposit);
-            llBankDeposit = (LinearLayout) view.findViewById(R.id.ITR_CR_llBankDeposit);
-            bDelete = (Button) view.findViewById(R.id.ITR_CR_bDelete);
+            tvType = (TextView) view.findViewById(R.id.CashReturn_tvType);
+            tvDate = (TextView) view.findViewById(R.id.CashReturn_tvDate);
+            tvQuantityOrAmount = (TextView) view.findViewById(R.id.CashReturn_tvQuantityOrAmount);
+            tvRemarks = (TextView) view.findViewById(R.id.CashReturn_tvRemarks);
+            tvDepositedToBank = (TextView) view.findViewById(R.id.CashReturn_tvBank);
+            tvTimeOfDeposit = (TextView) view.findViewById(R.id.CashReturn_tvTimeOfDeposit);
+            tvStatus = (TextView) view.findViewById(R.id.CashReturn_tvStatus);
+            llBankDeposit = (LinearLayout) view.findViewById(R.id.CashReturn_llBankDeposit);
+            bDelete = (Button) view.findViewById(R.id.CashReturn_bDelete);
         }
 
     }

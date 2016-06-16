@@ -11,7 +11,7 @@ import java.util.Locale;
 
 import de.greenrobot.dao.query.QueryBuilder;
 import ph.com.gs3.loyaltystore.adapters.SalesListAdapter;
-import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
+import ph.com.gs3.loyaltystore.adapters.SalesProductWithReturnListAdapter;
 import ph.com.gs3.loyaltystore.fragments.SalesViewFragment;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesDao;
@@ -31,7 +31,7 @@ public class SalesActivity extends AppCompatActivity implements SalesViewFragmen
     private List<SalesProduct> salesProductList;
 
     private SalesListAdapter salesListAdapter;
-    private SalesProductListAdapter salesProductListAdapter;
+    private SalesProductWithReturnListAdapter salesProductWithReturnListAdapter;
 
     private SalesDao salesDao;
     private SalesProductDao salesProductDao;
@@ -51,12 +51,12 @@ public class SalesActivity extends AppCompatActivity implements SalesViewFragmen
         salesListAdapter = new SalesListAdapter(this, salesList);
 
         salesProductList = new ArrayList<>();
-        salesProductListAdapter = new SalesProductListAdapter(this, salesProductList);
+        salesProductWithReturnListAdapter = new SalesProductWithReturnListAdapter(this);
 
         if (salesViewFragment == null) {
             salesViewFragment = new SalesViewFragment();
             salesViewFragment = SalesViewFragment.createInstance(salesListAdapter,
-                    salesProductListAdapter);
+                    salesProductWithReturnListAdapter);
             getFragmentManager().beginTransaction().add(
                     R.id.container_sales,
                     salesViewFragment, SalesViewFragment.TAG).commit();
@@ -156,7 +156,7 @@ public class SalesActivity extends AppCompatActivity implements SalesViewFragmen
 
         }
 
-        salesProductListAdapter.notifyDataSetChanged();
+        salesProductWithReturnListAdapter.notifyDataSetChanged();
 
     }
 

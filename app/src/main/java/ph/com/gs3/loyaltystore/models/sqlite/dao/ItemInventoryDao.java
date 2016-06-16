@@ -24,9 +24,11 @@ public class ItemInventoryDao extends AbstractDao<ItemInventory, Long> {
     */
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
-        public final static Property Product_id = new Property(1, Long.class, "product_id", false, "PRODUCT_ID");
-        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
-        public final static Property Quantity = new Property(3, Double.class, "quantity", false, "QUANTITY");
+        public final static Property Store_id = new Property(1, Long.class, "store_id", false, "STORE_ID");
+        public final static Property Product_id = new Property(2, Long.class, "product_id", false, "PRODUCT_ID");
+        public final static Property Name = new Property(3, String.class, "name", false, "NAME");
+        public final static Property Quantity = new Property(4, Double.class, "quantity", false, "QUANTITY");
+        public final static Property Is_updated = new Property(5, Boolean.class, "is_updated", false, "IS_UPDATED");
     };
 
 
@@ -43,9 +45,11 @@ public class ItemInventoryDao extends AbstractDao<ItemInventory, Long> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"ITEM_INVENTORY\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
-                "\"PRODUCT_ID\" INTEGER," + // 1: product_id
-                "\"NAME\" TEXT," + // 2: name
-                "\"QUANTITY\" REAL);"); // 3: quantity
+                "\"STORE_ID\" INTEGER," + // 1: store_id
+                "\"PRODUCT_ID\" INTEGER," + // 2: product_id
+                "\"NAME\" TEXT," + // 3: name
+                "\"QUANTITY\" REAL," + // 4: quantity
+                "\"IS_UPDATED\" INTEGER);"); // 5: is_updated
     }
 
     /** Drops the underlying database table. */
@@ -64,19 +68,29 @@ public class ItemInventoryDao extends AbstractDao<ItemInventory, Long> {
             stmt.bindLong(1, id);
         }
  
+        Long store_id = entity.getStore_id();
+        if (store_id != null) {
+            stmt.bindLong(2, store_id);
+        }
+ 
         Long product_id = entity.getProduct_id();
         if (product_id != null) {
-            stmt.bindLong(2, product_id);
+            stmt.bindLong(3, product_id);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(3, name);
+            stmt.bindString(4, name);
         }
  
         Double quantity = entity.getQuantity();
         if (quantity != null) {
-            stmt.bindDouble(4, quantity);
+            stmt.bindDouble(5, quantity);
+        }
+ 
+        Boolean is_updated = entity.getIs_updated();
+        if (is_updated != null) {
+            stmt.bindLong(6, is_updated ? 1L: 0L);
         }
     }
 
@@ -91,9 +105,11 @@ public class ItemInventoryDao extends AbstractDao<ItemInventory, Long> {
     public ItemInventory readEntity(Cursor cursor, int offset) {
         ItemInventory entity = new ItemInventory( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
-            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // product_id
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
-            cursor.isNull(offset + 3) ? null : cursor.getDouble(offset + 3) // quantity
+            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // store_id
+            cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2), // product_id
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // name
+            cursor.isNull(offset + 4) ? null : cursor.getDouble(offset + 4), // quantity
+            cursor.isNull(offset + 5) ? null : cursor.getShort(offset + 5) != 0 // is_updated
         );
         return entity;
     }
@@ -102,9 +118,11 @@ public class ItemInventoryDao extends AbstractDao<ItemInventory, Long> {
     @Override
     public void readEntity(Cursor cursor, ItemInventory entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
-        entity.setProduct_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
-        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setQuantity(cursor.isNull(offset + 3) ? null : cursor.getDouble(offset + 3));
+        entity.setStore_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
+        entity.setProduct_id(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
+        entity.setName(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setQuantity(cursor.isNull(offset + 4) ? null : cursor.getDouble(offset + 4));
+        entity.setIs_updated(cursor.isNull(offset + 5) ? null : cursor.getShort(offset + 5) != 0);
      }
     
     /** @inheritdoc */

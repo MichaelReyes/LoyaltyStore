@@ -52,12 +52,25 @@
 
     </LinearLayout>
 
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:background="?attr/colorPrimary"
+        />
+
+
     <ListView
         android:id="@+id/ItemInventoryDetails_lvItems"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
     </ListView>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:background="?attr/colorPrimary"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -75,21 +88,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="[No Date Selected]"
-            android:id="@+id/ItemInventoryDetails_tvDateFilter"
+            android:id="@+id/ReturnsToCommissary_tvDateFilter"
             android:textColor="#000000"/>
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Select Date"
-            android:id="@+id/ItemInventoryDetails_bSelectDate"
+            android:id="@+id/ReturnsToCommissary_bSelectDate"
             android:layout_marginLeft="5dp" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="All Records"
-            android:id="@+id/ItemInventoryDetails_bAll"
+            android:id="@+id/ReturnToCommissary_bAll"
             android:layout_marginLeft="5dp"
             android:visibility="gone"/>
 

@@ -25,11 +25,13 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property Store_id = new Property(1, Long.class, "store_id", false, "STORE_ID");
-        public final static Property Item = new Property(2, String.class, "item", false, "ITEM");
+        public final static Property Type = new Property(2, String.class, "type", false, "TYPE");
         public final static Property Product_name = new Property(3, String.class, "product_name", false, "PRODUCT_NAME");
         public final static Property Quantity = new Property(4, Float.class, "quantity", false, "QUANTITY");
         public final static Property Remarks = new Property(5, String.class, "remarks", false, "REMARKS");
-        public final static Property Is_synced = new Property(6, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Status = new Property(6, String.class, "status", false, "STATUS");
+        public final static Property Is_synced = new Property(7, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Date_created = new Property(8, java.util.Date.class, "date_created", false, "DATE_CREATED");
     };
 
 
@@ -47,11 +49,13 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
         db.execSQL("CREATE TABLE " + constraint + "\"ITEM_RETURN\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"STORE_ID\" INTEGER," + // 1: store_id
-                "\"ITEM\" TEXT," + // 2: item
+                "\"TYPE\" TEXT," + // 2: type
                 "\"PRODUCT_NAME\" TEXT," + // 3: product_name
                 "\"QUANTITY\" REAL," + // 4: quantity
                 "\"REMARKS\" TEXT," + // 5: remarks
-                "\"IS_SYNCED\" INTEGER);"); // 6: is_synced
+                "\"STATUS\" TEXT," + // 6: status
+                "\"IS_SYNCED\" INTEGER," + // 7: is_synced
+                "\"DATE_CREATED\" INTEGER);"); // 8: date_created
     }
 
     /** Drops the underlying database table. */
@@ -75,9 +79,9 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
             stmt.bindLong(2, store_id);
         }
  
-        String item = entity.getItem();
-        if (item != null) {
-            stmt.bindString(3, item);
+        String type = entity.getType();
+        if (type != null) {
+            stmt.bindString(3, type);
         }
  
         String product_name = entity.getProduct_name();
@@ -95,9 +99,19 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
             stmt.bindString(6, remarks);
         }
  
+        String status = entity.getStatus();
+        if (status != null) {
+            stmt.bindString(7, status);
+        }
+ 
         Boolean is_synced = entity.getIs_synced();
         if (is_synced != null) {
-            stmt.bindLong(7, is_synced ? 1L: 0L);
+            stmt.bindLong(8, is_synced ? 1L: 0L);
+        }
+ 
+        java.util.Date date_created = entity.getDate_created();
+        if (date_created != null) {
+            stmt.bindLong(9, date_created.getTime());
         }
     }
 
@@ -113,11 +127,13 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
         ItemReturn entity = new ItemReturn( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // store_id
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // item
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // type
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // product_name
             cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // quantity
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // remarks
-            cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0 // is_synced
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // status
+            cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0, // is_synced
+            cursor.isNull(offset + 8) ? null : new java.util.Date(cursor.getLong(offset + 8)) // date_created
         );
         return entity;
     }
@@ -127,11 +143,13 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
     public void readEntity(Cursor cursor, ItemReturn entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setStore_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
-        entity.setItem(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setType(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setProduct_name(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setQuantity(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
         entity.setRemarks(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
-        entity.setIs_synced(cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0);
+        entity.setStatus(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setIs_synced(cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0);
+        entity.setDate_created(cursor.isNull(offset + 8) ? null : new java.util.Date(cursor.getLong(offset + 8)));
      }
     
     /** @inheritdoc */

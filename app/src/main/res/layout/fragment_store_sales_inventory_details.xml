@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <!--<TextView
         android:layout_width="match_parent"
@@ -16,52 +16,80 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_margin="2dp">
+        android:layout_margin="2dp"
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Name"/>
+            android:text="Name" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Quantity"/>
+            android:text="Quantity" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Sales"/>
+            android:text="Sales" />
 
     </LinearLayout>
 
     <View
         android:layout_width="fill_parent"
         android:layout_height="2dp"
-        android:background="?attr/colorPrimary"/>
+        android:background="?attr/colorPrimary" />
 
     <ListView
+        android:id="@+id/StoreSalesInventoryDetails_lvSalesInventory"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:id="@+id/StoreSalesInventoryDetails_lvSalesInventory"></ListView>
+        android:layout_marginBottom="10dp"></ListView>
 
     <View
         android:layout_width="fill_parent"
         android:layout_height="2dp"
-        android:background="?attr/colorPrimary"/>
+        android:background="?attr/colorPrimary" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginRight="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total Sales : " />
+
+        <TextView
+            android:id="@+id/StoreSalesInventoryDetails_tvTotalSales"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#000000"/>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:background="?attr/colorPrimary" />
 
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_gravity="left"
-        android:layout_margin="5dp">
+        android:layout_margin="5dp"
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
@@ -69,30 +97,28 @@
             android:text="Filter Records by Date : " />
 
         <TextView
+            android:id="@+id/StoreSalesInventoryDetails_tvDateFilter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="[No Date Selected]"
-            android:id="@+id/StoreSalesInventoryDetails_tvDateFilter"
-            android:textColor="#000000"/>
+            android:textColor="#000000" />
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Select Date"
             android:id="@+id/StoreSalesInventoryDetails_bSelectDate"
-            android:layout_marginLeft="5dp" />
-
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="All Records"
-            android:id="@+id/StoreSalesInventoryDetails_bAll"
             android:layout_marginLeft="5dp"
-            android:visibility="gone"/>
+            android:text="Select Date" />
+
+        <Button
+            android:id="@+id/StoreSalesInventoryDetails_bAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="All Records"
+            android:visibility="gone" />
 
     </LinearLayout>
-
-
 
 
 </LinearLayout>

@@ -8,11 +8,13 @@ public class ItemReturn {
 
     private Long id;
     private Long store_id;
-    private String item;
+    private String type;
     private String product_name;
     private Float quantity;
     private String remarks;
+    private String status;
     private Boolean is_synced;
+    private java.util.Date date_created;
 
     public ItemReturn() {
     }
@@ -21,14 +23,16 @@ public class ItemReturn {
         this.id = id;
     }
 
-    public ItemReturn(Long id, Long store_id, String item, String product_name, Float quantity, String remarks, Boolean is_synced) {
+    public ItemReturn(Long id, Long store_id, String type, String product_name, Float quantity, String remarks, String status, Boolean is_synced, java.util.Date date_created) {
         this.id = id;
         this.store_id = store_id;
-        this.item = item;
+        this.type = type;
         this.product_name = product_name;
         this.quantity = quantity;
         this.remarks = remarks;
+        this.status = status;
         this.is_synced = is_synced;
+        this.date_created = date_created;
     }
 
     public Long getId() {
@@ -47,12 +51,12 @@ public class ItemReturn {
         this.store_id = store_id;
     }
 
-    public String getItem() {
-        return item;
+    public String getType() {
+        return type;
     }
 
-    public void setItem(String item) {
-        this.item = item;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getProduct_name() {
@@ -79,12 +83,28 @@ public class ItemReturn {
         this.remarks = remarks;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public Boolean getIs_synced() {
         return is_synced;
     }
 
     public void setIs_synced(Boolean is_synced) {
         this.is_synced = is_synced;
+    }
+
+    public java.util.Date getDate_created() {
+        return date_created;
+    }
+
+    public void setDate_created(java.util.Date date_created) {
+        this.date_created = date_created;
     }
 
 }

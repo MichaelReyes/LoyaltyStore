@@ -24,6 +24,7 @@ public class LoyaltyStoreDAOGenerator {
         product.addIdProperty().codeBeforeField("@SerializedName(\"ID\")");
         product.addStringProperty("name");
         product.addStringProperty("type").codeBeforeField("@SerializedName(\"rad_type\")");
+        product.addStringProperty("category").codeBeforeField("@SerializedName(\"rad_category\")");
         product.addFloatProperty("unit_cost");
         product.addStringProperty("sku");
         product.addStringProperty("ts").codeBeforeField("@SerializedName(\"TS\")");
@@ -61,6 +62,8 @@ public class LoyaltyStoreDAOGenerator {
         sales.addLongProperty("store_id");
         sales.addLongProperty("customer_id");
         sales.addFloatProperty("amount");
+        sales.addFloatProperty("amount_received");
+        sales.addFloatProperty("change");
         sales.addFloatProperty("total_discount");
         sales.addBooleanProperty("is_synced");
         sales.addDateProperty("transaction_date");
@@ -84,12 +87,17 @@ public class LoyaltyStoreDAOGenerator {
         salesHasReward.addStringProperty("sales_transaction_number");
 
         Entity salesProduct = schema.addEntity("SalesProduct");
+        salesProduct.addImport("com.google.gson.annotations.SerializedName");
         salesProduct.addIdProperty().autoincrement().primaryKey();
         salesProduct.addStringProperty("sales_transaction_number");
         salesProduct.addLongProperty("product_id");
+        salesProduct.addStringProperty("name").codeBeforeField("@SerializedName(\"product_name\")");
         salesProduct.addIntProperty("quantity");
         salesProduct.addFloatProperty("sub_total");
         salesProduct.addStringProperty("sale_type");
+        salesProduct.addStringProperty("promo_code");
+        salesProduct.addDateProperty("transaction_date");
+        salesProduct.addBooleanProperty("is_returned");
 
         Entity store = schema.addEntity("Store");
         store.addImport("com.google.gson.annotations.SerializedName");
@@ -104,23 +112,27 @@ public class LoyaltyStoreDAOGenerator {
         Entity itemsReturn = schema.addEntity("ItemReturn");
         itemsReturn.addIdProperty().autoincrement();
         itemsReturn.addLongProperty("store_id");
-        itemsReturn.addStringProperty("item");
+        itemsReturn.addStringProperty("type");
         itemsReturn.addStringProperty("product_name");
         itemsReturn.addFloatProperty("quantity");
         itemsReturn.addStringProperty("remarks");
+        itemsReturn.addStringProperty("status");
         itemsReturn.addBooleanProperty("is_synced");
+        itemsReturn.addDateProperty("date_created");
 
         Entity cashReturn = schema.addEntity("CashReturn");
         cashReturn.addIdProperty().autoincrement();
         cashReturn.addLongProperty("store_id");
-        cashReturn.addStringProperty("item");
         cashReturn.addStringProperty("type");
+        cashReturn.addStringProperty("cash_type");
         cashReturn.addFloatProperty("amount");
         cashReturn.addStringProperty("remarks");
         cashReturn.addStringProperty("deposited_to_bank");
         cashReturn.addDateProperty("time_of_deposit");
         cashReturn.addStringProperty("Image");
+        cashReturn.addStringProperty("status");
         cashReturn.addBooleanProperty("is_synced");
+        cashReturn.addDateProperty("date_created");
 
         Entity expenses = schema.addEntity("Expenses");
         expenses.addIdProperty().autoincrement();
@@ -148,18 +160,40 @@ public class LoyaltyStoreDAOGenerator {
 
         Entity itemInventory = schema.addEntity("ItemInventory");
         itemInventory.addIdProperty().autoincrement();
+        itemInventory.addLongProperty("store_id");
         itemInventory.addLongProperty("product_id");
         itemInventory.addStringProperty("name");
         itemInventory.addDoubleProperty("quantity");
+        itemInventory.addBooleanProperty("is_updated");
 
         Entity itemInventoryStockCount = schema.addEntity("ItemStockCount");
         itemInventoryStockCount.addIdProperty().autoincrement();
+        itemInventoryStockCount.addLongProperty("store_id");
         itemInventoryStockCount.addLongProperty("product_id");
         itemInventoryStockCount.addStringProperty("name");
         itemInventoryStockCount.addDoubleProperty("expectedQuantity");
         itemInventoryStockCount.addDoubleProperty("quantity");
         itemInventoryStockCount.addStringProperty("remarks");
         itemInventoryStockCount.addDateProperty("date_counted");
+        itemInventoryStockCount.addBooleanProperty("is_synced");
+
+        Entity productForDelivery = schema.addEntity("ProductForDelivery");
+        productForDelivery.addImport("com.google.gson.annotations.SerializedName");
+        productForDelivery.addIdProperty();
+        productForDelivery.addLongProperty("product_id");
+        productForDelivery.addStringProperty("track_no");
+        productForDelivery.addStringProperty("name");
+        productForDelivery.addDoubleProperty("quantity");
+        productForDelivery.addStringProperty("pick_bom");
+        productForDelivery.addStringProperty("status").codeBeforeField("@SerializedName(\"Status\")");
+        productForDelivery.addDoubleProperty("cash").codeBeforeField("@SerializedName(\"txt_cash\")");
+        productForDelivery.addStringProperty("distribution_type").codeBeforeField("@SerializedName(\"rad_type\")");
+        productForDelivery.addDateProperty("date_created");
+        productForDelivery.addDoubleProperty("quantity_received").codeBeforeField("@SerializedName(\"txt_received\")");
+        productForDelivery.addDateProperty("date_received").codeBeforeField("@SerializedName(\"dt_received\")");
+        productForDelivery.addLongProperty("branch_id").codeBeforeField("@SerializedName(\"txt_branch_id\")");
+        productForDelivery.addStringProperty("branch").codeBeforeField("@SerializedName(\"pick_branch\")");
+
 
         new DaoGenerator().generateAll(schema, "../app/src/main/java");
 

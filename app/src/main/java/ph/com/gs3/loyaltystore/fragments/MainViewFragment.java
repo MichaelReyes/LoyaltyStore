@@ -21,7 +21,7 @@ import java.util.List;
 
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.R;
-import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
+import ph.com.gs3.loyaltystore.adapters.SalesProductWithReturnListAdapter;
 import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
@@ -51,13 +51,13 @@ public class MainViewFragment extends Fragment {
     private List<Product> products;
     private ProductDao productDao;
 
-    private SalesProductListAdapter salesProductListAdapter;
+    private SalesProductWithReturnListAdapter salesProductWithReturnListAdapter;
 
     private View rootView;
 
-    public static MainViewFragment createInstance(SalesProductListAdapter salesProductListAdapter) {
+    public static MainViewFragment createInstance(SalesProductWithReturnListAdapter salesProductWithReturnListAdapter) {
         MainViewFragment mainViewFragment = new MainViewFragment();
-        mainViewFragment.salesProductListAdapter = salesProductListAdapter;
+        mainViewFragment.salesProductWithReturnListAdapter = salesProductWithReturnListAdapter;
         return mainViewFragment;
     }
 
@@ -86,7 +86,7 @@ public class MainViewFragment extends Fragment {
         tvTotal = (TextView) rootView.findViewById(R.id.Main_tvTotal);
 
         lvSalesProducts = (ListView) rootView.findViewById(R.id.Main_lvSalesProductList);
-        lvSalesProducts.setAdapter(salesProductListAdapter);
+        lvSalesProducts.setAdapter(salesProductWithReturnListAdapter);
         lvSalesProducts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -97,7 +97,7 @@ public class MainViewFragment extends Fragment {
                             case DialogInterface.BUTTON_POSITIVE:
                                 mainViewFragmentEventListener
                                         .onRemoveTransaction(
-                                                (SalesProduct) salesProductListAdapter.getItem(position));
+                                                (SalesProduct) salesProductWithReturnListAdapter.getItem(position));
                                 break;
 
                             case DialogInterface.BUTTON_NEGATIVE:

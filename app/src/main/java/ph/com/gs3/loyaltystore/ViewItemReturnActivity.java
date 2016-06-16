@@ -40,20 +40,19 @@ public class ViewItemReturnActivity extends AppCompatActivity {
     private CashReturnDao cashReturnDao;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_item_to_return_list);
+        setContentView(R.layout.activity_returns_to_commissary);
 
-        itemReturnList= new ArrayList<>();
-        itemReturnListAdapter = new ItemReturnListAdapter(this,itemReturnList);
+        itemReturnList = new ArrayList<>();
+        itemReturnListAdapter = new ItemReturnListAdapter(this, itemReturnList);
 
         cashReturnList = new ArrayList<>();
-        cashReturnListAdapter = new CashReturnListAdapter(this,cashReturnList);
+        cashReturnListAdapter = new CashReturnListAdapter(this, cashReturnList);
 
-        lvItemReturn = (ListView) findViewById(R.id.ITR_lvItems);
+        lvItemReturn = (ListView) findViewById(R.id.ReturnsToCommissary_lvItems);
         lvItemReturn.setAdapter(itemReturnListAdapter);
         lvItemReturn.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -61,16 +60,16 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
                 ItemReturn itemReturn = (ItemReturn) itemReturnListAdapter.getItem(position);
 
-                if(!itemReturn.getIs_synced()){
+                if (!itemReturn.getIs_synced()) {
 
-                    Intent intent = new Intent(ViewItemReturnActivity.this,AddItemToReturnActivity.class);
+                    Intent intent = new Intent(ViewItemReturnActivity.this, AddItemToReturnActivity.class);
                     intent.putExtra(
                             AddItemToReturnActivity.EXTRA_ITEM_RETURN_ID,
                             itemReturn.getId()
                     );
                     intent.putExtra(
                             AddItemToReturnActivity.EXTRA_ITEM_RETURN_VALUE,
-                            itemReturn.getItem()
+                            itemReturn.getType()
                     );
 
                     startActivity(intent);
@@ -81,7 +80,7 @@ public class ViewItemReturnActivity extends AppCompatActivity {
             }
         });
 
-        lvCashReturn = (ListView) findViewById(R.id.ITR_lvCash);
+        lvCashReturn = (ListView) findViewById(R.id.ReturnsToCommissary_lvCash);
         lvCashReturn.setAdapter(cashReturnListAdapter);
         lvCashReturn.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -91,23 +90,23 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
                 Log.d(TAG, " Is synced :" + cashReturn.getIs_synced());
 
-                if(!cashReturn.getIs_synced()){
+                if (!cashReturn.getIs_synced()) {
 
                     Log.d(TAG, " NOT SYNCED ");
 
-                    Intent intent = new Intent(ViewItemReturnActivity.this,AddItemToReturnActivity.class);
+                    Intent intent = new Intent(ViewItemReturnActivity.this, AddItemToReturnActivity.class);
                     intent.putExtra(
                             AddItemToReturnActivity.EXTRA_ITEM_RETURN_ID,
                             cashReturn.getId()
                     );
                     intent.putExtra(
                             AddItemToReturnActivity.EXTRA_ITEM_RETURN_VALUE,
-                            cashReturn.getItem()
+                            cashReturn.getType()
                     );
 
                     startActivity(intent);
 
-               }
+                }
 
             }
         });
@@ -118,14 +117,14 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
     }
 
-    private void initializeDataAccessObjects(){
+    private void initializeDataAccessObjects() {
 
         itemReturnDao = LoyaltyStoreApplication.getInstance().getSession().getItemReturnDao();
         cashReturnDao = LoyaltyStoreApplication.getInstance().getSession().getCashReturnDao();
 
     }
 
-    private void setDataToList(){
+    private void setDataToList() {
 
         itemReturnList.clear();
         cashReturnList.clear();
@@ -135,7 +134,7 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
         List<ItemReturn> itemReturns = itemReturnDao.loadAll();
 
-        for(ItemReturn itemReturn : itemReturns){
+        for (ItemReturn itemReturn : itemReturns) {
 
             itemReturnList.add(itemReturn);
 
@@ -148,7 +147,7 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
         List<CashReturn> cashReturns = cashReturnDao.loadAll();
 
-        for(CashReturn cashReturn : cashReturns){
+        for (CashReturn cashReturn : cashReturns) {
 
             cashReturnList.add(cashReturn);
 
@@ -183,7 +182,7 @@ public class ViewItemReturnActivity extends AppCompatActivity {
 
         switch (id) {
 
-            case R.id.action_Add_Items_To_Return :
+            case R.id.action_Add_Items_To_Return:
                 Intent intent = new Intent(this, AddItemToReturnActivity.class);
                 startActivity(intent);
                 break;

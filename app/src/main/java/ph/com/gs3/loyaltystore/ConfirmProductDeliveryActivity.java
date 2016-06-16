@@ -19,6 +19,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDeliveryDao;
+import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 /**
  * Created by Bryan-PC on 05/04/2016.
@@ -46,10 +47,10 @@ public class ConfirmProductDeliveryActivity extends Activity {
 
         productDeliveryDao = LoyaltyStoreApplication.getSession().getProductDeliveryDao();
 
-        lvDeliveryProducts = (ListView) findViewById(R.id.CPD_lvDeliveryProducts);
+        lvDeliveryProducts = (ListView) findViewById(R.id.ConfirmProductDelivery_lvProductsForDelivery);
         lvDeliveryProducts.setAdapter(adapter);
 
-        bConfirm = (Button) findViewById(R.id.CPD_bConfirm);
+        bConfirm = (Button) findViewById(R.id.ConfirmProductDelivery_bConfirm);
         bConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -80,10 +81,15 @@ public class ConfirmProductDeliveryActivity extends Activity {
         ItemInventoryDao itemInventoryDao
                 = LoyaltyStoreApplication.getSession().getItemInventoryDao();
 
+        Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(this);
+
         List<ProductDelivery> productDeliveryList = adapter.getProductDeliveryList();
 
         for (ProductDelivery productDelivery : productDeliveryList) {
 
+            Log.d(TAG, " STORE ID " + retailer.getStoreId());
+
+            productDelivery.setDelivered_to_store_id(retailer.getStoreId());
             productDeliveryDao.insertOrReplace(productDelivery);
 
             if ("ACCEPTED".equals(productDelivery.getStatus().trim().toUpperCase())
@@ -91,25 +97,26 @@ public class ConfirmProductDeliveryActivity extends Activity {
 
                 List<ItemInventory> itemInventoryList
                         = itemInventoryDao
-                            .queryBuilder()
-                            .where(
+                        .queryBuilder()
+                        .where(
                                 ItemInventoryDao.Properties.Product_id.eq(
                                         productDelivery.getProduct_id()
                                 )
-                            ).limit(1).list();
+                        ).limit(1).list();
 
-                if(itemInventoryList.size() > 0){
+                if (itemInventoryList.size() > 0) {
 
                     ItemInventory itemInventory = itemInventoryList.get(0);
 
                     itemInventory.setQuantity(itemInventory.getQuantity() + productDelivery.getQuantity());
                     itemInventoryDao.insertOrReplace(itemInventory);
 
-                }else{
+                } else {
                     ItemInventory itemInventory = new ItemInventory();
                     itemInventory.setProduct_id(productDelivery.getProduct_id());
                     itemInventory.setName(productDelivery.getName());
                     itemInventory.setQuantity(productDelivery.getQuantity());
+                    itemInventory.setStore_id(retailer.getStoreId());
 
                     itemInventoryDao.insertOrReplace(itemInventory);
                 }
@@ -122,7 +129,7 @@ public class ConfirmProductDeliveryActivity extends Activity {
 
         List<ItemInventory> itemInventoryList = itemInventoryDao.loadAll();
 
-        for(ItemInventory itemInventory : itemInventoryList){
+        for (ItemInventory itemInventory : itemInventoryList) {
 
             Log.d(TAG, "--> Id : " + itemInventory.getId());
             Log.d(TAG, "--> Name : " + itemInventory.getName());

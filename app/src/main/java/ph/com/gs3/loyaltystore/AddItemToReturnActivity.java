@@ -18,10 +18,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 import ph.com.gs3.loyaltystore.fragments.AddItemToReturnViewFragment;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
@@ -68,11 +72,11 @@ public class AddItemToReturnActivity extends Activity implements
 
     }
 
-    private void getExtras(){
+    private void getExtras() {
 
         Intent intent = this.getIntent();
 
-        itemReturnId = intent.getLongExtra(EXTRA_ITEM_RETURN_ID,-1);
+        itemReturnId = intent.getLongExtra(EXTRA_ITEM_RETURN_ID, -1);
         itemReturnValue = intent.getStringExtra(EXTRA_ITEM_RETURN_VALUE);
 
     }
@@ -188,7 +192,8 @@ public class AddItemToReturnActivity extends Activity implements
     @Override
     public void onSave() {
 
-        String item = addItemToReturnViewFragment.getItem();
+        String type = addItemToReturnViewFragment.getType();
+        String cashType = addItemToReturnViewFragment.getCashType();
 
         ItemReturnDao itemReturnDao =
                 LoyaltyStoreApplication.getInstance().getSession().getItemReturnDao();
@@ -200,60 +205,137 @@ public class AddItemToReturnActivity extends Activity implements
 
         CashReturn cashReturn = new CashReturn();
 
-        if (addItemToReturnViewFragment.validate(item)) {
+        if (addItemToReturnViewFragment.validate(type)) {
 
+            switch (type) {
+                case AddItemToReturnViewFragment.RETURNABLE_TRAY:
 
-            switch (item) {
-                case AddItemToReturnViewFragment.ITEM_VALUE_TRAY:
-
-                    if(itemReturnId != -1){
+                    if (itemReturnId != -1) {
 
                         itemReturn.setId(itemReturnId);
 
                     }
 
-                    itemReturn.setItem(item);
+                    itemReturn.setType(type);
                     itemReturn.setQuantity(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
                     itemReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
                     itemReturn.setStore_id(retailer.getStoreId());
+                    itemReturn.setStatus("For Loading");
                     itemReturn.setIs_synced(false);
+                    itemReturn.setDate_created(new Date());
 
                     itemReturnDao.insertOrReplaceInTx(itemReturn);
 
                     break;
-                case AddItemToReturnViewFragment.ITEM_VALUE_SPOILAGE:
+                case AddItemToReturnViewFragment.RETURNABLE_SPOILAGE:
 
-                    itemReturn.setItem(item);
+                    itemReturn.setType(type);
                     itemReturn.setProduct_name(addItemToReturnViewFragment.getProduct());
                     itemReturn.setQuantity(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
                     itemReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
+                    itemReturn.setStatus("For Loading");
                     itemReturn.setIs_synced(false);
                     itemReturn.setStore_id(retailer.getStoreId());
+                    itemReturn.setDate_created(new Date());
 
-                    if(itemReturnId != -1){
+                    if (itemReturnId != -1) {
                         itemReturn.setId(itemReturnId);
                     }
 
                     itemReturnDao.insertOrReplaceInTx(itemReturn);
 
                     break;
-                case AddItemToReturnViewFragment.ITEM_VALUE_CASH:
+                case AddItemToReturnViewFragment.RETURNABLE_ITEM:
 
-                    cashReturn.setItem(item);
+                    ItemInventoryDao itemInventoryDao =
+                            LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
+                    List<ItemInventory> itemInventoryList
+                            = itemInventoryDao
+                            .queryBuilder()
+                            .where(
+                                    ItemInventoryDao.Properties.Name.eq(
+                                            addItemToReturnViewFragment.getProduct()
+                                    )
+                            ).list();
+
+                    if (itemInventoryList.size() != 0) {
+
+                        for (ItemInventory itemInventory : itemInventoryList) {
+
+                            if (itemInventory.getQuantity() > Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount())) {
+
+                                itemReturn.setType(type);
+                                itemReturn.setProduct_name(addItemToReturnViewFragment.getProduct());
+                                itemReturn.setQuantity(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
+                                itemReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
+                                itemReturn.setStatus("For Loading");
+                                itemReturn.setIs_synced(false);
+                                itemReturn.setStore_id(retailer.getStoreId());
+                                itemReturn.setDate_created(new Date());
+
+                                if (itemReturnId != -1) {
+                                    itemReturn.setId(itemReturnId);
+                                }
+
+                                itemReturnDao.insertOrReplaceInTx(itemReturn);
+
+                                /*itemInventory.setQuantity(
+                                        itemInventory.getQuantity() -
+                                                Float.valueOf(
+                                                        addItemToReturnViewFragment.getQuantityOrAmount()
+                                                )
+                                );
+
+                                itemInventoryDao.insertOrReplace(itemInventory);*/
+
+                            } else {
+
+                                addItemToReturnViewFragment.setQuantityOrAmountError("Quantity is greater than inventory count.");
+                                return;
+
+                            }
+
+                        }
+
+                    }else{
+                        itemReturn.setType(type);
+                        itemReturn.setProduct_name(addItemToReturnViewFragment.getProduct());
+                        itemReturn.setQuantity(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
+                        itemReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
+                        itemReturn.setStatus("For Loading");
+                        itemReturn.setIs_synced(false);
+                        itemReturn.setStore_id(retailer.getStoreId());
+                        itemReturn.setDate_created(new Date());
+
+                        if (itemReturnId != -1) {
+                            itemReturn.setId(itemReturnId);
+                        }
+
+                        itemReturnDao.insertOrReplaceInTx(itemReturn);
+                    }
+
+
+                    break;
+                case AddItemToReturnViewFragment.RETURNABLE_CASH:
+
+                    cashReturn.setType(type);
+                    cashReturn.setCash_type(cashType);
                     cashReturn.setAmount(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
                     cashReturn.setRemarks(addItemToReturnViewFragment.getRemarks());
-                    cashReturn.setType(addItemToReturnViewFragment.getCashType());
+                    cashReturn.setStatus("For Loading");
                     cashReturn.setIs_synced(false);
                     cashReturn.setStore_id(retailer.getStoreId());
+                    cashReturn.setDate_created(new Date());
 
-                    if(addItemToReturnViewFragment.getCashType().equals(AddItemToReturnViewFragment.CASH_TYPE_VALUE_CASH_ON_BANK)) {
+                    if (addItemToReturnViewFragment.getCashType().equals(AddItemToReturnViewFragment.CASH_TYPE_VALUE_CASH_ON_BANK)) {
 
                         cashReturn.setDeposited_to_bank(addItemToReturnViewFragment.getBank());
                         cashReturn.setTime_of_deposit(addItemToReturnViewFragment.getDepositDateTime());
 
                     }
 
-                    if(itemReturnId != -1){
+                    if (itemReturnId != -1) {
 
                         cashReturn.setId(itemReturnId);
 
@@ -263,6 +345,18 @@ public class AddItemToReturnActivity extends Activity implements
 
                     break;
             }
+
+            /*Log.e(TAG,"============================ CASH RETURNS ============================");
+
+            for(CashReturn cr : cashReturnDao.loadAll()){
+
+                Log.e(TAG," type : " + cr.getType());
+                Log.e(TAG," cash type : " + cr.getCash_type());
+                Log.e(TAG," remarks : " + cr.getRemarks());
+
+            }
+
+            Log.e(TAG,"============================ CASH RETURNS ============================");*/
 
             finish();
 

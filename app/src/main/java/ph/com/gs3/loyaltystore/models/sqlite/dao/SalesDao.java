@@ -28,10 +28,12 @@ public class SalesDao extends AbstractDao<Sales, Long> {
         public final static Property Store_id = new Property(2, Long.class, "store_id", false, "STORE_ID");
         public final static Property Customer_id = new Property(3, Long.class, "customer_id", false, "CUSTOMER_ID");
         public final static Property Amount = new Property(4, Float.class, "amount", false, "AMOUNT");
-        public final static Property Total_discount = new Property(5, Float.class, "total_discount", false, "TOTAL_DISCOUNT");
-        public final static Property Is_synced = new Property(6, Boolean.class, "is_synced", false, "IS_SYNCED");
-        public final static Property Transaction_date = new Property(7, java.util.Date.class, "transaction_date", false, "TRANSACTION_DATE");
-        public final static Property Remarks = new Property(8, String.class, "remarks", false, "REMARKS");
+        public final static Property Amount_received = new Property(5, Float.class, "amount_received", false, "AMOUNT_RECEIVED");
+        public final static Property Change = new Property(6, Float.class, "change", false, "CHANGE");
+        public final static Property Total_discount = new Property(7, Float.class, "total_discount", false, "TOTAL_DISCOUNT");
+        public final static Property Is_synced = new Property(8, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Transaction_date = new Property(9, java.util.Date.class, "transaction_date", false, "TRANSACTION_DATE");
+        public final static Property Remarks = new Property(10, String.class, "remarks", false, "REMARKS");
     };
 
 
@@ -52,10 +54,12 @@ public class SalesDao extends AbstractDao<Sales, Long> {
                 "\"STORE_ID\" INTEGER," + // 2: store_id
                 "\"CUSTOMER_ID\" INTEGER," + // 3: customer_id
                 "\"AMOUNT\" REAL," + // 4: amount
-                "\"TOTAL_DISCOUNT\" REAL," + // 5: total_discount
-                "\"IS_SYNCED\" INTEGER," + // 6: is_synced
-                "\"TRANSACTION_DATE\" INTEGER," + // 7: transaction_date
-                "\"REMARKS\" TEXT);"); // 8: remarks
+                "\"AMOUNT_RECEIVED\" REAL," + // 5: amount_received
+                "\"CHANGE\" REAL," + // 6: change
+                "\"TOTAL_DISCOUNT\" REAL," + // 7: total_discount
+                "\"IS_SYNCED\" INTEGER," + // 8: is_synced
+                "\"TRANSACTION_DATE\" INTEGER," + // 9: transaction_date
+                "\"REMARKS\" TEXT);"); // 10: remarks
     }
 
     /** Drops the underlying database table. */
@@ -94,24 +98,34 @@ public class SalesDao extends AbstractDao<Sales, Long> {
             stmt.bindDouble(5, amount);
         }
  
+        Float amount_received = entity.getAmount_received();
+        if (amount_received != null) {
+            stmt.bindDouble(6, amount_received);
+        }
+ 
+        Float change = entity.getChange();
+        if (change != null) {
+            stmt.bindDouble(7, change);
+        }
+ 
         Float total_discount = entity.getTotal_discount();
         if (total_discount != null) {
-            stmt.bindDouble(6, total_discount);
+            stmt.bindDouble(8, total_discount);
         }
  
         Boolean is_synced = entity.getIs_synced();
         if (is_synced != null) {
-            stmt.bindLong(7, is_synced ? 1L: 0L);
+            stmt.bindLong(9, is_synced ? 1L: 0L);
         }
  
         java.util.Date transaction_date = entity.getTransaction_date();
         if (transaction_date != null) {
-            stmt.bindLong(8, transaction_date.getTime());
+            stmt.bindLong(10, transaction_date.getTime());
         }
  
         String remarks = entity.getRemarks();
         if (remarks != null) {
-            stmt.bindString(9, remarks);
+            stmt.bindString(11, remarks);
         }
     }
 
@@ -130,10 +144,12 @@ public class SalesDao extends AbstractDao<Sales, Long> {
             cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2), // store_id
             cursor.isNull(offset + 3) ? null : cursor.getLong(offset + 3), // customer_id
             cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // amount
-            cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5), // total_discount
-            cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0, // is_synced
-            cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)), // transaction_date
-            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8) // remarks
+            cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5), // amount_received
+            cursor.isNull(offset + 6) ? null : cursor.getFloat(offset + 6), // change
+            cursor.isNull(offset + 7) ? null : cursor.getFloat(offset + 7), // total_discount
+            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0, // is_synced
+            cursor.isNull(offset + 9) ? null : new java.util.Date(cursor.getLong(offset + 9)), // transaction_date
+            cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10) // remarks
         );
         return entity;
     }
@@ -146,10 +162,12 @@ public class SalesDao extends AbstractDao<Sales, Long> {
         entity.setStore_id(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
         entity.setCustomer_id(cursor.isNull(offset + 3) ? null : cursor.getLong(offset + 3));
         entity.setAmount(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
-        entity.setTotal_discount(cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5));
-        entity.setIs_synced(cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0);
-        entity.setTransaction_date(cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)));
-        entity.setRemarks(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
+        entity.setAmount_received(cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5));
+        entity.setChange(cursor.isNull(offset + 6) ? null : cursor.getFloat(offset + 6));
+        entity.setTotal_discount(cursor.isNull(offset + 7) ? null : cursor.getFloat(offset + 7));
+        entity.setIs_synced(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
+        entity.setTransaction_date(cursor.isNull(offset + 9) ? null : new java.util.Date(cursor.getLong(offset + 9)));
+        entity.setRemarks(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
      }
     
     /** @inheritdoc */

@@ -3,7 +3,6 @@ package ph.com.gs3.loyaltystore.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,19 +10,18 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import ph.com.gs3.loyaltystore.CheckoutActivity;
 import ph.com.gs3.loyaltystore.R;
-import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
+import ph.com.gs3.loyaltystore.adapters.SalesProductListViewAdapter;
 import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
-import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
 
 /**
  * Created by Bryan-PC on 02/02/2016.
@@ -34,10 +32,10 @@ public class SalesProductsViewFragment extends Fragment {
     public static final String EXTRA_SALES_PRODUCT_LIST = "sales_product_list";
 
     private ListView lvSalesProducts;
-    private SalesProductListAdapter salesProductListAdapter;
+    private SalesProductListViewAdapter adapter;
 
     private Activity activity;
-    private ArrayList<SalesProduct> salesProducts;
+    private List<SalesProduct> salesProducts;
 
     private TextView tvAmount;
 
@@ -51,10 +49,19 @@ public class SalesProductsViewFragment extends Fragment {
         String dataJsonString = args.getString(CheckoutActivity.EXTRA_DATA_JSON_STRING);
 
         salesProducts = new ArrayList<>();
+        Gson gson = new Gson();
 
-        try {
+        String salesProductJsonString = args.getString(EXTRA_SALES_PRODUCT_LIST);
+        SalesProduct[] salesProductsArray = gson.fromJson(salesProductJsonString, SalesProduct[].class);
+        salesProducts = Arrays.asList(salesProductsArray);
+
+        /*try {
             JSONObject jsonObject = new JSONObject(dataJsonString);
-            JSONArray salesProductsJsonArray = jsonObject.getJSONArray(SalesProduct.class.getSimpleName());
+
+            SalesProduct[] salesProductArray = gson.fromJson(String.valueOf(jsonObject.getJSONArray(SalesProduct.class.getSimpleName())),SalesProduct[].class);
+            salesProducts = Arrays.asList(salesProductArray);
+
+            *//*JSONArray salesProductsJsonArray = jsonObject.getJSONArray(SalesProduct.class.getSimpleName());
 
             for(int i=0;i<salesProductsJsonArray.length();i++){
 
@@ -70,10 +77,10 @@ public class SalesProductsViewFragment extends Fragment {
 
                 salesProducts.add(salesProduct);
 
-            }
+            }*//*
         } catch (JSONException e) {
             e.printStackTrace();
-        }
+        }*/
 
         total =(float) args.get(CheckoutActivity.EXTRA_TOTAL_AMOUNT);
 
@@ -82,8 +89,6 @@ public class SalesProductsViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_sales_products, container, false);
-
-        Log.d(TAG,"ON CREATE TRANSACTIONS VIEW");
 
         /*for(int i =0;i<salesProducts.size();i++){
             total  += salesProducts.get(i).getSub_total();
@@ -95,17 +100,19 @@ public class SalesProductsViewFragment extends Fragment {
         tvAmount = (TextView) rootView.findViewById(R.id.Transaction_tvAmount);
         tvAmount.setText(decimalFormat.format(total));
 
-        salesProductListAdapter = new SalesProductListAdapter(getActivity(),salesProducts);
-        salesProductListAdapter.notifyDataSetChanged();
+        adapter = new SalesProductListViewAdapter(getActivity());
+        adapter.setSalesProducts(salesProducts);
 
         lvSalesProducts = (ListView) rootView.findViewById(R.id.Transaction_lvTransactionList);
-        lvSalesProducts.setAdapter(salesProductListAdapter);
+        lvSalesProducts.setAdapter(adapter);
         lvSalesProducts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
             }
         });
+
+
 
         return  rootView;
 

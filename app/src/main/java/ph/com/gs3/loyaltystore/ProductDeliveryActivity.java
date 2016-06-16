@@ -41,16 +41,16 @@ public class ProductDeliveryActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_delivery);
+        setContentView(R.layout.activity_delivery_history);
 
         productDeliveryListByDate = new ArrayList<>();
         deliveryByDateListAdapter = new DeliveryByDateListAdapter(
-                ProductDeliveryActivity.this, productDeliveryListByDate
+                ProductDeliveryActivity.this
         );
 
         productDeliveries = new ArrayList<>();
         deliveryListAdapter = new DeliveryListAdapter(
-                this, productDeliveries
+                this
         );
 
         productDeliveryDao = LoyaltyStoreApplication.getSession().getProductDeliveryDao();

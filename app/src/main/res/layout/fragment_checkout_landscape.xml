@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,38 +20,90 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:paddingBottom="10dp"
-                android:paddingTop="10dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp">
+
+                <!-- Removed 05/31/2016 , because wi-fi direct will not be used for customers anymore -->
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Customer(s) : " />
+                        android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/Checkout_bUpdate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/updatebtn"
-                        android:textColor="#FFFFFF"
-                        android:layout_marginLeft="10dp"
-                        android:text="UPDATE" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Customer(s) : " />
+
+                        <Button
+                            android:id="@+id/Checkout_bUpdate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:background="@drawable/updatebtn"
+                            android:text="UPDATE"
+                            android:textColor="#FFFFFF" />
+
+                    </LinearLayout>
+
+
+                    <ListView
+                        android:id="@+id/Checkout_lvDeviceList"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
 
                 </LinearLayout>
 
+                <!-- *************************************************************************** -->
 
-                <ListView
-                    android:id="@+id/Checkout_lvDeviceList"
+                <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    xmlns:app="http://schemas.android.com/apk/res-auto"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent">
+
+                    <android.support.design.widget.AppBarLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+                        <!--<android.support.v7.widget.Toolbar
+                            android:id="@+id/toolbar"
+                            android:layout_width="match_parent"
+                            android:layout_height="?attr/actionBarSize"
+                            android:background="?attr/colorPrimary"
+                            app:layout_scrollFlags="scroll|enterAlways"
+                            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />-->
+
+                        <android.support.design.widget.TabLayout
+                            android:id="@+id/tabs"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:tabGravity="fill"
+                            app:tabMode="fixed" />
+                    </android.support.design.widget.AppBarLayout>
+
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/viewpager"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+                </android.support.design.widget.CoordinatorLayout>
+
+                <!--<ListView
+                    android:id="@+id/Checkout_lvRewardList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_horizontal" />-->
 
 
             </LinearLayout>
@@ -63,78 +115,58 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:gravity="center">
 
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingLeft="30dp"
-                android:paddingRight="30dp"
-                android:paddingBottom="10dp"
-                android:paddingTop="10dp">
+                android:layout_height="wrap_content"
+                android:text="Total Amount Due : "
+                />
+
+            <EditText
+                android:id="@+id/Checkout_etTotalAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:inputType="numberDecimal"
+                android:enabled="false"
+                android:textColor="#000000"
+                android:textSize="50px"
+                android:paddingTop="0dp"/>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Reward : " />
+                    android:text="Amount Received : " />
 
-                <LinearLayout
+                <EditText
+                    android:id="@+id/Checkout_etAmountReceived"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:inputType="numberDecimal"
+                    android:textSize="50px"
+                    android:paddingTop="0dp"/>
 
-                    <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                        xmlns:app="http://schemas.android.com/apk/res-auto"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Change : " />
 
-                        <android.support.design.widget.AppBarLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-                            <!--<android.support.v7.widget.Toolbar
-                                android:id="@+id/toolbar"
-                                android:layout_width="match_parent"
-                                android:layout_height="?attr/actionBarSize"
-                                android:background="?attr/colorPrimary"
-                                app:layout_scrollFlags="scroll|enterAlways"
-                                app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />-->
-
-                            <android.support.design.widget.TabLayout
-                                android:id="@+id/tabs"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:tabMode="fixed"
-                                app:tabGravity="fill"/>
-                        </android.support.design.widget.AppBarLayout>
-
-                        <android.support.v4.view.ViewPager
-                            android:id="@+id/viewpager"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-
-                    </android.support.design.widget.CoordinatorLayout>
-
-                    <!--<ListView
-                        android:id="@+id/Checkout_lvRewardList"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center_horizontal" />-->
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="fill_parent"
-                    android:layout_height="2dp"
-                    android:background="#000000"/>
-
-            </LinearLayout>
+                <EditText
+                    android:id="@+id/Checkout_etChange"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:enabled="false"
+                    android:gravity="center_horizontal"
+                    android:text="0"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
+                    android:textSize="50px"
+                    android:paddingTop="0dp"/>
 
         </LinearLayout>
 
@@ -149,23 +181,29 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.25"
-            android:gravity="center"
+            android:layout_weight="0.35"
+            android:orientation="vertical"
             android:paddingLeft="30dp"
             android:paddingRight="30dp"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp"
-            android:orientation="vertical">
+            android:gravity="center">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Remarks : " />
+                android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/Checkout_etRemarks"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Remarks : " />
+
+                <EditText
+                    android:id="@+id/Checkout_etRemarks"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
 
 
         </LinearLayout>
@@ -175,11 +213,11 @@
             android:layout_height="0dp"
             android:layout_weight="0.25"
             android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingBottom="10dp"
             android:paddingLeft="30dp"
             android:paddingRight="30dp"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp"
-            android:orientation="horizontal">
+            android:paddingTop="10dp">
 
             <Button
                 android:id="@+id/Checkout_bComplete"
@@ -189,10 +227,12 @@
                 android:text="Complete" />
 
             <Button
+                android:visibility="gone"
                 android:id="@+id/Checkout_bCompleteWithRewards"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:enabled="false"
                 android:text="Complete with Rewards" />
 
             <Button
@@ -203,7 +243,6 @@
                 android:text="Cancel" />
 
         </LinearLayout>
-
 
 
     </LinearLayout>

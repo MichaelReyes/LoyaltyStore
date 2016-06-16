@@ -214,15 +214,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="Synchronize"
-        android:visibility="gone"/>
+        android:text="Synchronize"/>
 
     <Button
         android:id="@+id/Sync_bClose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="Done"
+        android:text="Close"
         android:visibility="gone" />
 
 </LinearLayout>

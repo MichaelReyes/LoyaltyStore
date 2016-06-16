@@ -39,6 +39,14 @@ public class ExpensesListAdapter extends BaseAdapter {
 
     }
 
+    public void setExpensesList(List<Expenses> expensesList){
+
+        this.expensesList.clear();
+        this.expensesList.addAll(expensesList);
+        notifyDataSetChanged();
+
+    }
+
     @Override
     public int getCount() {
         return expensesList.size();
@@ -76,11 +84,11 @@ public class ExpensesListAdapter extends BaseAdapter {
         DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
 
         if(expenses.getDate()!= null){
-            viewHolder.tvDate.setText(formatter.format(expenses.getDate()));
+            viewHolder.tvDate.setText("Date : " + formatter.format(expenses.getDate()));
         }
-        viewHolder.tvDescription.setText(expenses.getDescription());
 
-        viewHolder.tvAmount.setText(decimalFormat.format(expenses.getAmount()));
+        viewHolder.tvDescription.setText("Description : " + expenses.getDescription());
+        viewHolder.tvAmount.setText("Amount : " + decimalFormat.format(expenses.getAmount()));
 
         viewHolder.bDelete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,7 +96,7 @@ public class ExpensesListAdapter extends BaseAdapter {
                 DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch (which){
+                        switch (which) {
                             case DialogInterface.BUTTON_POSITIVE:
                                 //Yes button clicked
 
@@ -136,10 +144,10 @@ public class ExpensesListAdapter extends BaseAdapter {
         final Button bDelete;
 
         public ExpenseViewHolder(View view) {
-            tvDate = (TextView) view.findViewById(R.id.VE_tvDate);
-            tvDescription = (TextView) view.findViewById(R.id.VE_tvDescription);
-            tvAmount = (TextView) view.findViewById(R.id.VE_tvAmount);
-            bDelete = (Button) view.findViewById(R.id.VE_bDelete);
+            tvDate = (TextView) view.findViewById(R.id.Expense_tvDate);
+            tvDescription = (TextView) view.findViewById(R.id.Expense_tvDescription);
+            tvAmount = (TextView) view.findViewById(R.id.Expense_tvAmount);
+            bDelete = (Button) view.findViewById(R.id.Expense_bDelete);
         }
 
     }

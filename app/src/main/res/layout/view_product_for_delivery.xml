@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:drawable/btn_default">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/ProductForDelivery_tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[Product Name]"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/ProductForDelivery_tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[Date]" />
+
+        <TextView
+            android:id="@+id/ProductForDelivery_tvTrackNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[Tracking Number]"
+            android:textColor="@android:color/holo_orange_dark" />
+
+        <TextView
+            android:id="@+id/ProductForDelivery_tvQuantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[Quantity]"
+            android:textColor="@android:color/holo_orange_dark" />
+
+        <TextView
+            android:id="@+id/ProductForDelivery_tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[Status]"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </LinearLayout>
+
+
+    <Button
+        android:id="@+id/ProductForDelivery_bReceiveAll"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/btn_accept"
+        android:layout_gravity="center_vertical"
+        android:padding="12dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false"/>
+
+</LinearLayout>

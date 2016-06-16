@@ -51,7 +51,6 @@ public class SearchAgentTask extends AsyncTask<Void, Void, Void> {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                return null;
             }
 
         }

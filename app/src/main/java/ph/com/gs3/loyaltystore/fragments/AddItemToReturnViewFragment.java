@@ -2,10 +2,10 @@ package ph.com.gs3.loyaltystore.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +34,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
 
 /**
@@ -43,9 +44,10 @@ public class AddItemToReturnViewFragment extends Fragment {
 
     public static final String TAG = AddItemToReturnViewFragment.class.getSimpleName();
 
-    public static final String ITEM_VALUE_TRAY = "Tray";
-    public static final String ITEM_VALUE_SPOILAGE = "Spoilage";
-    public static final String ITEM_VALUE_CASH = "Cash";
+    public static final String RETURNABLE_TRAY = "Tray";
+    public static final String RETURNABLE_SPOILAGE = "Spoilage";
+    public static final String RETURNABLE_ITEM = "Item";
+    public static final String RETURNABLE_CASH = "Cash";
 
     public static final String CASH_TYPE_VALUE_CASH_ON_HAND = "Cash on Hand";
     public static final String CASH_TYPE_VALUE_CASH_ON_BANK = "Cash on Bank";
@@ -58,7 +60,7 @@ public class AddItemToReturnViewFragment extends Fragment {
     private Activity activity;
 
     private Spinner sProduct;
-    private Spinner sItem;
+    private Spinner sType;
     private Spinner sCashType;
 
     private EditText etQuantityOrAmount;
@@ -85,7 +87,7 @@ public class AddItemToReturnViewFragment extends Fragment {
 
     private Button bSelectImage;
 
-    private List<String> spinnerItemArray;
+    private List<String> spinnerReturnableArray;
     private List<String> spinnerProductArray;
     private List<String> spinnerCashTypeArray;
 
@@ -113,18 +115,19 @@ public class AddItemToReturnViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_add_item_to_return, container, false);
 
-        spinnerItemArray = new ArrayList<String>();
-        spinnerItemArray.add(ITEM_VALUE_TRAY);
-        spinnerItemArray.add(ITEM_VALUE_SPOILAGE);
-        spinnerItemArray.add(ITEM_VALUE_CASH);
+        spinnerReturnableArray = new ArrayList<String>();
+        //spinnerReturnableArray.add(RETURNABLE_TRAY);
+        //spinnerReturnableArray.add(RETURNABLE_SPOILAGE);
+        spinnerReturnableArray.add(RETURNABLE_ITEM);
+        spinnerReturnableArray.add(RETURNABLE_CASH);
 
         final ArrayAdapter<String> itemAdapter = new ArrayAdapter<String>(
-                activity, android.R.layout.simple_spinner_item, spinnerItemArray);
+                activity, android.R.layout.simple_spinner_item, spinnerReturnableArray);
         itemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sItem = (Spinner) rootView.findViewById(R.id.ITR_sItem);
-        sItem.setAdapter(itemAdapter);
+        sType = (Spinner) rootView.findViewById(R.id.ITR_sType);
+        sType.setAdapter(itemAdapter);
 
-        sItem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        sType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 addItemToReturnViewFragmentEventListener.onItemSelect(itemAdapter.getItem(position));
@@ -221,7 +224,6 @@ public class AddItemToReturnViewFragment extends Fragment {
             long itemReturnId =  activity.getIntent().getLongExtra(AddItemToReturnActivity.EXTRA_ITEM_RETURN_ID,-1);
             String itemReturnValue = activity.getIntent().getStringExtra(AddItemToReturnActivity.EXTRA_ITEM_RETURN_VALUE);
 
-
             onEditItemReturn(itemReturnValue,itemReturnId);
 
         }
@@ -237,9 +239,9 @@ public class AddItemToReturnViewFragment extends Fragment {
         ItemReturnDao itemReturnDao = LoyaltyStoreApplication.getSession().getItemReturnDao();
         CashReturnDao cashReturnDao = LoyaltyStoreApplication.getSession().getCashReturnDao();
 
-        sItem.setSelection(getItemIndexInSpinner(spinnerItemArray, item));
+        sType.setSelection(getItemIndexInSpinner(spinnerReturnableArray, item));
 
-        if (item.equals(ITEM_VALUE_TRAY) || item.equals(ITEM_VALUE_SPOILAGE)) {
+        if (item.equals(RETURNABLE_TRAY) || item.equals(RETURNABLE_SPOILAGE) || item.equals(RETURNABLE_ITEM)) {
 
             List<ItemReturn> itemReturnList =
                     itemReturnDao.queryBuilder().where(ItemReturnDao.Properties.Id.eq(id)).list();
@@ -249,7 +251,7 @@ public class AddItemToReturnViewFragment extends Fragment {
                 etQuantityOrAmount.setText(String.valueOf(itemReturn.getQuantity()));
                 etRemarks.setText(itemReturn.getRemarks());
 
-                if (item.equals(ITEM_VALUE_SPOILAGE)) {
+                if (item.equals(RETURNABLE_SPOILAGE) || item.equals(RETURNABLE_ITEM)) {
 
                     sProduct.setVisibility(View.VISIBLE);
                     sProduct.setSelection(getItemIndexInSpinner(
@@ -263,7 +265,7 @@ public class AddItemToReturnViewFragment extends Fragment {
             }
 
 
-        } else if (item.equals(ITEM_VALUE_CASH)) {
+        } else if (item.equals(RETURNABLE_CASH)) {
 
             List<CashReturn> cashReturns =
                     cashReturnDao.queryBuilder().where(CashReturnDao.Properties.Id.eq(id)).list();
@@ -319,39 +321,39 @@ public class AddItemToReturnViewFragment extends Fragment {
 
         ProductDao productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
 
-        spinnerProductArray = new ArrayList<String>();
+        spinnerProductArray = new ArrayList<>();
 
-        String sql =
-                "SELECT " + ProductDao.Properties.Name.columnName + " FROM " + ProductDao.TABLENAME;
+        spinnerProductArray.add("Tray");
 
-        Cursor cursor = productDao.getDatabase().rawQuery(sql, null);
+        List<Product> products =
+                productDao
+                        .queryBuilder()
+                        .whereOr(
+                                ProductDao.Properties.Type.eq("Product for Delivery"),
+                                ProductDao.Properties.Type.eq("For Direct Transactions")
+                        ).list();
 
-        if (cursor.moveToFirst()) {
-            while (cursor.moveToNext()) {
-
-                spinnerProductArray.add(cursor.getString(0));
-
-            }
-        }
+       for(Product product : products){
+           spinnerProductArray.add(product.getName());
+       }
 
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 activity, android.R.layout.simple_spinner_item, spinnerProductArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sProduct.setAdapter(adapter);
 
-
     }
 
     public void setFieldsVisibilityByItem(String item) {
         switch (item) {
-            case ITEM_VALUE_TRAY:
+            case RETURNABLE_TRAY:
 
                 llProduct.setVisibility(View.GONE);
                 llCashType.setVisibility(View.GONE);
                 llBankDepositDetails.setVisibility(View.GONE);
 
                 break;
-            case ITEM_VALUE_SPOILAGE:
+            case RETURNABLE_SPOILAGE:
 
                 llProduct.setVisibility(View.VISIBLE);
                 llCashType.setVisibility(View.GONE);
@@ -360,7 +362,16 @@ public class AddItemToReturnViewFragment extends Fragment {
                 setProductToList();
 
                 break;
-            case ITEM_VALUE_CASH:
+            case RETURNABLE_ITEM:
+
+                llProduct.setVisibility(View.VISIBLE);
+                llCashType.setVisibility(View.GONE);
+                llBankDepositDetails.setVisibility(View.GONE);
+
+                setProductToList();
+
+                break;
+            case RETURNABLE_CASH:
 
                 llProduct.setVisibility(View.GONE);
                 llCashType.setVisibility(View.VISIBLE);
@@ -391,9 +402,11 @@ public class AddItemToReturnViewFragment extends Fragment {
         ivDepositSlip.setImageBitmap(bitmap);
     }
 
-    public String getItem() {
+    public String getType() {
 
-        return sItem.getSelectedItem().toString();
+        Log.d(TAG, "Selected Type : " +  sType.getSelectedItem().toString());
+
+        return sType.getSelectedItem().toString();
 
     }
 
@@ -406,6 +419,12 @@ public class AddItemToReturnViewFragment extends Fragment {
     public String getQuantityOrAmount() {
 
         return etQuantityOrAmount.getText().toString();
+
+    }
+
+    public void setQuantityOrAmountError(String errorMessage){
+
+        etQuantityOrAmount.setError(errorMessage);
 
     }
 
@@ -457,7 +476,7 @@ public class AddItemToReturnViewFragment extends Fragment {
             isValid = false;
         }
 
-        if (item.equals(ITEM_VALUE_CASH)) {
+        if (item.equals(RETURNABLE_CASH)) {
 
             if ((sCashType.getSelectedItem().toString().equals(CASH_TYPE_VALUE_CASH_ON_BANK))) {
 

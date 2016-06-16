@@ -8,6 +8,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +44,9 @@ public class CheckOutViewFragment extends Fragment {
     private Button bCancel;
 
     private EditText etRemarks;
+    private EditText etAmountRecieved;
+    private EditText etChange;
+    private EditText etTotalAmount;
 
     private Toolbar toolbar;
     private TabLayout tabLayout;
@@ -97,6 +102,26 @@ public class CheckOutViewFragment extends Fragment {
         });
 
         etRemarks = (EditText) rootView.findViewById(R.id.Checkout_etRemarks);
+        etAmountRecieved = (EditText) rootView.findViewById(R.id.Checkout_etAmountReceived);
+        etAmountRecieved.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                etAmountRecieved.setError(null);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                checkoutViewFragmentEventListener.onEnteredAmountReceived(etAmountRecieved.getText().toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        etChange = (EditText) rootView.findViewById(R.id.Checkout_etChange);
+
+        etTotalAmount = (EditText) rootView.findViewById(R.id.Checkout_etTotalAmount);
 
         bUpdate = (Button) rootView.findViewById(R.id.Checkout_bUpdate);
         bUpdate.setOnClickListener(new View.OnClickListener() {
@@ -114,7 +139,7 @@ public class CheckOutViewFragment extends Fragment {
             }
         });
 
-        bComplete= (Button) rootView.findViewById(R.id.Checkout_bComplete);
+        bComplete = (Button) rootView.findViewById(R.id.Checkout_bComplete);
         bComplete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -147,7 +172,7 @@ public class CheckOutViewFragment extends Fragment {
             e.printStackTrace();
         }
 
-        return  rootView;
+        return rootView;
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -157,15 +182,49 @@ public class CheckOutViewFragment extends Fragment {
                 extras);
 
         adapter.addFragment(new SalesProductsViewFragment(), "Receipt");
-        adapter.addFragment(new RewardViewFragment(), "Rewards");
+        //adapter.addFragment(new RewardViewFragment(), "Rewards");
         viewPager.setAdapter(adapter);
     }
 
-    public String getRemarks(){
+    public String getRemarks() {
 
         return etRemarks.getText().toString();
 
     }
+
+    public void setChange(String change) {
+        etChange.setText(change);
+    }
+
+    public float getAmountRecieved() {
+        if (!"".equals(etAmountRecieved.getText().toString()))
+            return Float.valueOf(etAmountRecieved.getText().toString().replace(",", ""));
+        else
+            return 0;
+    }
+
+    public void setErrorAmountRecieved(String errorMessage){
+        etAmountRecieved.setError(errorMessage);
+    }
+
+    public float getChange() {
+        return Float.valueOf(etChange.getText().toString().replace(",", ""));
+    }
+
+    public void setWithSenior(){
+        etRemarks.setText("With Senior Citizen Discount");
+    }
+
+    public float getTotalAmount(){
+
+        return Float.valueOf(etTotalAmount.getText().toString().replace(",", ""));
+
+    }
+
+    public void setTotalAmount(String totalAmount) {
+        etTotalAmount.setText(totalAmount);
+    }
+
 
     public interface CheckoutViewFragmentEventListener {
 
@@ -180,6 +239,8 @@ public class CheckOutViewFragment extends Fragment {
         void onCompleteWithRewards() throws JSONException;
 
         void onCancel();
+
+        void onEnteredAmountReceived(String amountReceivedString);
 
     }
 

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/SalesProductWithReturn_tvProductName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Name Here]"
+            android:textColor="#000000" />
+
+        <TextView
+            android:layout_marginLeft="15dp"
+            android:id="@+id/SalesProductWithReturn_tvQuantity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Qty. Here]"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/SalesProductWithReturn_tvCost"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Cost Here]"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/SalesProductWithReturn_tvTotal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="[Total Here]"
+            android:textColor="#000000" />
+
+        <ImageButton
+            android:id="@+id/SalesProductWithReturn_bReturn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/item_return3"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"/>
+
+    </LinearLayout>
+
+</LinearLayout>

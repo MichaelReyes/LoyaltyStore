@@ -2,30 +2,45 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="5dp">
+    android:gravity="center">
 
     <TextView
-        android:id="@+id/VD_tvName"
+        android:id="@+id/ViewDeliveryHistory_tvName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="[Name Here]"
         android:textColor="#000000"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_marginLeft="5dp"
         />
 
     <TextView
-        android:id="@+id/VD_tvQuantity"
+        android:id="@+id/ViewDeliveryHistory_tvQuantity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="[Quantity Here]"
-        android:textColor="#000000"
+        android:text="[Quantity To Deliver Here]"
+        android:textColor="@android:color/holo_orange_dark"
+        android:layout_marginLeft="5dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
         />
 
     <TextView
-        android:id="@+id/VD_tvStatus"
+        android:id="@+id/ViewDeliveryHistory_tvQuantityReceived"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="[Quantity To Received Here]"
+        android:textColor="@android:color/holo_orange_dark"
+        android:layout_marginLeft="5dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        />
+
+    <TextView
+        android:id="@+id/ViewDeliveryHistory_tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="[Status Here]"
-        android:textColor="#000000"
+        android:layout_marginLeft="5dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         />
 
 </LinearLayout>

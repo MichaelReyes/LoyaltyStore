@@ -8,14 +8,16 @@ public class CashReturn {
 
     private Long id;
     private Long store_id;
-    private String item;
     private String type;
+    private String cash_type;
     private Float amount;
     private String remarks;
     private String deposited_to_bank;
     private java.util.Date time_of_deposit;
     private String Image;
+    private String status;
     private Boolean is_synced;
+    private java.util.Date date_created;
 
     public CashReturn() {
     }
@@ -24,17 +26,19 @@ public class CashReturn {
         this.id = id;
     }
 
-    public CashReturn(Long id, Long store_id, String item, String type, Float amount, String remarks, String deposited_to_bank, java.util.Date time_of_deposit, String Image, Boolean is_synced) {
+    public CashReturn(Long id, Long store_id, String type, String cash_type, Float amount, String remarks, String deposited_to_bank, java.util.Date time_of_deposit, String Image, String status, Boolean is_synced, java.util.Date date_created) {
         this.id = id;
         this.store_id = store_id;
-        this.item = item;
         this.type = type;
+        this.cash_type = cash_type;
         this.amount = amount;
         this.remarks = remarks;
         this.deposited_to_bank = deposited_to_bank;
         this.time_of_deposit = time_of_deposit;
         this.Image = Image;
+        this.status = status;
         this.is_synced = is_synced;
+        this.date_created = date_created;
     }
 
     public Long getId() {
@@ -53,20 +57,20 @@ public class CashReturn {
         this.store_id = store_id;
     }
 
-    public String getItem() {
-        return item;
-    }
-
-    public void setItem(String item) {
-        this.item = item;
-    }
-
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getCash_type() {
+        return cash_type;
+    }
+
+    public void setCash_type(String cash_type) {
+        this.cash_type = cash_type;
     }
 
     public Float getAmount() {
@@ -109,12 +113,28 @@ public class CashReturn {
         this.Image = Image;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public Boolean getIs_synced() {
         return is_synced;
     }
 
     public void setIs_synced(Boolean is_synced) {
         this.is_synced = is_synced;
+    }
+
+    public java.util.Date getDate_created() {
+        return date_created;
+    }
+
+    public void setDate_created(java.util.Date date_created) {
+        this.date_created = date_created;
     }
 
 }

@@ -7,8 +7,8 @@ import java.util.Date;
 
 import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.services.converters.ToStringConverterFactory;
-import retrofit.GsonConverterFactory;
-import retrofit.Retrofit;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
 
 /**
  * Created by Michael Reyes on 11/4/2015.

@@ -25,14 +25,16 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property Store_id = new Property(1, Long.class, "store_id", false, "STORE_ID");
-        public final static Property Item = new Property(2, String.class, "item", false, "ITEM");
-        public final static Property Type = new Property(3, String.class, "type", false, "TYPE");
+        public final static Property Type = new Property(2, String.class, "type", false, "TYPE");
+        public final static Property Cash_type = new Property(3, String.class, "cash_type", false, "CASH_TYPE");
         public final static Property Amount = new Property(4, Float.class, "amount", false, "AMOUNT");
         public final static Property Remarks = new Property(5, String.class, "remarks", false, "REMARKS");
         public final static Property Deposited_to_bank = new Property(6, String.class, "deposited_to_bank", false, "DEPOSITED_TO_BANK");
         public final static Property Time_of_deposit = new Property(7, java.util.Date.class, "time_of_deposit", false, "TIME_OF_DEPOSIT");
         public final static Property Image = new Property(8, String.class, "Image", false, "IMAGE");
-        public final static Property Is_synced = new Property(9, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Status = new Property(9, String.class, "status", false, "STATUS");
+        public final static Property Is_synced = new Property(10, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Date_created = new Property(11, java.util.Date.class, "date_created", false, "DATE_CREATED");
     };
 
 
@@ -50,14 +52,16 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
         db.execSQL("CREATE TABLE " + constraint + "\"CASH_RETURN\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"STORE_ID\" INTEGER," + // 1: store_id
-                "\"ITEM\" TEXT," + // 2: item
-                "\"TYPE\" TEXT," + // 3: type
+                "\"TYPE\" TEXT," + // 2: type
+                "\"CASH_TYPE\" TEXT," + // 3: cash_type
                 "\"AMOUNT\" REAL," + // 4: amount
                 "\"REMARKS\" TEXT," + // 5: remarks
                 "\"DEPOSITED_TO_BANK\" TEXT," + // 6: deposited_to_bank
                 "\"TIME_OF_DEPOSIT\" INTEGER," + // 7: time_of_deposit
                 "\"IMAGE\" TEXT," + // 8: Image
-                "\"IS_SYNCED\" INTEGER);"); // 9: is_synced
+                "\"STATUS\" TEXT," + // 9: status
+                "\"IS_SYNCED\" INTEGER," + // 10: is_synced
+                "\"DATE_CREATED\" INTEGER);"); // 11: date_created
     }
 
     /** Drops the underlying database table. */
@@ -81,14 +85,14 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
             stmt.bindLong(2, store_id);
         }
  
-        String item = entity.getItem();
-        if (item != null) {
-            stmt.bindString(3, item);
-        }
- 
         String type = entity.getType();
         if (type != null) {
-            stmt.bindString(4, type);
+            stmt.bindString(3, type);
+        }
+ 
+        String cash_type = entity.getCash_type();
+        if (cash_type != null) {
+            stmt.bindString(4, cash_type);
         }
  
         Float amount = entity.getAmount();
@@ -116,9 +120,19 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
             stmt.bindString(9, Image);
         }
  
+        String status = entity.getStatus();
+        if (status != null) {
+            stmt.bindString(10, status);
+        }
+ 
         Boolean is_synced = entity.getIs_synced();
         if (is_synced != null) {
-            stmt.bindLong(10, is_synced ? 1L: 0L);
+            stmt.bindLong(11, is_synced ? 1L: 0L);
+        }
+ 
+        java.util.Date date_created = entity.getDate_created();
+        if (date_created != null) {
+            stmt.bindLong(12, date_created.getTime());
         }
     }
 
@@ -134,14 +148,16 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
         CashReturn entity = new CashReturn( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // store_id
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // item
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // type
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // type
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // cash_type
             cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // amount
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // remarks
             cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // deposited_to_bank
             cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)), // time_of_deposit
             cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // Image
-            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0 // is_synced
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // status
+            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // is_synced
+            cursor.isNull(offset + 11) ? null : new java.util.Date(cursor.getLong(offset + 11)) // date_created
         );
         return entity;
     }
@@ -151,14 +167,16 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
     public void readEntity(Cursor cursor, CashReturn entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setStore_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
-        entity.setItem(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setType(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setType(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setCash_type(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
         entity.setAmount(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
         entity.setRemarks(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setDeposited_to_bank(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
         entity.setTime_of_deposit(cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)));
         entity.setImage(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
-        entity.setIs_synced(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setStatus(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setIs_synced(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
+        entity.setDate_created(cursor.isNull(offset + 11) ? null : new java.util.Date(cursor.getLong(offset + 11)));
      }
     
     /** @inheritdoc */

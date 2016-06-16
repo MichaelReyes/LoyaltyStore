@@ -38,6 +38,14 @@ public class SalesListAdapter extends BaseAdapter {
 
     }
 
+    public void setSalesList(List<Sales> salesList){
+
+        this.salesList.clear();
+        this.salesList.addAll(salesList);
+        notifyDataSetChanged();
+
+    }
+
     @Override
     public int getCount() {
         return salesList.size();
@@ -79,6 +87,8 @@ public class SalesListAdapter extends BaseAdapter {
         viewHolder.tvTransactionNumber.setText(sales.getTransaction_number());
         viewHolder.tvAmount.setText(decimalFormat.format(sales.getAmount()));
         viewHolder.tvRemarks.setText(sales.getRemarks() == null ? "" : sales.getRemarks());
+        viewHolder.tvAmountReceived.setText(decimalFormat.format(sales.getAmount_received()));
+        viewHolder.tvChange.setText(decimalFormat.format(sales.getChange()));
 
         return row;
     }
@@ -89,12 +99,16 @@ public class SalesListAdapter extends BaseAdapter {
         final TextView tvTransactionNumber;
         final TextView tvAmount;
         final TextView tvRemarks;
+        final TextView tvAmountReceived;
+        final TextView tvChange;
 
         public SalesProductViewHolder(View view) {
             tvTransactionDate = (TextView) view.findViewById(R.id.Sales_tvTransactionDate);
             tvTransactionNumber = (TextView) view.findViewById(R.id.Sales_tvTransactionNumber);
             tvAmount = (TextView) view.findViewById(R.id.Sales_tvAmount);
             tvRemarks = (TextView) view.findViewById(R.id.Sales_tvRemarks);
+            tvAmountReceived = (TextView) view.findViewById(R.id.Sales_tvAmountReceived);
+            tvChange = (TextView) view.findViewById(R.id.Sales_tvChange);
         }
 
     }

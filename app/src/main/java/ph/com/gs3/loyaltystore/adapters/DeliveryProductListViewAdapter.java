@@ -90,7 +90,7 @@ public class DeliveryProductListViewAdapter extends BaseAdapter {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyy");
         String dateString = simpleDateFormat.format(productDelivery.getDate_delivered());
 
-        final DeliveryProductListView deliveryProductListView = (DeliveryProductListView) rowView;
+        DeliveryProductListView deliveryProductListView = (DeliveryProductListView) rowView;
 
         deliveryProductListView.tvDate.setText("Date : " + dateString);
         deliveryProductListView.tvName.setText(productDelivery.getName());
@@ -109,12 +109,14 @@ public class DeliveryProductListViewAdapter extends BaseAdapter {
         }else if("Rejected".equals(productDelivery.getStatus().trim())){
             deliveryProductListView.llProductDelivery.setBackgroundColor(Color.RED);
             rejectedProducts.add(productDelivery);
+        }else{
+            deliveryProductListView.llProductDelivery.setBackgroundColor(Color.TRANSPARENT);
         }
 
         deliveryProductListView.bAccept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                deliveryProductListView.llProductDelivery.setBackgroundColor(Color.GREEN);
+                //deliveryProductListView.llProductDelivery.setBackgroundColor(Color.GREEN);
                 //deliveryProductListView.llProductDelivery.setAlpha((float) 0.9);
                 if(rejectedProducts.contains(productDelivery))
                     rejectedProducts.remove(productDelivery);
@@ -124,31 +126,13 @@ public class DeliveryProductListViewAdapter extends BaseAdapter {
 
                 acceptedProducts.add(productDelivery);
 
-                /*
-                Log.d(TAG, " ==================================== ");
-
-                for(ProductDelivery p : acceptedProducts){
-                    Log.d(TAG, "ACCEPTED PRODUCT :" + p.getName());
-                }
-
-                Log.d(TAG, " ==================================== ");
-
-                Log.d(TAG, " ------------------------------------ ");
-
-                for(ProductDelivery p : rejectedProducts){
-                    Log.d(TAG, "REJECTED PRODUCT :" + p.getName());
-                }
-
-                Log.d(TAG, " ------------------------------------ ");
-                */
-
             }
         });
 
         deliveryProductListView.bReject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                deliveryProductListView.llProductDelivery.setBackgroundColor(Color.RED);
+                //deliveryProductListView.llProductDelivery.setBackgroundColor(Color.RED);
                 //deliveryProductListView.llProductDelivery.setAlpha((float) 0.9);
                 if(acceptedProducts.contains(productDelivery))
                     acceptedProducts.remove(productDelivery);
@@ -157,24 +141,6 @@ public class DeliveryProductListViewAdapter extends BaseAdapter {
                 notifyDataSetChanged();
 
                 rejectedProducts.add(productDelivery);
-
-                /*
-                Log.d(TAG, " ==================================== ");
-
-                for(ProductDelivery p : acceptedProducts){
-                    Log.d(TAG, "ACCEPTED PRODUCT :" + p.getName());
-                }
-
-                Log.d(TAG, " ==================================== ");
-
-                Log.d(TAG, " ------------------------------------ ");
-
-                for(ProductDelivery p : rejectedProducts){
-                    Log.d(TAG, "REJECTED PRODUCT :" + p.getName());
-                }
-
-                Log.d(TAG, " ------------------------------------ ");
-                */
 
             }
         });

@@ -32,15 +32,15 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.Store;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.StoreDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 import ph.com.gs3.loyaltystore.presenters.WifiDirectConnectivityDataPresenter;
-import retrofit.Call;
-import retrofit.Callback;
-import retrofit.Response;
-import retrofit.Retrofit;
-import retrofit.http.Field;
-import retrofit.http.FormUrlEncoded;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Path;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public class SettingsActivity extends Activity
         implements WifiDirectConnectivityDataPresenter.WifiDirectConnectivityPresentationListener {
@@ -160,16 +160,6 @@ public class SettingsActivity extends Activity
                     finish();
                 }
 
-                /*registerDevice();
-
-                if (!isDeviceRegistered) {
-                    if (isNetworkAvailable()) {
-                        registerDevice();
-                    }
-                }*/
-
-                //finish();
-
                 //  TODO: add a date updated in the preferences
             }
         });
@@ -227,7 +217,7 @@ public class SettingsActivity extends Activity
             final Gson gson= new Gson();
             storesCall.enqueue(new Callback<List<Store>>() {
                 @Override
-                public void onResponse(Response<List<Store>> response, Retrofit retrofit) {
+                public void onResponse(Response<List<Store>> response) {
 
                     List<Store> stores = response.body();
                     Log.d(TAG,"RECIEVED : " + gson.toJson(response.body()));
@@ -298,7 +288,7 @@ public class SettingsActivity extends Activity
 
                 registerCall.enqueue(new Callback<FormalisticsAPIResponse>() {
                     @Override
-                    public void onResponse(Response<FormalisticsAPIResponse> response, Retrofit retrofit) {
+                    public void onResponse(Response<FormalisticsAPIResponse> response) {
 
                         Gson gson = new Gson();
 
@@ -367,7 +357,7 @@ public class SettingsActivity extends Activity
 
             storesCall.enqueue(new Callback<List<Store>>() {
                 @Override
-                public void onResponse(Response<List<Store>> response, Retrofit retrofit) {
+                public void onResponse(Response<List<Store>> response) {
 
                     retailerNameList.clear();
 
@@ -425,7 +415,7 @@ public class SettingsActivity extends Activity
 
                 registerCall.enqueue(new Callback<String>() {
                     @Override
-                    public void onResponse(Response<String> response, Retrofit retrofit) {
+                    public void onResponse(Response<String> response) {
                         Log.d(TAG, " RESPONSE : " + response.body().toString());
 
                         try {

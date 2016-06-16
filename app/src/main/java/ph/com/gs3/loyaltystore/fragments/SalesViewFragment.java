@@ -21,7 +21,7 @@ import java.util.Locale;
 
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.adapters.SalesListAdapter;
-import ph.com.gs3.loyaltystore.adapters.SalesProductListAdapter;
+import ph.com.gs3.loyaltystore.adapters.SalesProductWithReturnListAdapter;
 import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
 
@@ -38,7 +38,7 @@ public class SalesViewFragment extends Fragment {
     private Activity mActivity;
 
     private SalesListAdapter salesListAdapter;
-    private SalesProductListAdapter salesProductListAdapter;
+    private SalesProductWithReturnListAdapter salesProductWithReturnListAdapter;
 
     private SalesViewFragmentListener salesViewFragmentListener;
 
@@ -51,11 +51,11 @@ public class SalesViewFragment extends Fragment {
     private TextView tvTotalSales;
 
     public static SalesViewFragment createInstance(
-            SalesListAdapter salesListAdapter, SalesProductListAdapter salesProductListAdapter
+            SalesListAdapter salesListAdapter, SalesProductWithReturnListAdapter salesProductWithReturnListAdapter
     ){
         SalesViewFragment salesViewFragment = new SalesViewFragment();
         salesViewFragment.salesListAdapter = salesListAdapter;
-        salesViewFragment.salesProductListAdapter = salesProductListAdapter;
+        salesViewFragment.salesProductWithReturnListAdapter = salesProductWithReturnListAdapter;
         return salesViewFragment;
     }
 
@@ -89,7 +89,7 @@ public class SalesViewFragment extends Fragment {
         });
 
         lvSalesProducts = (ListView) rootView.findViewById(R.id.Sales_lvSalesProducts);
-        lvSalesProducts.setAdapter(salesProductListAdapter);
+        lvSalesProducts.setAdapter(salesProductWithReturnListAdapter);
         lvSalesProducts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

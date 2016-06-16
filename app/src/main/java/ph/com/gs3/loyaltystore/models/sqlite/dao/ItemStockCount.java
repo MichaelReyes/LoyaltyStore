@@ -7,12 +7,14 @@ package ph.com.gs3.loyaltystore.models.sqlite.dao;
 public class ItemStockCount {
 
     private Long id;
+    private Long store_id;
     private Long product_id;
     private String name;
     private Double expectedQuantity;
     private Double quantity;
     private String remarks;
     private java.util.Date date_counted;
+    private Boolean is_synced;
 
     public ItemStockCount() {
     }
@@ -21,14 +23,16 @@ public class ItemStockCount {
         this.id = id;
     }
 
-    public ItemStockCount(Long id, Long product_id, String name, Double expectedQuantity, Double quantity, String remarks, java.util.Date date_counted) {
+    public ItemStockCount(Long id, Long store_id, Long product_id, String name, Double expectedQuantity, Double quantity, String remarks, java.util.Date date_counted, Boolean is_synced) {
         this.id = id;
+        this.store_id = store_id;
         this.product_id = product_id;
         this.name = name;
         this.expectedQuantity = expectedQuantity;
         this.quantity = quantity;
         this.remarks = remarks;
         this.date_counted = date_counted;
+        this.is_synced = is_synced;
     }
 
     public Long getId() {
@@ -37,6 +41,14 @@ public class ItemStockCount {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getStore_id() {
+        return store_id;
+    }
+
+    public void setStore_id(Long store_id) {
+        this.store_id = store_id;
     }
 
     public Long getProduct_id() {
@@ -85,6 +97,14 @@ public class ItemStockCount {
 
     public void setDate_counted(java.util.Date date_counted) {
         this.date_counted = date_counted;
+    }
+
+    public Boolean getIs_synced() {
+        return is_synced;
+    }
+
+    public void setIs_synced(Boolean is_synced) {
+        this.is_synced = is_synced;
     }
 
 }

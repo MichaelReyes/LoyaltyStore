@@ -24,12 +24,14 @@ public class ItemStockCountDao extends AbstractDao<ItemStockCount, Long> {
     */
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
-        public final static Property Product_id = new Property(1, Long.class, "product_id", false, "PRODUCT_ID");
-        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
-        public final static Property ExpectedQuantity = new Property(3, Double.class, "expectedQuantity", false, "EXPECTED_QUANTITY");
-        public final static Property Quantity = new Property(4, Double.class, "quantity", false, "QUANTITY");
-        public final static Property Remarks = new Property(5, String.class, "remarks", false, "REMARKS");
-        public final static Property Date_counted = new Property(6, java.util.Date.class, "date_counted", false, "DATE_COUNTED");
+        public final static Property Store_id = new Property(1, Long.class, "store_id", false, "STORE_ID");
+        public final static Property Product_id = new Property(2, Long.class, "product_id", false, "PRODUCT_ID");
+        public final static Property Name = new Property(3, String.class, "name", false, "NAME");
+        public final static Property ExpectedQuantity = new Property(4, Double.class, "expectedQuantity", false, "EXPECTED_QUANTITY");
+        public final static Property Quantity = new Property(5, Double.class, "quantity", false, "QUANTITY");
+        public final static Property Remarks = new Property(6, String.class, "remarks", false, "REMARKS");
+        public final static Property Date_counted = new Property(7, java.util.Date.class, "date_counted", false, "DATE_COUNTED");
+        public final static Property Is_synced = new Property(8, Boolean.class, "is_synced", false, "IS_SYNCED");
     };
 
 
@@ -46,12 +48,14 @@ public class ItemStockCountDao extends AbstractDao<ItemStockCount, Long> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"ITEM_STOCK_COUNT\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
-                "\"PRODUCT_ID\" INTEGER," + // 1: product_id
-                "\"NAME\" TEXT," + // 2: name
-                "\"EXPECTED_QUANTITY\" REAL," + // 3: expectedQuantity
-                "\"QUANTITY\" REAL," + // 4: quantity
-                "\"REMARKS\" TEXT," + // 5: remarks
-                "\"DATE_COUNTED\" INTEGER);"); // 6: date_counted
+                "\"STORE_ID\" INTEGER," + // 1: store_id
+                "\"PRODUCT_ID\" INTEGER," + // 2: product_id
+                "\"NAME\" TEXT," + // 3: name
+                "\"EXPECTED_QUANTITY\" REAL," + // 4: expectedQuantity
+                "\"QUANTITY\" REAL," + // 5: quantity
+                "\"REMARKS\" TEXT," + // 6: remarks
+                "\"DATE_COUNTED\" INTEGER," + // 7: date_counted
+                "\"IS_SYNCED\" INTEGER);"); // 8: is_synced
     }
 
     /** Drops the underlying database table. */
@@ -70,34 +74,44 @@ public class ItemStockCountDao extends AbstractDao<ItemStockCount, Long> {
             stmt.bindLong(1, id);
         }
  
+        Long store_id = entity.getStore_id();
+        if (store_id != null) {
+            stmt.bindLong(2, store_id);
+        }
+ 
         Long product_id = entity.getProduct_id();
         if (product_id != null) {
-            stmt.bindLong(2, product_id);
+            stmt.bindLong(3, product_id);
         }
  
         String name = entity.getName();
         if (name != null) {
-            stmt.bindString(3, name);
+            stmt.bindString(4, name);
         }
  
         Double expectedQuantity = entity.getExpectedQuantity();
         if (expectedQuantity != null) {
-            stmt.bindDouble(4, expectedQuantity);
+            stmt.bindDouble(5, expectedQuantity);
         }
  
         Double quantity = entity.getQuantity();
         if (quantity != null) {
-            stmt.bindDouble(5, quantity);
+            stmt.bindDouble(6, quantity);
         }
  
         String remarks = entity.getRemarks();
         if (remarks != null) {
-            stmt.bindString(6, remarks);
+            stmt.bindString(7, remarks);
         }
  
         java.util.Date date_counted = entity.getDate_counted();
         if (date_counted != null) {
-            stmt.bindLong(7, date_counted.getTime());
+            stmt.bindLong(8, date_counted.getTime());
+        }
+ 
+        Boolean is_synced = entity.getIs_synced();
+        if (is_synced != null) {
+            stmt.bindLong(9, is_synced ? 1L: 0L);
         }
     }
 
@@ -112,12 +126,14 @@ public class ItemStockCountDao extends AbstractDao<ItemStockCount, Long> {
     public ItemStockCount readEntity(Cursor cursor, int offset) {
         ItemStockCount entity = new ItemStockCount( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
-            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // product_id
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // name
-            cursor.isNull(offset + 3) ? null : cursor.getDouble(offset + 3), // expectedQuantity
-            cursor.isNull(offset + 4) ? null : cursor.getDouble(offset + 4), // quantity
-            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // remarks
-            cursor.isNull(offset + 6) ? null : new java.util.Date(cursor.getLong(offset + 6)) // date_counted
+            cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // store_id
+            cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2), // product_id
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // name
+            cursor.isNull(offset + 4) ? null : cursor.getDouble(offset + 4), // expectedQuantity
+            cursor.isNull(offset + 5) ? null : cursor.getDouble(offset + 5), // quantity
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // remarks
+            cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)), // date_counted
+            cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0 // is_synced
         );
         return entity;
     }
@@ -126,12 +142,14 @@ public class ItemStockCountDao extends AbstractDao<ItemStockCount, Long> {
     @Override
     public void readEntity(Cursor cursor, ItemStockCount entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
-        entity.setProduct_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
-        entity.setName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setExpectedQuantity(cursor.isNull(offset + 3) ? null : cursor.getDouble(offset + 3));
-        entity.setQuantity(cursor.isNull(offset + 4) ? null : cursor.getDouble(offset + 4));
-        entity.setRemarks(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
-        entity.setDate_counted(cursor.isNull(offset + 6) ? null : new java.util.Date(cursor.getLong(offset + 6)));
+        entity.setStore_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
+        entity.setProduct_id(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
+        entity.setName(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setExpectedQuantity(cursor.isNull(offset + 4) ? null : cursor.getDouble(offset + 4));
+        entity.setQuantity(cursor.isNull(offset + 5) ? null : cursor.getDouble(offset + 5));
+        entity.setRemarks(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setDate_counted(cursor.isNull(offset + 7) ? null : new java.util.Date(cursor.getLong(offset + 7)));
+        entity.setIs_synced(cursor.isNull(offset + 8) ? null : cursor.getShort(offset + 8) != 0);
      }
     
     /** @inheritdoc */

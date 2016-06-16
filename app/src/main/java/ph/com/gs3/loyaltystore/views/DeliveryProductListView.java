@@ -36,7 +36,7 @@ public class DeliveryProductListView extends LinearLayout {
         tvName = (TextView) v.findViewById(R.id.ProductDelivery_tvName);
         tvDate = (TextView) v.findViewById(R.id.ProductDelivery_tvDate);
         tvQuantity = (TextView) v.findViewById(R.id.ProductDelivery_tvQuantity);
-        tvStatus = (TextView) v.findViewById(R.id.ProductDelivery_tvStatus);
+        tvStatus = (TextView) v.findViewById(R.id.Expense_tvStatus);
 
         bAccept = (Button) v.findViewById(R.id.ProductDelivery_bAccept);
         bReject = (Button) v.findViewById(R.id.ProductDelivery_bReject);

@@ -24,7 +24,7 @@ public class Retailer implements Serializable {
     public static Retailer getDeviceRetailerFromSharedPreferences(Context context) {
         Retailer retailer = new Retailer();
 
-        SharedPreferences settings = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        SharedPreferences settings = context.getSharedPreferences(TAG, Context.MODE_MULTI_PROCESS);
 
         retailer.storeId = settings.getLong("STORE_ID", 0);
         retailer.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -44,7 +44,7 @@ public class Retailer implements Serializable {
 
     public void save(Context context) {
 
-        SharedPreferences settings = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        SharedPreferences settings = context.getSharedPreferences(TAG, Context.MODE_MULTI_PROCESS);
         SharedPreferences.Editor editor = settings.edit();
 
         editor.putLong("STORE_ID",storeId);
@@ -53,7 +53,8 @@ public class Retailer implements Serializable {
         editor.putInt("SERVICE_PORT_NUMBER", servicePortNumber);
         editor.putString("SERVER_URL", serverUrl);
 
-        editor.commit();
+        //editor.commit();
+        editor.apply();
     }
 
     public DeviceInfo getDeviceInfo() {

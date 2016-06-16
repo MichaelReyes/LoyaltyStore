@@ -16,13 +16,17 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +34,8 @@ import java.util.Locale;
 import ph.com.gs3.loyaltystore.adapters.CustomerDeviceListAdapter;
 import ph.com.gs3.loyaltystore.fragments.CheckOutViewFragment;
 import ph.com.gs3.loyaltystore.fragments.RewardViewFragment;
+import ph.com.gs3.loyaltystore.fragments.SalesProductsViewFragment;
+import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.WifiDirectConnectivityState;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
@@ -65,6 +71,7 @@ public class CheckoutActivity extends AppCompatActivity implements
     public static final String TAG = CheckoutActivity.class.getSimpleName();
     public static final String EXTRA_DATA_JSON_STRING = "data_json_string";
     public static final String EXTRA_TOTAL_AMOUNT = "total_amount";
+    public static final String EXTRA_IS_SENIOR = "is_senior";
     public static final String DATA_TYPE_JSON_SALES = "sales";
     public static final String DATA_TYPE_JSON_SALES_PRODUCT = "sales_product";
 
@@ -107,6 +114,7 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     private boolean isFirstUse = false;
     private boolean hideProgressDialogLater = false;
+    private boolean isSenior = false;
 
     private static final SimpleDateFormat formatter = new SimpleDateFormat(
             "EEE MMM d HH:mm:ss zzz yyyy");
@@ -174,7 +182,17 @@ public class CheckoutActivity extends AppCompatActivity implements
         Intent intent = this.getIntent();
         Bundle bundle = intent.getExtras();
 
-        String dataJsonString = bundle.getString(CheckoutActivity.EXTRA_DATA_JSON_STRING);
+        Gson gson = new Gson();
+
+        String jsonStringSalesProducts = bundle.getString(SalesProductsViewFragment.EXTRA_SALES_PRODUCT_LIST);
+        SalesProduct[] salesProductsArray = gson.fromJson(jsonStringSalesProducts, SalesProduct[].class);
+        salesProducts = Arrays.asList(salesProductsArray);
+
+        String jsonStringRewards = bundle.getString(RewardViewFragment.EXTRA_REWARDS_LIST);
+        Reward[] rewardsArray = gson.fromJson(jsonStringRewards, Reward[].class);
+        rewards = Arrays.asList(rewardsArray);
+
+        /*String dataJsonString = bundle.getString(CheckoutActivity.EXTRA_DATA_JSON_STRING);
         JSONObject dataJsonObject = new JSONObject(dataJsonString);
 
         JSONArray salesProductsJsonArray = dataJsonObject.getJSONArray(SalesProduct.class.getSimpleName());
@@ -219,14 +237,16 @@ public class CheckoutActivity extends AppCompatActivity implements
             );
 
             rewards.add(reward);
-        }
+        }*/
 
 
         /*salesProducts = (ArrayList<SalesProduct>) bundle.get(SalesProductsViewFragment.EXTRA_SALES_PRODUCT_LIST);
         rewards = (ArrayList<Reward>) bundle.get(RewardViewFragment.EXTRA_REWARDS_LIST);*/
         totalAmount = bundle.getFloat(EXTRA_TOTAL_AMOUNT);
+
         totalDiscounts = bundle.getFloat(RewardViewFragment.EXTRA_TOTAL_DISCOUNT);
 
+        isSenior = bundle.getBoolean(EXTRA_IS_SENIOR);
 
     }
 
@@ -242,7 +262,7 @@ public class CheckoutActivity extends AppCompatActivity implements
         super.onDestroy();
         wifiDirectConnectivityDataPresenter.onDestroy();
         progressDialog.dismiss();
-        resetWifi();
+        //resetWifi();
     }
 
     private void resetWifi() {
@@ -257,6 +277,12 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     @Override
     public void onViewReady() throws JSONException {
+
+        if(isSenior){
+            checkOutViewFragment.setWithSenior();
+        }
+
+        checkOutViewFragment.setTotalAmount(String.valueOf(totalAmount));
 
     }
 
@@ -286,9 +312,14 @@ public class CheckoutActivity extends AppCompatActivity implements
     @Override
     public void onComplete() {
 
-        setSalesIdToProductsAndRewards();
+        if((totalAmount > 0 && checkOutViewFragment.getAmountRecieved() <= 0)
+                || checkOutViewFragment.getChange() < 0){
+            checkOutViewFragment.setErrorAmountRecieved("Invalid value.");
+            return;
+        }
 
-        Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+        setSalesIdToProductsAndRewards();
+        Intent intent = new Intent(CheckoutActivity.this, MainActivity2.class);
         startActivity(intent);
 
         finish();
@@ -298,6 +329,12 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     @Override
     public void onCompleteWithRewards() {
+
+        if((totalAmount > 0 && checkOutViewFragment.getAmountRecieved() <= 0)
+                || checkOutViewFragment.getChange() < 0){
+            checkOutViewFragment.setErrorAmountRecieved("Invalid value.");
+            return;
+        }
 
         setSalesIdToProductsAndRewards();
 
@@ -380,45 +417,59 @@ public class CheckoutActivity extends AppCompatActivity implements
                         ProductDao.Properties.Id.eq(salesProduct.getProduct_id())
                 ).limit(1).list();
 
+        ItemInventoryDao itemInventoryDao
+                = LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
         if (forRetailerProducts.size() > 0) {
 
             Product forRetailerProduct = forRetailerProducts.get(0);
 
-            List<Product> forDeliveryProducts
-                    = productDao
-                    .queryBuilder()
-                    .where(
-                            ProductDao.Properties.Id.eq(
-                                    forRetailerProduct.getDeduct_product_to_id()
-                            )
-                    ).limit(1).list();
+            if (!"For Direct Transactions".equals(forRetailerProduct.getType())) {
 
-            if (forDeliveryProducts.size() > 0) {
-                Product product = forDeliveryProducts.get(0);
-
-                double quantityDeducted = forRetailerProduct.getDeduct_product_to_quantity() * salesProduct.getQuantity();
-
-                ItemInventoryDao itemInventoryDao
-                        = LoyaltyStoreApplication.getSession().getItemInventoryDao();
-
-                List<ItemInventory> itemInventoryList
-                        = itemInventoryDao
+                List<Product> forDeliveryProducts
+                        = productDao
                         .queryBuilder()
                         .where(
-                                ItemInventoryDao.Properties.Product_id.eq(
-                                        product.getId()
+                                ProductDao.Properties.Id.eq(
+                                        forRetailerProduct.getDeduct_product_to_id()
                                 )
                         ).limit(1).list();
 
-                if (itemInventoryList.size() > 0) {
+                if (forDeliveryProducts.size() > 0) {
+                    Product product = forDeliveryProducts.get(0);
 
-                    ItemInventory itemInventory = itemInventoryList.get(0);
+                    double quantityDeducted = forRetailerProduct.getDeduct_product_to_quantity() * salesProduct.getQuantity();
 
-                    itemInventory.setQuantity(itemInventory.getQuantity() + quantityDeducted);
+                    List<ItemInventory> itemInventoryList
+                            = itemInventoryDao
+                            .queryBuilder()
+                            .where(
+                                    ItemInventoryDao.Properties.Product_id.eq(
+                                            product.getId()
+                                    )
+                            ).limit(1).list();
 
-                    itemInventoryDao.insertOrReplace(itemInventory);
+                    if (itemInventoryList.size() > 0) {
+
+                        ItemInventory itemInventory = itemInventoryList.get(0);
+
+                        itemInventory.setQuantity(itemInventory.getQuantity() + quantityDeducted);
+
+                        itemInventoryDao.insertOrReplace(itemInventory);
+                        itemInventoryDao.refresh(itemInventory);
+                    }
+
+
                 }
 
+            } else {
+
+                ItemInventory itemInventory = getItemInventory(forRetailerProduct.getId());
+                if (itemInventory != null) {
+                    itemInventory.setQuantity(itemInventory.getQuantity() + salesProduct.getQuantity());
+                    itemInventoryDao.insertOrReplace(itemInventory);
+                    itemInventoryDao.refresh(itemInventory);
+                }
 
             }
 
@@ -577,12 +628,19 @@ public class CheckoutActivity extends AppCompatActivity implements
         Date date = new Date();
         String stringDateTime = formatter.format(date);
 
+        Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(this);
+
+        Log.d(TAG, " retailer store id : " + retailer.getStoreId());
+
         Sales sales = new Sales();
         sales.setTransaction_number(retailer.getStoreId() + "_" + stringDateTime);
         sales.setStore_id(retailer.getStoreId());
         sales.setAmount(totalAmount);
         sales.setTransaction_date(date);
         sales.setRemarks(checkOutViewFragment.getRemarks());
+        sales.setAmount_received(checkOutViewFragment.getAmountRecieved());
+        sales.setChange(checkOutViewFragment.getChange());
+        sales.setIs_synced(false);
 
         long salesId = salesDao.insert(sales);
         this.salesTransactionNumber = retailer.getStoreId() + "_" + stringDateTime;
@@ -599,6 +657,8 @@ public class CheckoutActivity extends AppCompatActivity implements
             for (SalesProduct salesProduct : salesProducts) {
 
                 salesProduct.setSales_transaction_number(sales.getTransaction_number());
+                salesProduct.setIs_returned(false);
+                salesProduct.setTransaction_date(sales.getTransaction_date());
                 salesProductDao.insert(salesProduct);
 
                 deductProductQuantity(salesProduct);
@@ -622,53 +682,47 @@ public class CheckoutActivity extends AppCompatActivity implements
                         ProductDao.Properties.Id.eq(salesProduct.getProduct_id())
                 ).limit(1).list();
 
+        ItemInventoryDao itemInventoryDao
+                = LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
         if (forRetailerProducts.size() > 0) {
 
             Product forRetailerProduct = forRetailerProducts.get(0);
 
-            List<Product> forDeliveryProducts
-                    = productDao
-                    .queryBuilder()
-                    .where(
-                            ProductDao.Properties.Id.eq(
-                                    forRetailerProduct.getDeduct_product_to_id()
-                            )
-                    ).limit(1).list();
+            if (!"For Direct Transactions".equals(forRetailerProduct.getType())) {
 
-            if (forDeliveryProducts.size() > 0 && forRetailerProduct.getDeduct_product_to_quantity() != null) {
-                Product product = forDeliveryProducts.get(0);
-
-                double quantityToDeduct = forRetailerProduct.getDeduct_product_to_quantity() * salesProduct.getQuantity();
-
-                ItemInventory itemInventory = getItemInventory(product.getId());
-
-                ItemInventoryDao itemInventoryDao
-                        = LoyaltyStoreApplication.getSession().getItemInventoryDao();
-
-                if(itemInventory != null){
-                    itemInventory.setQuantity(itemInventory.getQuantity() - quantityToDeduct);
-                    itemInventoryDao.insertOrReplace(itemInventory);
-                }
-
-                /*
-                List<ItemInventory> itemInventoryList
-                        = itemInventoryDao
+                List<Product> forDeliveryProducts
+                        = productDao
                         .queryBuilder()
                         .where(
-                                ItemInventoryDao.Properties.Product_id.eq(
-                                        product.getId()
+                                ProductDao.Properties.Id.eq(
+                                        forRetailerProduct.getDeduct_product_to_id()
                                 )
                         ).limit(1).list();
 
-                if (itemInventoryList.size() > 0) {
+                if (forDeliveryProducts.size() > 0 && forRetailerProduct.getDeduct_product_to_quantity() != null) {
+                    Product product = forDeliveryProducts.get(0);
 
-                    ItemInventory itemInventory = itemInventoryList.get(0);
+                    double quantityToDeduct = forRetailerProduct.getDeduct_product_to_quantity() * salesProduct.getQuantity();
 
-                    itemInventory.setQuantity(itemInventory.getQuantity() - quantityToDeduct);
+                    ItemInventory itemInventory = getItemInventory(product.getId());
 
-                    itemInventoryDao.insertOrReplace(itemInventory);
+                    if (itemInventory != null) {
+                        itemInventory.setQuantity(itemInventory.getQuantity() - quantityToDeduct);
+                        itemInventory.setIs_updated(true);
+                        itemInventoryDao.insertOrReplace(itemInventory);
+                        itemInventoryDao.refresh(itemInventory);
+                    }
+
                 }
-                */
+            } else {
+                ItemInventory itemInventory = getItemInventory(forRetailerProduct.getId());
+                if (itemInventory != null) {
+                    itemInventory.setQuantity(itemInventory.getQuantity() - salesProduct.getQuantity());
+                    itemInventory.setIs_updated(true);
+                    itemInventoryDao.insertOrReplace(itemInventory);
+                    itemInventoryDao.refresh(itemInventory);
+                }
             }
 
         }
@@ -685,38 +739,39 @@ public class CheckoutActivity extends AppCompatActivity implements
 
         List<Product> productList
                 = productDao
-                    .queryBuilder()
-                    .where(
-                            ProductDao.Properties.Id.eq(
-                                    salesProduct.getProduct_id()
-                            )
-                    ).list();
+                .queryBuilder()
+                .where(
+                        ProductDao.Properties.Id.eq(
+                                salesProduct.getProduct_id()
+                        )
+                ).list();
 
-        for(Product product : productList){
+        for (Product product : productList) {
 
             List<ProductBreakdown> productBreakdownList
                     = productBreakdownDao
-                        .queryBuilder()
-                        .where(
-                                ProductBreakdownDao.Properties.Ts.eq(
-                                        product.getTs()
-                                )
-                        ).list();
+                    .queryBuilder()
+                    .where(
+                            ProductBreakdownDao.Properties.Ts.eq(
+                                    product.getTs()
+                            )
+                    ).list();
 
-            for(ProductBreakdown productBreakdown : productBreakdownList){
+            for (ProductBreakdown productBreakdown : productBreakdownList) {
 
                 ItemInventory itemInventory
                         = getItemInventory(productBreakdown.getProduct_id());
 
-                if(itemInventory != null){
-                    itemInventory.setQuantity(itemInventory.getQuantity() - productBreakdown.getQuantity());
+                if (itemInventory != null) {
+                    itemInventory.setQuantity(itemInventory.getQuantity() - (productBreakdown.getQuantity() * salesProduct.getQuantity()));
+                    itemInventory.setIs_updated(true);
                     itemInventoryDao.insertOrReplace(itemInventory);
+                    itemInventoryDao.refresh(itemInventory);
                 }
 
             }
 
         }
-
 
 
     }
@@ -784,7 +839,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                 } else {
                     CheckoutActivity.this.finish();
                     MainActivity.mainActivity.finish();
-                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity2.class);
                     startActivity(intent);
                 }
 
@@ -802,7 +857,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                     CheckoutActivity.this.finish();
 
                     MainActivity.mainActivity.finish();
-                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity2.class);
                     startActivity(intent);
                 }
 
@@ -839,7 +894,7 @@ public class CheckoutActivity extends AppCompatActivity implements
                     CheckoutActivity.this.finish();
 
                     MainActivity.mainActivity.finish();
-                    Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
+                    Intent intent = new Intent(CheckoutActivity.this, MainActivity2.class);
                     startActivity(intent);
                 }
             });
@@ -1147,8 +1202,24 @@ public class CheckoutActivity extends AppCompatActivity implements
 
     }
 
+    @Override
+    public void onEnteredAmountReceived(String amountReceivedString) {
+        if (!"".equals(amountReceivedString.trim())) {
+
+            float cashEntered = Float.valueOf(amountReceivedString);
+
+            float change = cashEntered - totalAmount;
+
+            DecimalFormat decimalFormat = Constants.DECIMAL_FORMAT;
+
+            checkOutViewFragment.setChange(decimalFormat.format(change));
+
+        }
+    }
+
     private void closeCheckoutActivity() {
 
+        resetWifi();
         CheckoutActivity.this.finish();
         MainActivity.mainActivity.finish();
         Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);

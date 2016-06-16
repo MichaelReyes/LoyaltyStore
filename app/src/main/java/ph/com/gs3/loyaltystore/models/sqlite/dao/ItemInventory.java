@@ -7,9 +7,11 @@ package ph.com.gs3.loyaltystore.models.sqlite.dao;
 public class ItemInventory {
 
     private Long id;
+    private Long store_id;
     private Long product_id;
     private String name;
     private Double quantity;
+    private Boolean is_updated;
 
     public ItemInventory() {
     }
@@ -18,11 +20,13 @@ public class ItemInventory {
         this.id = id;
     }
 
-    public ItemInventory(Long id, Long product_id, String name, Double quantity) {
+    public ItemInventory(Long id, Long store_id, Long product_id, String name, Double quantity, Boolean is_updated) {
         this.id = id;
+        this.store_id = store_id;
         this.product_id = product_id;
         this.name = name;
         this.quantity = quantity;
+        this.is_updated = is_updated;
     }
 
     public Long getId() {
@@ -31,6 +35,14 @@ public class ItemInventory {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getStore_id() {
+        return store_id;
+    }
+
+    public void setStore_id(Long store_id) {
+        this.store_id = store_id;
     }
 
     public Long getProduct_id() {
@@ -55,6 +67,14 @@ public class ItemInventory {
 
     public void setQuantity(Double quantity) {
         this.quantity = quantity;
+    }
+
+    public Boolean getIs_updated() {
+        return is_updated;
+    }
+
+    public void setIs_updated(Boolean is_updated) {
+        this.is_updated = is_updated;
     }
 
 }

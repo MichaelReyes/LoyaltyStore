@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_SWA_sync_to_agent"
+        android:id="@+id/action_SyncWithAgent_sync_to_agent"
         android:orderInCategory="100"
         android:title="Start syncing to agent device"
         app:showAsAction="ifRoom|withText" />

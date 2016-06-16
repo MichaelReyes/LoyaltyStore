@@ -26,13 +26,14 @@ public class ProductDao extends AbstractDao<Product, Long> {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property Name = new Property(1, String.class, "name", false, "NAME");
         public final static Property Type = new Property(2, String.class, "type", false, "TYPE");
-        public final static Property Unit_cost = new Property(3, Float.class, "unit_cost", false, "UNIT_COST");
-        public final static Property Sku = new Property(4, String.class, "sku", false, "SKU");
-        public final static Property Ts = new Property(5, String.class, "ts", false, "TS");
-        public final static Property Deduct_product_to_id = new Property(6, Long.class, "deduct_product_to_id", false, "DEDUCT_PRODUCT_TO_ID");
-        public final static Property Deduct_product_to_name = new Property(7, String.class, "deduct_product_to_name", false, "DEDUCT_PRODUCT_TO_NAME");
-        public final static Property Deduct_product_to_quantity = new Property(8, Double.class, "deduct_product_to_quantity", false, "DEDUCT_PRODUCT_TO_QUANTITY");
-        public final static Property Is_active = new Property(9, Boolean.class, "is_active", false, "IS_ACTIVE");
+        public final static Property Category = new Property(3, String.class, "category", false, "CATEGORY");
+        public final static Property Unit_cost = new Property(4, Float.class, "unit_cost", false, "UNIT_COST");
+        public final static Property Sku = new Property(5, String.class, "sku", false, "SKU");
+        public final static Property Ts = new Property(6, String.class, "ts", false, "TS");
+        public final static Property Deduct_product_to_id = new Property(7, Long.class, "deduct_product_to_id", false, "DEDUCT_PRODUCT_TO_ID");
+        public final static Property Deduct_product_to_name = new Property(8, String.class, "deduct_product_to_name", false, "DEDUCT_PRODUCT_TO_NAME");
+        public final static Property Deduct_product_to_quantity = new Property(9, Double.class, "deduct_product_to_quantity", false, "DEDUCT_PRODUCT_TO_QUANTITY");
+        public final static Property Is_active = new Property(10, Boolean.class, "is_active", false, "IS_ACTIVE");
     };
 
 
@@ -51,13 +52,14 @@ public class ProductDao extends AbstractDao<Product, Long> {
                 "\"_id\" INTEGER PRIMARY KEY ," + // 0: id
                 "\"NAME\" TEXT," + // 1: name
                 "\"TYPE\" TEXT," + // 2: type
-                "\"UNIT_COST\" REAL," + // 3: unit_cost
-                "\"SKU\" TEXT," + // 4: sku
-                "\"TS\" TEXT," + // 5: ts
-                "\"DEDUCT_PRODUCT_TO_ID\" INTEGER," + // 6: deduct_product_to_id
-                "\"DEDUCT_PRODUCT_TO_NAME\" TEXT," + // 7: deduct_product_to_name
-                "\"DEDUCT_PRODUCT_TO_QUANTITY\" REAL," + // 8: deduct_product_to_quantity
-                "\"IS_ACTIVE\" INTEGER);"); // 9: is_active
+                "\"CATEGORY\" TEXT," + // 3: category
+                "\"UNIT_COST\" REAL," + // 4: unit_cost
+                "\"SKU\" TEXT," + // 5: sku
+                "\"TS\" TEXT," + // 6: ts
+                "\"DEDUCT_PRODUCT_TO_ID\" INTEGER," + // 7: deduct_product_to_id
+                "\"DEDUCT_PRODUCT_TO_NAME\" TEXT," + // 8: deduct_product_to_name
+                "\"DEDUCT_PRODUCT_TO_QUANTITY\" REAL," + // 9: deduct_product_to_quantity
+                "\"IS_ACTIVE\" INTEGER);"); // 10: is_active
     }
 
     /** Drops the underlying database table. */
@@ -86,39 +88,44 @@ public class ProductDao extends AbstractDao<Product, Long> {
             stmt.bindString(3, type);
         }
  
+        String category = entity.getCategory();
+        if (category != null) {
+            stmt.bindString(4, category);
+        }
+ 
         Float unit_cost = entity.getUnit_cost();
         if (unit_cost != null) {
-            stmt.bindDouble(4, unit_cost);
+            stmt.bindDouble(5, unit_cost);
         }
  
         String sku = entity.getSku();
         if (sku != null) {
-            stmt.bindString(5, sku);
+            stmt.bindString(6, sku);
         }
  
         String ts = entity.getTs();
         if (ts != null) {
-            stmt.bindString(6, ts);
+            stmt.bindString(7, ts);
         }
  
         Long deduct_product_to_id = entity.getDeduct_product_to_id();
         if (deduct_product_to_id != null) {
-            stmt.bindLong(7, deduct_product_to_id);
+            stmt.bindLong(8, deduct_product_to_id);
         }
  
         String deduct_product_to_name = entity.getDeduct_product_to_name();
         if (deduct_product_to_name != null) {
-            stmt.bindString(8, deduct_product_to_name);
+            stmt.bindString(9, deduct_product_to_name);
         }
  
         Double deduct_product_to_quantity = entity.getDeduct_product_to_quantity();
         if (deduct_product_to_quantity != null) {
-            stmt.bindDouble(9, deduct_product_to_quantity);
+            stmt.bindDouble(10, deduct_product_to_quantity);
         }
  
         Boolean is_active = entity.getIs_active();
         if (is_active != null) {
-            stmt.bindLong(10, is_active ? 1L: 0L);
+            stmt.bindLong(11, is_active ? 1L: 0L);
         }
     }
 
@@ -135,13 +142,14 @@ public class ProductDao extends AbstractDao<Product, Long> {
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // type
-            cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3), // unit_cost
-            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // sku
-            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // ts
-            cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6), // deduct_product_to_id
-            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // deduct_product_to_name
-            cursor.isNull(offset + 8) ? null : cursor.getDouble(offset + 8), // deduct_product_to_quantity
-            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0 // is_active
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // category
+            cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // unit_cost
+            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // sku
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // ts
+            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // deduct_product_to_id
+            cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // deduct_product_to_name
+            cursor.isNull(offset + 9) ? null : cursor.getDouble(offset + 9), // deduct_product_to_quantity
+            cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0 // is_active
         );
         return entity;
     }
@@ -152,13 +160,14 @@ public class ProductDao extends AbstractDao<Product, Long> {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setType(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setUnit_cost(cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3));
-        entity.setSku(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
-        entity.setTs(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
-        entity.setDeduct_product_to_id(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setDeduct_product_to_name(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
-        entity.setDeduct_product_to_quantity(cursor.isNull(offset + 8) ? null : cursor.getDouble(offset + 8));
-        entity.setIs_active(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
+        entity.setCategory(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setUnit_cost(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
+        entity.setSku(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
+        entity.setTs(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setDeduct_product_to_id(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setDeduct_product_to_name(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
+        entity.setDeduct_product_to_quantity(cursor.isNull(offset + 9) ? null : cursor.getDouble(offset + 9));
+        entity.setIs_active(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
      }
     
     /** @inheritdoc */

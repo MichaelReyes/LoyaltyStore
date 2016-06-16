@@ -29,6 +29,17 @@ public class AgentDeviceListAdapter extends BaseAdapter {
         this.agentDeviceList = agentDeviceList;
     }
 
+    public void setAgentDeviceList(List<WifiP2pDevice> agentDeviceList){
+        this.agentDeviceList.clear();
+        this.agentDeviceList.addAll(agentDeviceList);
+        notifyDataSetChanged();
+    }
+
+    public List<WifiP2pDevice> getAgentDeviceList(){
+        return agentDeviceList;
+    }
+
+
     @Override
     public int getCount() {
         return agentDeviceList.size();

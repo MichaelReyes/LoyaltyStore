@@ -22,9 +22,9 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDeliveryDao;
 /**
  * Created by Bryan-PC on 29/03/2016.
  */
-public class DeliveryActivity extends Activity {
+public class DeliveryHistoryActivity extends Activity {
 
-    public static final String TAG = DeliveryActivity.class.getSimpleName();
+    public static final String TAG = DeliveryHistoryActivity.class.getSimpleName();
 
     private DeliveryByDateListAdapter deliveryByDateListAdapter;
     private DeliveryListAdapter deliveryListAdapter;
@@ -41,16 +41,16 @@ public class DeliveryActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_delivery);
+        setContentView(R.layout.activity_delivery_history);
 
         productDeliveryListByDate = new ArrayList<>();
         deliveryByDateListAdapter = new DeliveryByDateListAdapter(
-                DeliveryActivity.this, productDeliveryListByDate
+                DeliveryHistoryActivity.this
         );
 
         productDeliveries = new ArrayList<>();
         deliveryListAdapter = new DeliveryListAdapter(
-                this, productDeliveries
+                this
         );
 
         productDeliveryDao = LoyaltyStoreApplication.getSession().getProductDeliveryDao();

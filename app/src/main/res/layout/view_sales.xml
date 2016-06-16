@@ -105,6 +105,52 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.50"
+                android:text="Amount Received :"
+                android:textSize="7pt" />
+
+            <TextView
+                android:id="@+id/Sales_tvAmountReceived"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="[Amount Received]"
+                android:textSize="7pt"
+                android:textColor="#000000" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.50"
+                android:text="Change :"
+                android:textSize="7pt" />
+
+            <TextView
+                android:id="@+id/Sales_tvChange"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="[Change]"
+                android:textSize="7pt"
+                android:textColor="#000000" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

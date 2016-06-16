@@ -14,13 +14,16 @@
     <uses-permission
         android:name="android.permission.INTERNET"
         android:required="true" />
+
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
-
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <uses-feature
 
@@ -37,16 +40,25 @@
         android:theme="@style/AppTheme"
         android:name=".LoyaltyStoreApplication">
         <activity
-            android:name=".MainActivity"
+            android:name=".MainActivity2"
             android:label="@string/app_name"
             android:theme="@style/AppTheme"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver android:process=":remote" android:name=".models.receivers.AlarmBroadcastReceiver"></receiver>
+
+        <receiver android:name=".models.receivers.DeviceBootReceiver"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".models.services.DiscoverPeersOnBackgroundService"
@@ -55,6 +67,41 @@
         <service
             android:name=".models.services.AdvertisementSenderService"
             android:enabled="true"></service>
+
+        <service
+            android:name=".models.services.ServerSyncService"
+            android:enabled="true"
+            android:icon="@android:drawable/ic_popup_sync"
+            android:label="Server Sync Service"
+            android:process=":gs3_server_sync_process" />
+
+        <service
+            android:name=".models.services.UpdateInventoryAndSyncOtherDataService"
+            android:enabled="true"
+            android:icon="@android:drawable/ic_popup_sync"
+            android:label="Update Inventory Service"
+            android:process=":gs3_update_inventory_process" />
+
+        <service
+            android:name=".models.services.GetProductsForDeliveryService"
+            android:enabled="true"
+            android:icon="@android:drawable/ic_popup_sync"
+            android:label="Get Products For Delivery Service"
+            android:process=":gs3_get_products_for_delivery_process" />
+
+        <service
+            android:name=".models.services.GetAvailableStoresOnWebService"
+            android:enabled="true"
+            android:icon="@android:drawable/ic_popup_sync"
+            android:label="Get Available Store Service"
+            android:process=":gs3_get_available_store_process" />
+
+        <service
+            android:name=".models.services.RegisterStoreOnWebService"
+            android:enabled="true"
+            android:icon="@android:drawable/ic_popup_sync"
+            android:label="Register Store Service"
+            android:process=":gs3_register_store_process" />
 
         <activity
             android:name=".SettingsActivity"
@@ -66,7 +113,7 @@
             android:windowSoftInputMode="adjustPan"
             android:screenOrientation="landscape"></activity>
         <activity
-            android:name=".SynchronizeActivity"
+            android:name=".SearchAgentActivity"
             android:label="@string/title_activity_sync"
             android:screenOrientation="landscape"></activity>
         <activity
@@ -106,7 +153,7 @@
             android:screenOrientation="landscape"></activity>
 
         <activity
-        android:name=".DeliveryActivity"
+        android:name=".DeliveryHistoryActivity"
         android:launchMode="singleTop"
         android:label="Deliveries"
         android:screenOrientation="landscape"></activity>
@@ -122,6 +169,11 @@
             android:launchMode="singleTop"
             android:label="Inventory"
             android:screenOrientation="landscape"></activity>
+
+        <activity
+            android:name=".LoginActivity"
+            android:label="@string/title_activity_login"
+            android:screenOrientation="landscape"/>
 
     </application>
 

@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
@@ -19,6 +18,8 @@ import java.util.Locale;
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.globals.Constants;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDao;
@@ -42,6 +43,18 @@ public class ItemReturnListAdapter extends BaseAdapter {
         this.productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
 
     }
+
+    public void setItemReturnList(List<ItemReturn> itemReturnList){
+        this.itemReturnList.clear();
+        this.itemReturnList.addAll(itemReturnList);
+        notifyDataSetChanged();
+    }
+
+    public void addItemReturn(ItemReturn itemReturn){
+        this.itemReturnList.add(itemReturn);
+        notifyDataSetChanged();
+    }
+
 
     @Override
     public int getCount() {
@@ -80,16 +93,18 @@ public class ItemReturnListAdapter extends BaseAdapter {
         Constants constants = new Constants();
         DecimalFormat decimalFormat = constants.DECIMAL_FORMAT;
 
-        viewHolder.tvItem.setText(itemReturn.getItem());
-        viewHolder.tvProduct.setText(itemReturn.getProduct_name());
-        viewHolder.tvQuantityOrAmount.setText(decimalFormat.format((itemReturn.getQuantity())));
-        viewHolder.tvRemarks.setText(itemReturn.getRemarks() == null ? "" : itemReturn.getRemarks());
+        viewHolder.tvType.setText("Type : " + itemReturn.getType());
 
-        if(!itemReturn.getItem().toUpperCase().equals("SPOILAGE")){
+        String dateString = itemReturn.getDate_created() != null ? formatter.format(itemReturn.getDate_created()) : "";
 
-            viewHolder.llProduct.setVisibility(View.GONE);
+        viewHolder.tvDate.setText("Date : " + dateString);
+        viewHolder.tvProduct.setText("Name : " + itemReturn.getProduct_name());
+        viewHolder.tvQuantityOrAmount.setText("Quantity : " + decimalFormat.format((itemReturn.getQuantity())));
 
-        }
+        String remarks = itemReturn.getRemarks() == null ? "" : itemReturn.getRemarks();
+
+        viewHolder.tvRemarks.setText("Remarks : " + remarks);
+        viewHolder.tvStatus.setText("Status : " + itemReturn.getStatus());
 
         viewHolder.bDelete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,11 +112,32 @@ public class ItemReturnListAdapter extends BaseAdapter {
                 DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch (which){
+                        switch (which) {
                             case DialogInterface.BUTTON_POSITIVE:
                                 //Yes button clicked
 
-                                ItemReturnDao itemReturnDao = LoyaltyStoreApplication.getInstance().getSession().getItemReturnDao();
+                                ItemReturnDao itemReturnDao
+                                        = LoyaltyStoreApplication.getInstance().getSession().getItemReturnDao();
+
+                                ItemInventoryDao itemInventoryDao
+                                        = LoyaltyStoreApplication.getSession().getItemInventoryDao();
+
+                                List<ItemInventory> itemInventoryList
+                                        = itemInventoryDao
+                                        .queryBuilder()
+                                        .where(
+                                                ItemInventoryDao.Properties.Name.eq(
+                                                        itemReturn.getProduct_name()
+                                                )
+                                        )
+                                        .list();
+
+                                for(ItemInventory itemInventory : itemInventoryList){
+
+                                    itemInventory.setQuantity(itemInventory.getQuantity() + itemReturn.getQuantity());
+                                      itemInventoryDao.insertOrReplace(itemInventory);
+
+                                }
 
                                 itemReturnDao.delete((ItemReturn) getItem(position));
 
@@ -126,7 +162,7 @@ public class ItemReturnListAdapter extends BaseAdapter {
 
         viewHolder.bDelete.setVisibility(View.VISIBLE);
 
-        if(itemReturn.getIs_synced()){
+        if (itemReturn.getIs_synced()) {
             viewHolder.bDelete.setVisibility(View.INVISIBLE);
         }
 
@@ -135,20 +171,22 @@ public class ItemReturnListAdapter extends BaseAdapter {
 
     private static class ItemReturnViewHolder {
 
-        final TextView tvItem;
+        final TextView tvType;
+        final TextView tvDate;
         final TextView tvProduct;
         final TextView tvQuantityOrAmount;
         final TextView tvRemarks;
-        final LinearLayout llProduct;
+        final TextView tvStatus;
         final Button bDelete;
 
         public ItemReturnViewHolder(View view) {
-            tvItem = (TextView) view.findViewById(R.id.ITR_tvItem);
-            tvProduct = (TextView) view.findViewById(R.id.ITR_tvProduct);
-            tvQuantityOrAmount = (TextView) view.findViewById(R.id.ITR_tvQuantityOrAmount);
-            tvRemarks = (TextView) view.findViewById(R.id.ITR_tvRemarks);
-            llProduct = (LinearLayout) view.findViewById(R.id.ITR_llProductView);
-            bDelete = (Button) view.findViewById(R.id.ITR_bDelete);
+            tvType = (TextView) view.findViewById(R.id.ItemReturn_tvType);
+            tvDate = (TextView) view.findViewById(R.id.ItemReturn_tvDate);
+            tvProduct = (TextView) view.findViewById(R.id.ItemReturn_tvProduct);
+            tvQuantityOrAmount = (TextView) view.findViewById(R.id.ItemReturn_tvQuantityOrAmount);
+            tvRemarks = (TextView) view.findViewById(R.id.ItemReturn_tvRemarks);
+            tvStatus = (TextView) view.findViewById(R.id.ItemReturn_tvStatus);
+            bDelete = (Button) view.findViewById(R.id.ItemReturn_bDelete);
         }
 
     }

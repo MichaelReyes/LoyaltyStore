@@ -42,10 +42,10 @@ public class ItemInventoryDetailsFragment extends Fragment {
 
     private DatePickerDialog dpFilterDate;
 
+    private TextView tvDateFilter;
+
     private Button bSelectDate;
     private Button bAllRecords;
-
-    private TextView tvDateFilter;
 
     private SimpleDateFormat formatter;
 
@@ -89,10 +89,10 @@ public class ItemInventoryDetailsFragment extends Fragment {
 
         setDateTimeField();
 
-        tvDateFilter = (TextView) v.findViewById(R.id.ItemInventoryDetails_tvDateFilter);
+        tvDateFilter = (TextView) v.findViewById(R.id.ReturnsToCommissary_tvDateFilter);
         tvDateFilter.setText(formatter.format(new Date()));
 
-        bSelectDate = (Button) v.findViewById(R.id.ItemInventoryDetails_bSelectDate);
+        bSelectDate = (Button) v.findViewById(R.id.ReturnsToCommissary_bSelectDate);
         bSelectDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,7 +100,7 @@ public class ItemInventoryDetailsFragment extends Fragment {
             }
         });
 
-        bAllRecords = (Button) v.findViewById(R.id.ItemInventoryDetails_bAll);
+        bAllRecords = (Button) v.findViewById(R.id.ReturnToCommissary_bAll);
         bAllRecords.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

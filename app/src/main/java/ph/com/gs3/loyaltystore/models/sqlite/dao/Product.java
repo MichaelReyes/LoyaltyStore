@@ -13,6 +13,8 @@ public class Product {
     private String name;
      @SerializedName("rad_type")
     private String type;
+     @SerializedName("rad_category")
+    private String category;
     private Float unit_cost;
     private String sku;
      @SerializedName("TS")
@@ -32,10 +34,11 @@ public class Product {
         this.id = id;
     }
 
-    public Product(Long id, String name, String type, Float unit_cost, String sku, String ts, Long deduct_product_to_id, String deduct_product_to_name, Double deduct_product_to_quantity, Boolean is_active) {
+    public Product(Long id, String name, String type, String category, Float unit_cost, String sku, String ts, Long deduct_product_to_id, String deduct_product_to_name, Double deduct_product_to_quantity, Boolean is_active) {
         this.id = id;
         this.name = name;
         this.type = type;
+        this.category = category;
         this.unit_cost = unit_cost;
         this.sku = sku;
         this.ts = ts;
@@ -67,6 +70,14 @@ public class Product {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public Float getUnit_cost() {

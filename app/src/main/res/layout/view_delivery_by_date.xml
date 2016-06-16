@@ -2,22 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="5dp">
+    android:gravity="center">
 
     <TextView
-        android:id="@+id/VDBD_tvDate"
+        android:gravity="center"
+        android:id="@+id/ViewDeliveryByDate_tvDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="[Delivery Date Here]"
         android:textColor="#000000"
-        />
-
-    <TextView
-        android:id="@+id/VDBD_tvAgent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="[Agent Name Here]"
-        android:textColor="#000000"
-        />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"/>
 
 </LinearLayout>

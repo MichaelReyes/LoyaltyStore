@@ -26,9 +26,13 @@ public class SalesProductDao extends AbstractDao<SalesProduct, Long> {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property Sales_transaction_number = new Property(1, String.class, "sales_transaction_number", false, "SALES_TRANSACTION_NUMBER");
         public final static Property Product_id = new Property(2, Long.class, "product_id", false, "PRODUCT_ID");
-        public final static Property Quantity = new Property(3, Integer.class, "quantity", false, "QUANTITY");
-        public final static Property Sub_total = new Property(4, Float.class, "sub_total", false, "SUB_TOTAL");
-        public final static Property Sale_type = new Property(5, String.class, "sale_type", false, "SALE_TYPE");
+        public final static Property Name = new Property(3, String.class, "name", false, "NAME");
+        public final static Property Quantity = new Property(4, Integer.class, "quantity", false, "QUANTITY");
+        public final static Property Sub_total = new Property(5, Float.class, "sub_total", false, "SUB_TOTAL");
+        public final static Property Sale_type = new Property(6, String.class, "sale_type", false, "SALE_TYPE");
+        public final static Property Promo_code = new Property(7, String.class, "promo_code", false, "PROMO_CODE");
+        public final static Property Transaction_date = new Property(8, java.util.Date.class, "transaction_date", false, "TRANSACTION_DATE");
+        public final static Property Is_returned = new Property(9, Boolean.class, "is_returned", false, "IS_RETURNED");
     };
 
 
@@ -47,9 +51,13 @@ public class SalesProductDao extends AbstractDao<SalesProduct, Long> {
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"SALES_TRANSACTION_NUMBER\" TEXT," + // 1: sales_transaction_number
                 "\"PRODUCT_ID\" INTEGER," + // 2: product_id
-                "\"QUANTITY\" INTEGER," + // 3: quantity
-                "\"SUB_TOTAL\" REAL," + // 4: sub_total
-                "\"SALE_TYPE\" TEXT);"); // 5: sale_type
+                "\"NAME\" TEXT," + // 3: name
+                "\"QUANTITY\" INTEGER," + // 4: quantity
+                "\"SUB_TOTAL\" REAL," + // 5: sub_total
+                "\"SALE_TYPE\" TEXT," + // 6: sale_type
+                "\"PROMO_CODE\" TEXT," + // 7: promo_code
+                "\"TRANSACTION_DATE\" INTEGER," + // 8: transaction_date
+                "\"IS_RETURNED\" INTEGER);"); // 9: is_returned
     }
 
     /** Drops the underlying database table. */
@@ -78,19 +86,39 @@ public class SalesProductDao extends AbstractDao<SalesProduct, Long> {
             stmt.bindLong(3, product_id);
         }
  
+        String name = entity.getName();
+        if (name != null) {
+            stmt.bindString(4, name);
+        }
+ 
         Integer quantity = entity.getQuantity();
         if (quantity != null) {
-            stmt.bindLong(4, quantity);
+            stmt.bindLong(5, quantity);
         }
  
         Float sub_total = entity.getSub_total();
         if (sub_total != null) {
-            stmt.bindDouble(5, sub_total);
+            stmt.bindDouble(6, sub_total);
         }
  
         String sale_type = entity.getSale_type();
         if (sale_type != null) {
-            stmt.bindString(6, sale_type);
+            stmt.bindString(7, sale_type);
+        }
+ 
+        String promo_code = entity.getPromo_code();
+        if (promo_code != null) {
+            stmt.bindString(8, promo_code);
+        }
+ 
+        java.util.Date transaction_date = entity.getTransaction_date();
+        if (transaction_date != null) {
+            stmt.bindLong(9, transaction_date.getTime());
+        }
+ 
+        Boolean is_returned = entity.getIs_returned();
+        if (is_returned != null) {
+            stmt.bindLong(10, is_returned ? 1L: 0L);
         }
     }
 
@@ -107,9 +135,13 @@ public class SalesProductDao extends AbstractDao<SalesProduct, Long> {
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // sales_transaction_number
             cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2), // product_id
-            cursor.isNull(offset + 3) ? null : cursor.getInt(offset + 3), // quantity
-            cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // sub_total
-            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5) // sale_type
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // name
+            cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4), // quantity
+            cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5), // sub_total
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // sale_type
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // promo_code
+            cursor.isNull(offset + 8) ? null : new java.util.Date(cursor.getLong(offset + 8)), // transaction_date
+            cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0 // is_returned
         );
         return entity;
     }
@@ -120,9 +152,13 @@ public class SalesProductDao extends AbstractDao<SalesProduct, Long> {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setSales_transaction_number(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setProduct_id(cursor.isNull(offset + 2) ? null : cursor.getLong(offset + 2));
-        entity.setQuantity(cursor.isNull(offset + 3) ? null : cursor.getInt(offset + 3));
-        entity.setSub_total(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
-        entity.setSale_type(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
+        entity.setName(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setQuantity(cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4));
+        entity.setSub_total(cursor.isNull(offset + 5) ? null : cursor.getFloat(offset + 5));
+        entity.setSale_type(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setPromo_code(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setTransaction_date(cursor.isNull(offset + 8) ? null : new java.util.Date(cursor.getLong(offset + 8)));
+        entity.setIs_returned(cursor.isNull(offset + 9) ? null : cursor.getShort(offset + 9) != 0);
      }
     
     /** @inheritdoc */

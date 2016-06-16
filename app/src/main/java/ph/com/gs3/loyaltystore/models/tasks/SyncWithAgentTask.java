@@ -29,6 +29,8 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpensesDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCount;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCountDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdown;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
@@ -50,7 +52,15 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
     public static final String TAG = SyncWithAgentTask.class.getSimpleName();
 
     public enum ProgressType {
-        PRODUCTS, PRODUCTS_BREAKDOWN, REWARDS, PRODUCT_DELIVERIES, SALES, ITEM_RETURN, CASH_RETURN, EXPENSES
+        PRODUCTS,
+        PRODUCTS_BREAKDOWN,
+        REWARDS,
+        PRODUCT_DELIVERIES,
+        SALES,
+        ITEM_RETURN,
+        CASH_RETURN,
+        ITEM_STOCK_COUNT,
+        EXPENSES
     }
 
     private Context context;
@@ -64,6 +74,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
     private ExpensesDao expensesDao;
     private CashReturnDao cashReturnDao;
     private ProductDeliveryDao productDeliveryDao;
+    private ItemStockCountDao itemStockCountDao;
 
     private List<Product> syncedProducts = new ArrayList<>();
     private List<ProductBreakdown> syncedProductsBreakdown = new ArrayList<>();
@@ -71,7 +82,10 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
     private List<ProductDelivery> syncedProductDeliveries = new ArrayList<>();
     private List<Sales> syncedSales = new ArrayList<>();
     private List<ItemReturn> syncedItemReturns = new ArrayList<>();
+    private List<ItemReturn> syncedProcessedItemReturns = new ArrayList<>();
     private List<CashReturn> syncedCashReturns = new ArrayList<>();
+    private List<CashReturn> syncedProcessedCashReturns = new ArrayList<>();
+    private List<ItemStockCount> syncedItemStockCount = new ArrayList<>();
     private List<Expenses> syncedExpenses = new ArrayList<>();
 
     public SyncWithAgentTask(Context context, int port, SyncWithAgentTaskListener listener) {
@@ -86,6 +100,8 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         expensesDao = LoyaltyStoreApplication.getSession().getExpensesDao();
         cashReturnDao = LoyaltyStoreApplication.getSession().getCashReturnDao();
         productDeliveryDao = LoyaltyStoreApplication.getSession().getProductDeliveryDao();
+        itemReturnDao = LoyaltyStoreApplication.getSession().getItemReturnDao();
+        itemStockCountDao = LoyaltyStoreApplication.getSession().getItemStockCountDao();
 
         Log.d(TAG, "Instantiated");
 
@@ -138,10 +154,12 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             publishProgress(ProgressType.PRODUCT_DELIVERIES);
             sendSales(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.SALES);
-            sendItemReturn(dataOutputStream, dataInputStream);
+            sendAndAcquireItemReturn(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.ITEM_RETURN);
-            sendCashReturn(dataOutputStream, dataInputStream);
+            sendAndAcquireCashReturn(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.CASH_RETURN);
+            sendItemStockCount(dataOutputStream,dataInputStream);
+            publishProgress(ProgressType.ITEM_STOCK_COUNT);
             sendExpenses(dataOutputStream, dataInputStream);
             publishProgress(ProgressType.EXPENSES);
 
@@ -187,9 +205,11 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         } else if (progressTypes[0] == ProgressType.SALES) {
             listener.onSalesSent(syncedSales);
         } else if (progressTypes[0] == ProgressType.ITEM_RETURN) {
-            listener.onItemReturnSent(syncedItemReturns);
+            listener.onItemReturnSentAndAcquiredProcessed(syncedItemReturns,syncedProcessedItemReturns);
         } else if (progressTypes[0] == ProgressType.CASH_RETURN) {
-            listener.onCashReturnSent(syncedCashReturns);
+            listener.onCashReturnSentAndAcquiredProcessed(syncedCashReturns,syncedProcessedCashReturns);
+        }else if (progressTypes[0] == ProgressType.ITEM_STOCK_COUNT) {
+            listener.onItemStockCountSent(syncedItemStockCount);
         } else if (progressTypes[0] == ProgressType.EXPENSES) {
             listener.onExpensesSent(syncedExpenses);
         }
@@ -208,7 +228,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
         Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
         JSONObject storeJSON = new JSONObject();
         try {
-            storeJSON.put("id", retailer.getStoreId());
+            storeJSON.put("ID", retailer.getStoreId());
             storeJSON.put("device_id", retailer.getDeviceId());
             storeJSON.put("name", retailer.getStoreName());
             dataOutputStream.writeUTF(storeJSON.toString());
@@ -283,6 +303,7 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                         " " + productDelivery.getName() +
                         " " + productDelivery.getQuantity() +
                         " " + productDelivery.getStatus());
+
                 dataOutputStream.writeUTF(gson.toJson(productDelivery));
 
                 String productDeliveryReceivedConfirmation = dataInputStream.readUTF();
@@ -400,9 +421,25 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
     }
 
-    private void sendItemReturn(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
+    private void sendAndAcquireItemReturn(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
 
         String preMessage = dataInputStream.readUTF();
+
+        Gson gson = new Gson();
+
+        if("PROCESSED_ITEM_RETURNS_FOR_APPROVAL".equals(preMessage)){
+            String processedItemReturnsForApprovalJsonString = dataInputStream.readUTF();
+
+            Log.v(TAG, "Acquired Processed Item Returns for approval: " + processedItemReturnsForApprovalJsonString);
+
+            ItemReturn[] itemReturns = gson.fromJson(processedItemReturnsForApprovalJsonString, ItemReturn[].class);
+            syncedProcessedItemReturns = Arrays.asList(itemReturns);
+        }
+
+        dataOutputStream.writeUTF("PROCESSED_ITEM_RETURNS_FOR_APPROVAL_END");
+
+        preMessage = dataInputStream.readUTF();
+
 
         if ("ITEM_RETURN".equals(preMessage)) {
 
@@ -410,11 +447,9 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             qBuilder.whereOr(ItemReturnDao.Properties.Is_synced.eq(false), ItemReturnDao.Properties.Is_synced.isNull());
             List<ItemReturn> itemReturns = qBuilder.list();
 
-            Gson gson = new Gson();
-
             for (ItemReturn itemReturn : itemReturns) {
                 //  Send sales header
-                Log.v(TAG, itemReturn.getId() + " " + itemReturn.getItem() + " " + itemReturn.getQuantity());
+                Log.v(TAG, itemReturn.getId() + " " + itemReturn.getType() + " " + itemReturn.getQuantity());
                 dataOutputStream.writeUTF(gson.toJson(itemReturn));
 
                 String itemReturnConfirmation = dataInputStream.readUTF();
@@ -428,15 +463,31 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                 }
 
             }
-        }
 
-        dataOutputStream.writeUTF("ITEM_RETURN_END");
+            dataOutputStream.writeUTF("ITEM_RETURN_END");
+        }
 
     }
 
-    private void sendCashReturn(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
+    private void sendAndAcquireCashReturn(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
 
         String preMessage = dataInputStream.readUTF();
+
+        Gson gson = new Gson();
+
+
+        if("PROCESSED_CASH_RETURNS_FOR_APPROVAL".equals(preMessage)){
+            String processedItemReturnsForApprovalJsonString = dataInputStream.readUTF();
+
+            Log.v(TAG, "Acquired Processed Cash Returns for approval: " + processedItemReturnsForApprovalJsonString);
+
+            ItemReturn[] itemReturns = gson.fromJson(processedItemReturnsForApprovalJsonString, ItemReturn[].class);
+            syncedProcessedItemReturns = Arrays.asList(itemReturns);
+        }
+
+        dataOutputStream.writeUTF("PROCESSED_CASH_RETURNS_FOR_APPROVAL_END");
+
+        preMessage = dataInputStream.readUTF();
 
         if ("CASH_RETURN".equals(preMessage)) {
 
@@ -444,11 +495,9 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
             qBuilder.whereOr(CashReturnDao.Properties.Is_synced.eq(false), CashReturnDao.Properties.Is_synced.isNull());
             List<CashReturn> cashReturns = qBuilder.list();
 
-            Gson gson = new Gson();
-
             for (CashReturn cashReturn : cashReturns) {
                 //  Send cash return header
-                Log.v(TAG, cashReturn.getId() + " " + cashReturn.getItem() + " " + cashReturn.getAmount() + " " + cashReturn.getRemarks());
+                Log.v(TAG, cashReturn.getId() + " " + cashReturn.getType() + " " + cashReturn.getAmount() + " " + cashReturn.getRemarks());
                 dataOutputStream.writeUTF(gson.toJson(cashReturn));
 
                 String itemCashReturnConfirmation = dataInputStream.readUTF();
@@ -462,23 +511,61 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
                 }
 
             }
+
+            dataOutputStream.writeUTF("CASH_RETURN_END");
         }
 
-        dataOutputStream.writeUTF("CASH_RETURN_END");
+    }
+
+    private void sendItemStockCount(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
+
+        Gson gson = new Gson();
+
+        String preMessage =  dataInputStream.readUTF();
+
+        if ("ITEM_STOCK_COUNT".equals(preMessage)) {
+
+            QueryBuilder qBuilder = itemStockCountDao.queryBuilder();
+            qBuilder.whereOr(ItemStockCountDao.Properties.Is_synced.eq(false), ItemStockCountDao.Properties.Is_synced.isNull());
+            List<ItemStockCount> itemStockCountList = qBuilder.list();
+
+            for (ItemStockCount itemStockCount : itemStockCountList) {
+                //  Send sales header
+                Log.v(TAG, itemStockCount.getId() + " " +
+                        itemStockCount.getName() + " " +
+                        itemStockCount.getExpectedQuantity() + " " +
+                        itemStockCount.getQuantity()
+                );
+                dataOutputStream.writeUTF(gson.toJson(itemStockCount));
+
+                String expensesConfirmation = dataInputStream.readUTF();
+                if ("ITEM_STOCK_COUNT_RECEIVED".equals(expensesConfirmation)) {
+                    //  Send sales rewards
+                    itemStockCount.setIs_synced(true);
+                    itemStockCountDao.update(itemStockCount);
+                } else {
+                    Log.e(TAG, "itemStockCount sync failed, expected ITEM_STOCK_COUNT_RECEIVED");
+                    break;
+                }
+
+            }
+        }
+
+        dataOutputStream.writeUTF("ITEM_STOCK_COUNT_END");
 
     }
 
     private void sendExpenses(DataOutputStream dataOutputStream, DataInputStream dataInputStream) throws IOException {
 
-        String preMessage = dataInputStream.readUTF();
+        Gson gson = new Gson();
+
+        String preMessage =  dataInputStream.readUTF();
 
         if ("EXPENSES".equals(preMessage)) {
 
             QueryBuilder qBuilder = expensesDao.queryBuilder();
             qBuilder.whereOr(ExpensesDao.Properties.Is_synced.eq(false), ExpensesDao.Properties.Is_synced.isNull());
             List<Expenses> expensesList = qBuilder.list();
-
-            Gson gson = new Gson();
 
             for (Expenses expenses : expensesList) {
                 //  Send sales header
@@ -514,9 +601,11 @@ public class SyncWithAgentTask extends AsyncTask<Void, SyncWithAgentTask.Progres
 
         void onSalesSent(List<Sales> sales);
 
-        void onItemReturnSent(List<ItemReturn> itemReturns);
+        void onItemReturnSentAndAcquiredProcessed(List<ItemReturn> itemReturns, List<ItemReturn> processedItemReturns);
 
-        void onCashReturnSent(List<CashReturn> cashReturns);
+        void onCashReturnSentAndAcquiredProcessed(List<CashReturn> cashReturns, List<CashReturn> processedCashReturns);
+
+        void onItemStockCountSent(List<ItemStockCount> itemStockCountList);
 
         void onExpensesSent(List<Expenses> expensesList);
 

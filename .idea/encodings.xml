@@ -7,7 +7,8 @@
     <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/CustomerDeviceListAdapter.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/ItemReturnListAdapter.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/SalesListAdapter.java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/SalesProductListAdapter.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/SalesProductListViewAdapter.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/adapters/SalesProductWithReturnListAdapter.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/fragments/MainViewFragment.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/globals/Constants.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/ph/com/gs3/loyaltystore/models/WifiDirectConnectivityState.java" charset="UTF-8" />
@@ -28,6 +29,6 @@
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/bluebtn.xml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_settings.xml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/layout/view_sales_product.xml" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>
-

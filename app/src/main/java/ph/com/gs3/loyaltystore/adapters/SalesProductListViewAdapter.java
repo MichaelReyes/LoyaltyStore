@@ -8,6 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.LoyaltyStoreApplication;
@@ -21,20 +22,35 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
 /**
  * Created by Michael Reyes on 8/17/2015.
  */
-public class SalesProductListAdapter extends BaseAdapter {
+public class SalesProductListViewAdapter extends BaseAdapter {
 
     private Context context;
     private List<SalesProduct> salesProducts;
     private ProductDao productDao;
     private Constants constants;
 
-    public SalesProductListAdapter(Context context, List<SalesProduct> salesProducts) {
+    public SalesProductListViewAdapter(Context context) {
         this.context = context;
-        this.salesProducts = salesProducts;
+        salesProducts = new ArrayList<>();
 
         this.productDao = LoyaltyStoreApplication.getInstance().getSession().getProductDao();
         this.constants = new Constants();
 
+    }
+
+    public void setSalesProducts(List<SalesProduct> salesProductList) {
+        this.salesProducts.clear();
+        this.salesProducts.addAll(salesProductList);
+        this.notifyDataSetChanged();
+    }
+
+    public void addSalesProduct(SalesProduct salesProduct) {
+        salesProducts.add(salesProduct);
+        notifyDataSetChanged();
+    }
+
+    public List<SalesProduct> getSalesProducts() {
+        return salesProducts;
     }
 
     @Override
