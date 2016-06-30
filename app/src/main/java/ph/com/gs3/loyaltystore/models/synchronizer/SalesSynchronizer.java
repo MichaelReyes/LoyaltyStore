@@ -3,6 +3,8 @@ package ph.com.gs3.loyaltystore.models.synchronizer;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +56,11 @@ public class SalesSynchronizer {
         salesUploadRequest.salesProducts = new ArrayList<>();
 
         for (Sales sales : salesList) {
+
+            Gson gson = new Gson();
+
+            //Log.e(TAG, " SALES :=: " + gson.toJson(salesList));
+
             List<SalesHasReward> salesHasRewards = salesHasRewardDao.queryBuilder().where(SalesHasRewardDao.Properties.Sales_transaction_number.eq(sales.getTransaction_number())).list();
             List<SalesProduct> salesProducts = salesProductDao.queryBuilder().where(SalesProductDao.Properties.Sales_transaction_number.eq(sales.getTransaction_number())).list();
 

@@ -1,6 +1,8 @@
 package ph.com.gs3.loyaltystore.fragments;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -13,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +47,9 @@ public class ItemStockCountDetailsFragment extends Fragment {
     private ItemStockCountListViewAdapter stockCountAdapter;
 
     private Button bSave;
+    private Button bSyncInventoryFromWeb;
+
+    private ProgressBar pbSyncInventoryFromWeb;
 
     private List<ItemStockCount> itemStockCountList;
 
@@ -72,7 +78,7 @@ public class ItemStockCountDetailsFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_item_stock_count_details, container, false);
@@ -122,6 +128,36 @@ public class ItemStockCountDetailsFragment extends Fragment {
                 clearList();
             }
         });
+
+        bSyncInventoryFromWeb = (Button) rootView.findViewById(R.id.ItemStockCountDetails_bSyncInventoryFromWeb);
+        bSyncInventoryFromWeb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Sync Inventory From Web");
+                builder.setMessage("Are you sure you want to sync inventory from web?" +
+                        "(All inventory data from this device will be replaced by the data from web)");
+
+                builder.setPositiveButton("Sync", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        listener.onSyncInventoryFromWeb();
+                    }
+                });
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
+
+            }
+        });
+
+        pbSyncInventoryFromWeb = (ProgressBar) rootView.findViewById(R.id.ItemStockCountDetails_pbSyncInventoryFromWeb);
 
         //setProductButtons();
 
@@ -280,6 +316,18 @@ public class ItemStockCountDetailsFragment extends Fragment {
         stockCountAdapter.clearItemStockCountList();
     }
 
+    public void onStartSync(){
+        bSyncInventoryFromWeb.setVisibility(View.GONE);
+        pbSyncInventoryFromWeb.setVisibility(View.VISIBLE);
+    }
+
+    public void onDoneSync(){
+        bSyncInventoryFromWeb.setVisibility(View.VISIBLE);
+        pbSyncInventoryFromWeb.setVisibility(View.GONE);
+
+        inventoryAdapter.notifyDataSetChanged();
+    }
+
     public interface ItemStockCountDetailsFragmentListener {
 
         List<ItemInventory> getItemInventory();
@@ -291,6 +339,8 @@ public class ItemStockCountDetailsFragment extends Fragment {
         void onSaveItemStockCount(List<ItemStockCount> stockCountList);
 
         void onLoadMoreInventory();
+
+        void onSyncInventoryFromWeb();
 
     }
 

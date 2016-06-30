@@ -35,8 +35,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -112,6 +111,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.StoreDao;
 import ph.com.gs3.loyaltystore.models.tasks.AcceptProductsTask;
 import ph.com.gs3.loyaltystore.models.tasks.ConfirmProductsForDeliveryTask;
 import ph.com.gs3.loyaltystore.models.tasks.SearchAgentTask;
+import ph.com.gs3.loyaltystore.models.tasks.SyncInventoryFromWebTask;
 import ph.com.gs3.loyaltystore.models.tasks.SyncWithAgentTask;
 import ph.com.gs3.loyaltystore.models.tasks.UserDeviceLogoutTask;
 import ph.com.gs3.loyaltystore.models.values.DeviceInfo;
@@ -251,7 +251,7 @@ public class MainActivity2 extends AppCompatActivity implements
 
     @Override
     public void onAlarm() {
-        showToastMessage("ON ALARM!!!!!", Toast.LENGTH_LONG,"INFORMATION");
+        //showToastMessage("ON ALARM!!!!!", Toast.LENGTH_LONG,"INFORMATION");
     }
 
     @Override
@@ -622,6 +622,36 @@ public class MainActivity2 extends AppCompatActivity implements
         if (currentFragment instanceof InventoryFragment) {
             maxInventoryCountLimit += 100;
             ((InventoryFragment) currentFragment).loadMoreItemInventory();
+        }
+    }
+
+    @Override
+    public void onSyncInventoryFromWeb() {
+        if(currentFragment instanceof InventoryFragment){
+
+            SyncInventoryFromWebTask.SyncInventoryFromWebTaskEventListener listener = new SyncInventoryFromWebTask.SyncInventoryFromWebTaskEventListener() {
+                @Override
+                public void onSyncInventoryFromWebDone() {
+                    ((InventoryFragment) currentFragment).onDoneSyncInventoryFromWeb();
+                    showToastMessage("Inventory successfully synced", Toast.LENGTH_SHORT, "SUCCESS");
+                }
+
+                @Override
+                public void onNeedsAuthentication() {
+                    ((InventoryFragment) currentFragment).onDoneSyncInventoryFromWeb();
+                    onNeedsAuthentication();
+                }
+            };
+
+            SyncInventoryFromWebTask syncInventoryFromWebTask = new SyncInventoryFromWebTask(this,listener);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                syncInventoryFromWebTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            else
+                syncInventoryFromWebTask.execute();
+
+            ((InventoryFragment) currentFragment).onStartSyncInventoryFromWeb();
+
         }
     }
 
@@ -1008,35 +1038,6 @@ public class MainActivity2 extends AppCompatActivity implements
 
     }
 
-    private void onReadQRCode() {
-        IntentIntegrator integrator = new IntentIntegrator(MainActivity2.this);
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
-        integrator.setPrompt("Scan QR Code");
-        integrator.setCameraId(0);  // Use a specific camera of the device
-        integrator.setBeepEnabled(false);
-        integrator.initiateScan();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null) {
-            if (result.getContents() == null) {
-                //Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
-            } else {
-                if (etQRCodeResult != null) {
-                    etQRCodeResult.setText(result.getContents());
-                }
-
-            }
-        } else {
-            Log.d(TAG, "Weird");
-            // This is important, otherwise the result will not be passed to the fragment
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-
-    }
 
     @Override
     public void onSeniorChecked(boolean isChecked) {
@@ -1835,12 +1836,24 @@ public class MainActivity2 extends AppCompatActivity implements
         //showToastMessage("On Product For Delivery Clicked", Toast.LENGTH_SHORT, "INFORMATION");
         if (currentFragment instanceof DeliveryFragment) {
 
-            if ((productForDelivery.getQuantity_received() + 1) <= productForDelivery.getQuantity()) {
 
-                productForDelivery.setQuantity_received(productForDelivery.getQuantity_received() + 1);
-                ((DeliveryFragment) currentFragment).addRecievedProductForDelivery(productForDelivery);
+            if("CASH".equals(productForDelivery.getDistribution_type().toUpperCase())){
+                if ((productForDelivery.getQuantity_received() + 1) <= productForDelivery.getCash()) {
 
+                    productForDelivery.setQuantity_received(productForDelivery.getQuantity_received() + 1);
+                    ((DeliveryFragment) currentFragment).addRecievedProductForDelivery(productForDelivery);
+
+                }
+            }else if("PRODUCT".equals(productForDelivery.getDistribution_type().toUpperCase())){
+                if ((productForDelivery.getQuantity_received() + 1) <= productForDelivery.getQuantity()) {
+
+                    productForDelivery.setQuantity_received(productForDelivery.getQuantity_received() + 1);
+                    ((DeliveryFragment) currentFragment).addRecievedProductForDelivery(productForDelivery);
+
+                }
             }
+
+
         }
     }
 
@@ -1907,30 +1920,33 @@ public class MainActivity2 extends AppCompatActivity implements
         for(ProductForDelivery productForDelivery : productsForDelivery){
             Product product = productDao.load(productForDelivery.getProduct_id());
 
-            List<ItemInventory> itemInventoryList
-                    = itemInventoryDao
+            if(product != null) {
+
+                List<ItemInventory> itemInventoryList
+                        = itemInventoryDao
                         .queryBuilder()
                         .where(
                                 ItemInventoryDao.Properties.Product_id.eq(product.getId())
                         ).list();
 
-            if(itemInventoryList.size() > 0){
-                for(ItemInventory itemInventory : itemInventoryList){
+                if (itemInventoryList.size() > 0) {
+                    for (ItemInventory itemInventory : itemInventoryList) {
 
-                    itemInventory.setQuantity(itemInventory.getQuantity() + productForDelivery.getQuantity_received());
+                        itemInventory.setQuantity(itemInventory.getQuantity() + productForDelivery.getQuantity_received());
+                        itemInventoryDao.insertOrReplace(itemInventory);
+
+                    }
+                } else {
+
+                    ItemInventory itemInventory = new ItemInventory();
+                    itemInventory.setName(product.getName());
+                    itemInventory.setQuantity(productForDelivery.getQuantity_received());
+                    itemInventory.setStore_id(retailer.getStoreId());
+                    itemInventory.setProduct_id(product.getId());
+                    itemInventory.setIs_updated(true);
                     itemInventoryDao.insertOrReplace(itemInventory);
 
                 }
-            }else{
-
-                ItemInventory itemInventory = new ItemInventory();
-                itemInventory.setName(product.getName());
-                itemInventory.setQuantity(productForDelivery.getQuantity_received());
-                itemInventory.setStore_id(retailer.getStoreId());
-                itemInventory.setProduct_id(product.getId());
-                itemInventory.setIs_updated(true);
-                itemInventoryDao.insertOrReplace(itemInventory);
-
             }
 
         }
@@ -1941,7 +1957,12 @@ public class MainActivity2 extends AppCompatActivity implements
     public void onProductForDeliveryReceiveAll(ProductForDelivery productForDelivery) {
         if (currentFragment instanceof DeliveryFragment) {
 
-            productForDelivery.setQuantity_received(productForDelivery.getQuantity());
+            if("CASH".equals(productForDelivery.getDistribution_type().toUpperCase())){
+                productForDelivery.setQuantity_received(productForDelivery.getCash());
+            }else if("PRODUCT".equals(productForDelivery.getDistribution_type().toUpperCase())){
+                productForDelivery.setQuantity_received(productForDelivery.getQuantity());
+            }
+
             ((DeliveryFragment) currentFragment).addRecievedProductForDelivery(productForDelivery);
 
         }
@@ -2257,6 +2278,8 @@ public class MainActivity2 extends AppCompatActivity implements
             itemInventoryDao.refresh(itemInventory);
         }
 
+        SalesDao salesDao = LoyaltyStoreApplication.getSession().getSalesDao();
+
         SalesProductDao salesProductDao
                 = LoyaltyStoreApplication.getSession().getSalesProductDao();
 
@@ -2264,6 +2287,21 @@ public class MainActivity2 extends AppCompatActivity implements
                 = LoyaltyStoreApplication.getSession().getProductDao();
 
         Product product = productDao.load(salesProduct.getProduct_id());
+
+        List<Sales> salesList
+                = salesDao
+                    .queryBuilder()
+                    .where(
+                            SalesDao.Properties.Transaction_number.eq(salesProduct.getSales_transaction_number())
+                    ).list();
+
+        for(Sales sales : salesList){
+
+            sales.setAmount(sales.getAmount() - (product.getUnit_cost() * quantityToReturn));
+            sales.setChange(sales.getChange() + (product.getUnit_cost() * quantityToReturn));
+            salesDao.insertOrReplace(sales);
+
+        }
 
         List<SalesProduct> returnedSalesProducts
                 = salesProductDao
@@ -2334,7 +2372,6 @@ public class MainActivity2 extends AppCompatActivity implements
     }
     //</editor-fold>
 
-
 //<editor-fold desc="Other Private Methods">
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
@@ -2345,6 +2382,8 @@ public class MainActivity2 extends AppCompatActivity implements
 
     private double getQuantityRemaining(Product product) {
 
+        currentFragment = viewPagerAdapter.getRegisteredFragment(viewPager.getCurrentItem());
+
         ProductDao productDao
                 = LoyaltyStoreApplication.getSession().getProductDao();
 
@@ -2354,6 +2393,7 @@ public class MainActivity2 extends AppCompatActivity implements
                 = LoyaltyStoreApplication.getSession().getItemInventoryDao();
 
         if ("For Direct Transactions".trim().equals(product.getType().trim())) {
+            //Log.e(TAG, " HERE : " + product.getId());
 
             List<ItemInventory> itemInventoryList
                     = itemInventoryDao
@@ -2364,7 +2404,9 @@ public class MainActivity2 extends AppCompatActivity implements
 
             for (ItemInventory itemInventory : itemInventoryList) {
 
+                if( itemInventory.getQuantity() != Double.NaN)
                 quantityRemaining = itemInventory.getQuantity();
+                //Log.e(TAG, " QR: " + quantityRemaining);
 
             }
 
@@ -2385,6 +2427,8 @@ public class MainActivity2 extends AppCompatActivity implements
 
         }
 
+
+
         if (currentFragment instanceof InvoiceFragment) {
 
             List<SalesProduct> salesProductList = ((InvoiceFragment) currentFragment).getSalesProducts();
@@ -2393,9 +2437,14 @@ public class MainActivity2 extends AppCompatActivity implements
 
                 Product currentProduct = productDao.load(salesProductList.get(i).getProduct_id());
 
+
+
                 if (salesProductList.get(i).getProduct_id() == product.getId()) {
+
                     quantityRemaining -= salesProductList.get(i).getQuantity();
-                }else if(product.getDeduct_product_to_id() == currentProduct.getDeduct_product_to_id()){
+                }else if(product.getDeduct_product_to_id() == currentProduct.getDeduct_product_to_id() &&
+                        !product.getType().equals("For Direct Transactions")){
+
                     quantityRemaining -= (salesProductList.get(i).getQuantity() * currentProduct.getDeduct_product_to_quantity()) / product.getDeduct_product_to_quantity();
                 }
 
@@ -2403,14 +2452,26 @@ public class MainActivity2 extends AppCompatActivity implements
 
         }
 
+
+
         return quantityRemaining;
     }
 
     private void onProductClicked(final Product product) {
 
         final float costPerUnit = product.getUnit_cost();
-        final double quantityRemaining = getQuantityRemaining(product);
-        final double quantityNeeded = product.getDeduct_product_to_quantity();
+        double quantityRemaining = getQuantityRemaining(product);
+        double quantityNeeded;
+
+        if("For Direct Transactions".equals(product.getType())) {
+
+            quantityNeeded = 1;
+        }
+        else {
+            quantityNeeded = product.getDeduct_product_to_quantity();
+
+        }
+
 
         if (quantityRemaining > 0 && quantityRemaining >= quantityNeeded) {
             onAddSalesProduct(product, 1, 0, "");

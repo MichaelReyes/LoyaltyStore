@@ -89,7 +89,12 @@ public class ProductsForDeliveryListAdapter extends BaseAdapter {
         viewHolder.tvName.setText(productForDelivery.getName());
         viewHolder.tvDate.setText(formatter.format(productForDelivery.getDate_created()));
         viewHolder.tvTrackingNumber.setText("Tracking No: " + productForDelivery.getTrack_no());
-        viewHolder.tvQuantity.setText("Quantity: " + productForDelivery.getQuantity());
+        if("CASH".equals(productForDelivery.getDistribution_type().toUpperCase())){
+            viewHolder.tvQuantity.setText("Amount: " + productForDelivery.getCash());
+        }else if("PRODUCT".equals(productForDelivery.getDistribution_type().toUpperCase())){
+            viewHolder.tvQuantity.setText("Quantity: " + productForDelivery.getQuantity());
+        }
+
         viewHolder.tvStatus.setText(productForDelivery.getStatus());
 
         viewHolder.bReceiveAll.setOnClickListener(new View.OnClickListener() {

@@ -75,17 +75,24 @@ public class RegisterStoreOnWebService extends IntentService {
 
                     broadcast(ACTION_DONE_REGISTER_STORE, 0);
 
-                    Log.d(TAG, " Before save : " + retailer.getStoreId() + " ~ " + store.getId());
-
                     retailer.setStoreId(store.getId());
                     retailer.setStoreName(storeName);
                     retailer.save(this);
 
-                    Log.d(TAG, " After save : " + retailer.getStoreId());
-
-
                     store.setDevice_web_id(store.getId());
                     storeDao.update(store);
+
+                    Log.e(TAG, " =========== STORES START =========== ");
+
+                    for(Store s : storeDao.loadAll()){
+
+                        Log.e(TAG, "name : " + s.getName());
+                        Log.e(TAG, "id : " + s.getId());
+                        Log.e(TAG, "approver : " + s.getApprover());
+
+                    }
+
+                    Log.e(TAG, " =========== STORES END =========== ");
 
                     Log.d(TAG, "========== REGISTER STORE RESPONSE START ==========");
 

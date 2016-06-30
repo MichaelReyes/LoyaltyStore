@@ -16,6 +16,8 @@ public class Store {
     private Integer is_active;
     private java.util.Date created_at;
     private java.util.Date updated_at;
+     @SerializedName("list_approver")
+    private String approver;
 
     public Store() {
     }
@@ -24,7 +26,7 @@ public class Store {
         this.id = id;
     }
 
-    public Store(Long id, String device_id, Long device_web_id, String name, Integer is_active, java.util.Date created_at, java.util.Date updated_at) {
+    public Store(Long id, String device_id, Long device_web_id, String name, Integer is_active, java.util.Date created_at, java.util.Date updated_at, String approver) {
         this.id = id;
         this.device_id = device_id;
         this.device_web_id = device_web_id;
@@ -32,6 +34,7 @@ public class Store {
         this.is_active = is_active;
         this.created_at = created_at;
         this.updated_at = updated_at;
+        this.approver = approver;
     }
 
     public Long getId() {
@@ -88,6 +91,14 @@ public class Store {
 
     public void setUpdated_at(java.util.Date updated_at) {
         this.updated_at = updated_at;
+    }
+
+    public String getApprover() {
+        return approver;
+    }
+
+    public void setApprover(String approver) {
+        this.approver = approver;
     }
 
 }

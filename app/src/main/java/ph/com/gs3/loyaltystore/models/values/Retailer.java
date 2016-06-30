@@ -26,7 +26,7 @@ public class Retailer implements Serializable {
 
         SharedPreferences settings = context.getSharedPreferences(TAG, Context.MODE_MULTI_PROCESS);
 
-        retailer.storeId = settings.getLong("STORE_ID", 0);
+        retailer.storeId = settings.getLong("STORE_ID", -1);
         retailer.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         retailer.storeName = settings.getString("STORE_NAME", "");
         retailer.advertisment = settings.getString("ADVERTISEMENT", "");

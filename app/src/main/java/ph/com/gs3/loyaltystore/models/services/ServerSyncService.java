@@ -15,6 +15,7 @@ import ph.com.gs3.loyaltystore.models.api.UsersAPI;
 import ph.com.gs3.loyaltystore.models.api.objects.FormalisticsLoginResponse;
 import ph.com.gs3.loyaltystore.models.api.objects.FormalisticsUser;
 import ph.com.gs3.loyaltystore.models.api.objects.ReturnsUploadRequest;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpenseType;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCount;
@@ -22,6 +23,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.Product;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductBreakdown;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Reward;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
+import ph.com.gs3.loyaltystore.models.synchronizer.ExpenseTypeSynchronizer;
 import ph.com.gs3.loyaltystore.models.synchronizer.ExpensesSynchronizer;
 import ph.com.gs3.loyaltystore.models.synchronizer.InventorySynchronizer;
 import ph.com.gs3.loyaltystore.models.synchronizer.ItemStockCountSynchronizer;
@@ -51,6 +53,7 @@ public class ServerSyncService extends IntentService {
     public static final String ACTION_DONE_INVENTORY_SYNC = "done_inventory_sync";
     public static final String ACTION_DONE_ITEM_STOCK_COUNT_SYNC = " done_item_stock_count_sync";
     public static final String ACTION_DONE_PRODUCTS_FOR_DELIVERY_SYNC = "done_products_for_delivery_sync";
+    public static final String ACTION_DONE_EXPENSE_TYPE_SYNC = "done_expense_type_sync";
     public static final String ACTION_ERROR = "error";
 
     public static final String EXTRA_SYNC_COUNT = "sync_count";
@@ -160,6 +163,13 @@ public class ServerSyncService extends IntentService {
         } else {
             broadcast(ACTION_DONE_PRODUCTS_FOR_DELIVERY_SYNC, 0);
         }*/
+
+        List<ExpenseType> expenseTypeList = ExpenseTypeSynchronizer.sync(this,formalisticsServer);
+        if(expensesList != null){
+            broadcast(ACTION_DONE_EXPENSE_TYPE_SYNC, expenseTypeList.size());
+        }else{
+            broadcast(ACTION_DONE_EXPENSE_TYPE_SYNC, 0);
+        }
 
 
     }

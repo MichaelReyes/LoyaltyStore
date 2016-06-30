@@ -17,6 +17,8 @@ public class SalesRequest {
     public Float amount;
     public Float total_discount;
     public String transaction_date;
+    public Float amount_received;
+    public Float change;
 
     public static SalesRequest fromSales(Sales sales) {
 
@@ -28,6 +30,8 @@ public class SalesRequest {
         request.customer_id = sales.getCustomer_id();
         request.amount = sales.getAmount();
         request.total_discount = sales.getTotal_discount();
+        request.amount_received = sales.getAmount_received();
+        request.change = sales.getChange();
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 

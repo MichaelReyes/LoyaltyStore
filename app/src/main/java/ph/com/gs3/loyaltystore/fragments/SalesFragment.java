@@ -210,6 +210,7 @@ public class SalesFragment extends Fragment {
 
         if(salesProductWithReturnListAdapter != null){
             salesProductWithReturnListAdapter.setSalesProducts(salesProductList);
+            salesListAdapter.notifyDataSetChanged();
         }
 
     }

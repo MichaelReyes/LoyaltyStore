@@ -32,6 +32,7 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
         public final static Property Status = new Property(6, String.class, "status", false, "STATUS");
         public final static Property Is_synced = new Property(7, Boolean.class, "is_synced", false, "IS_SYNCED");
         public final static Property Date_created = new Property(8, java.util.Date.class, "date_created", false, "DATE_CREATED");
+        public final static Property Approver = new Property(9, String.class, "approver", false, "APPROVER");
     };
 
 
@@ -55,7 +56,8 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
                 "\"REMARKS\" TEXT," + // 5: remarks
                 "\"STATUS\" TEXT," + // 6: status
                 "\"IS_SYNCED\" INTEGER," + // 7: is_synced
-                "\"DATE_CREATED\" INTEGER);"); // 8: date_created
+                "\"DATE_CREATED\" INTEGER," + // 8: date_created
+                "\"APPROVER\" TEXT);"); // 9: approver
     }
 
     /** Drops the underlying database table. */
@@ -113,6 +115,11 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
         if (date_created != null) {
             stmt.bindLong(9, date_created.getTime());
         }
+ 
+        String approver = entity.getApprover();
+        if (approver != null) {
+            stmt.bindString(10, approver);
+        }
     }
 
     /** @inheritdoc */
@@ -133,7 +140,8 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
             cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // remarks
             cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // status
             cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0, // is_synced
-            cursor.isNull(offset + 8) ? null : new java.util.Date(cursor.getLong(offset + 8)) // date_created
+            cursor.isNull(offset + 8) ? null : new java.util.Date(cursor.getLong(offset + 8)), // date_created
+            cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9) // approver
         );
         return entity;
     }
@@ -150,6 +158,7 @@ public class ItemReturnDao extends AbstractDao<ItemReturn, Long> {
         entity.setStatus(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
         entity.setIs_synced(cursor.isNull(offset + 7) ? null : cursor.getShort(offset + 7) != 0);
         entity.setDate_created(cursor.isNull(offset + 8) ? null : new java.util.Date(cursor.getLong(offset + 8)));
+        entity.setApprover(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
      }
     
     /** @inheritdoc */

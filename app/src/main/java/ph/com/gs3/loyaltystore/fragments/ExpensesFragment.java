@@ -5,19 +5,23 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ph.com.gs3.loyaltystore.R;
 import ph.com.gs3.loyaltystore.adapters.ExpensesListAdapter;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpenseType;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
 
 /**
@@ -41,6 +45,11 @@ public class ExpensesFragment extends Fragment {
     private EditText etDescription;
     private EditText etAmount;
     private EditText etId;
+
+    private Spinner sType;
+
+    private ArrayAdapter<String> expenseTypeAdapter;
+    private List<String> expenseTypeArray;
 
     private Button bAdd;
 
@@ -125,6 +134,23 @@ public class ExpensesFragment extends Fragment {
             }
         });
 
+        expenseTypeArray = new ArrayList<>();
+
+        expenseTypeAdapter = new ArrayAdapter<String>(
+                activity, android.R.layout.simple_spinner_item, expenseTypeArray);
+
+        sType = (Spinner) rootView.findViewById(R.id.Expenses_sType);
+
+        if(sType == null){
+            Log.d(TAG, "sType is null");
+        }else if(expenseTypeAdapter == null){
+            Log.d(TAG, "expenseTypeAdapter is null");
+        }else{
+            Log.d(TAG, "nothing is null");
+        }
+
+        sType.setAdapter(expenseTypeAdapter);
+
         listener.onExpenseViewReady();
 
         return rootView;
@@ -153,10 +179,24 @@ public class ExpensesFragment extends Fragment {
 
     }
 
+    public String getExpenseType(){
+        return (String) sType.getSelectedItem();
+    }
+
     public void setAmountError(String error){
 
         etAmount.setError(error);
 
+    }
+
+    public void setExpenseTypeSpinner(List<ExpenseType> expenseTypeList){
+        expenseTypeArray.clear();
+
+        for(ExpenseType expenseType : expenseTypeList){
+            expenseTypeArray.add(expenseType.getType());
+        }
+
+        expenseTypeAdapter.notifyDataSetChanged();
     }
 
     public void setExpensesList(List<Expenses> expensesList){

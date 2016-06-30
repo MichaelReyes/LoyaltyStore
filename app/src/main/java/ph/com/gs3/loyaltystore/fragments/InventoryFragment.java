@@ -27,6 +27,7 @@ import ph.com.gs3.loyaltystore.globals.Constants;
 import ph.com.gs3.loyaltystore.models.TabMaintenance;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpenseTypeDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpensesDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
@@ -37,6 +38,8 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProduct;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.SalesProductDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Store;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.StoreDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 /**
@@ -218,6 +221,8 @@ public class InventoryFragment extends Fragment implements ViewPager.OnPageChang
                 query += " WHERE " + SalesProductDao.Properties.Sales_transaction_number.columnName + " IS NULL";
             }
 
+            query += " AND NOT " + SalesProductDao.Properties.Is_returned.columnName + " = 1";
+
             query += " GROUP BY " + SalesProductDao.Properties.Product_id.columnName;
 
             Log.d(TAG, " QUERY : " + query);
@@ -340,6 +345,18 @@ public class InventoryFragment extends Fragment implements ViewPager.OnPageChang
                 ExpensesDao expensesDao =
                         LoyaltyStoreApplication.getSession().getExpensesDao();
 
+                ExpenseTypeDao expenseTypeDao
+                        = LoyaltyStoreApplication.getSession().getExpenseTypeDao();
+
+                ((ExpensesFragment) currentFragment).setExpenseTypeSpinner(
+                        expenseTypeDao
+                                .queryBuilder()
+                                .where(
+                                        ExpenseTypeDao.Properties.Type.isNotNull(),
+                                        ExpenseTypeDao.Properties.Type.notEq("")
+                                ).list()
+                );
+
                 ((ExpensesFragment) currentFragment).setExpensesList(
                         expensesDao.queryBuilder().orderDesc(ExpensesDao.Properties.Date).list());
             }
@@ -354,6 +371,12 @@ public class InventoryFragment extends Fragment implements ViewPager.OnPageChang
 
             String description = ((ExpensesFragment) currentFragment).getDescription();
             String amountString = ((ExpensesFragment) currentFragment).getAmountString();
+            String type = ((ExpensesFragment) currentFragment).getExpenseType();
+
+            Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
+            StoreDao storeDao = LoyaltyStoreApplication.getSession().getStoreDao();
+
+            Store store = storeDao.load(retailer.getStoreId());
 
             ExpensesDao expensesDao =
                     LoyaltyStoreApplication.getSession().getExpensesDao();
@@ -372,11 +395,13 @@ public class InventoryFragment extends Fragment implements ViewPager.OnPageChang
                 Expenses expenses = new Expenses();
                 expenses.setDescription(description);
                 expenses.setAmount(Float.valueOf(amountString));
+                expenses.setType(type);
                 expenses.setIs_synced(false);
-
-                Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(context);
-
                 expenses.setStore_id(retailer.getStoreId());
+
+                if(store.getApprover() != null){
+                    expenses.setApprover(store.getApprover());
+                }
 
                 if (id != -1) {
 
@@ -414,6 +439,26 @@ public class InventoryFragment extends Fragment implements ViewPager.OnPageChang
         if(currentFragment instanceof ItemStockCountDetailsFragment){
             ((ItemStockCountDetailsFragment) currentFragment).clearList();
         }
+    }
+
+    public void onStartSyncInventoryFromWeb(){
+
+        if(currentFragment instanceof ItemStockCountDetailsFragment){
+
+            ((ItemStockCountDetailsFragment) currentFragment).onStartSync();
+
+        }
+
+    }
+
+    public void onDoneSyncInventoryFromWeb(){
+
+        if(currentFragment instanceof ItemStockCountDetailsFragment){
+
+            ((ItemStockCountDetailsFragment) currentFragment).onDoneSync();
+
+        }
+
     }
 
 

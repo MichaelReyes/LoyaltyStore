@@ -19,6 +19,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.StoreDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpensesDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpenseTypeDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDeliveryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCountDao;
@@ -44,6 +45,7 @@ public class DaoMaster extends AbstractDaoMaster {
         ItemReturnDao.createTable(db, ifNotExists);
         CashReturnDao.createTable(db, ifNotExists);
         ExpensesDao.createTable(db, ifNotExists);
+        ExpenseTypeDao.createTable(db, ifNotExists);
         ProductDeliveryDao.createTable(db, ifNotExists);
         ItemInventoryDao.createTable(db, ifNotExists);
         ItemStockCountDao.createTable(db, ifNotExists);
@@ -63,6 +65,7 @@ public class DaoMaster extends AbstractDaoMaster {
         ItemReturnDao.dropTable(db, ifExists);
         CashReturnDao.dropTable(db, ifExists);
         ExpensesDao.dropTable(db, ifExists);
+        ExpenseTypeDao.dropTable(db, ifExists);
         ProductDeliveryDao.dropTable(db, ifExists);
         ItemInventoryDao.dropTable(db, ifExists);
         ItemStockCountDao.dropTable(db, ifExists);
@@ -109,6 +112,7 @@ public class DaoMaster extends AbstractDaoMaster {
         registerDaoClass(ItemReturnDao.class);
         registerDaoClass(CashReturnDao.class);
         registerDaoClass(ExpensesDao.class);
+        registerDaoClass(ExpenseTypeDao.class);
         registerDaoClass(ProductDeliveryDao.class);
         registerDaoClass(ItemInventoryDao.class);
         registerDaoClass(ItemStockCountDao.class);

@@ -30,6 +30,7 @@ public class StoreDao extends AbstractDao<Store, Long> {
         public final static Property Is_active = new Property(4, Integer.class, "is_active", false, "IS_ACTIVE");
         public final static Property Created_at = new Property(5, java.util.Date.class, "created_at", false, "CREATED_AT");
         public final static Property Updated_at = new Property(6, java.util.Date.class, "updated_at", false, "UPDATED_AT");
+        public final static Property Approver = new Property(7, String.class, "approver", false, "APPROVER");
     };
 
 
@@ -51,7 +52,8 @@ public class StoreDao extends AbstractDao<Store, Long> {
                 "\"NAME\" TEXT," + // 3: name
                 "\"IS_ACTIVE\" INTEGER," + // 4: is_active
                 "\"CREATED_AT\" INTEGER," + // 5: created_at
-                "\"UPDATED_AT\" INTEGER);"); // 6: updated_at
+                "\"UPDATED_AT\" INTEGER," + // 6: updated_at
+                "\"APPROVER\" TEXT);"); // 7: approver
     }
 
     /** Drops the underlying database table. */
@@ -99,6 +101,11 @@ public class StoreDao extends AbstractDao<Store, Long> {
         if (updated_at != null) {
             stmt.bindLong(7, updated_at.getTime());
         }
+ 
+        String approver = entity.getApprover();
+        if (approver != null) {
+            stmt.bindString(8, approver);
+        }
     }
 
     /** @inheritdoc */
@@ -117,7 +124,8 @@ public class StoreDao extends AbstractDao<Store, Long> {
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // name
             cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4), // is_active
             cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)), // created_at
-            cursor.isNull(offset + 6) ? null : new java.util.Date(cursor.getLong(offset + 6)) // updated_at
+            cursor.isNull(offset + 6) ? null : new java.util.Date(cursor.getLong(offset + 6)), // updated_at
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7) // approver
         );
         return entity;
     }
@@ -132,6 +140,7 @@ public class StoreDao extends AbstractDao<Store, Long> {
         entity.setIs_active(cursor.isNull(offset + 4) ? null : cursor.getInt(offset + 4));
         entity.setCreated_at(cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)));
         entity.setUpdated_at(cursor.isNull(offset + 6) ? null : new java.util.Date(cursor.getLong(offset + 6)));
+        entity.setApprover(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
      }
     
     /** @inheritdoc */

@@ -8,10 +8,12 @@ import java.util.List;
 
 import ph.com.gs3.loyaltystore.models.User;
 import ph.com.gs3.loyaltystore.models.api.objects.ReturnsUploadRequest;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpenseType;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCount;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Sales;
+import ph.com.gs3.loyaltystore.models.synchronizer.ExpenseTypeSynchronizer;
 import ph.com.gs3.loyaltystore.models.synchronizer.ExpensesSynchronizer;
 import ph.com.gs3.loyaltystore.models.synchronizer.InventorySynchronizer;
 import ph.com.gs3.loyaltystore.models.synchronizer.ItemStockCountSynchronizer;
@@ -32,6 +34,7 @@ public class UpdateInventoryAndSyncOtherDataService extends IntentService {
     public static final String ACTION_DONE_ITEM_STOCK_COUNT_SYNC = " done_item_stock_count_sync";
     public static final String ACTION_DONE_SALES_SYNC = "done_sales_sync";
     public static final String ACTION_NEED_AUTHENTICATION = "need_authentication";
+    public static final String ACTION_DONE_EXPENSE_TYPE_SYNC = "done_expense_type_sync";
     public static final String ACTION_ERROR = "error";
 
     public static final String EXTRA_SYNC_COUNT = "sync_count";
@@ -104,6 +107,13 @@ public class UpdateInventoryAndSyncOtherDataService extends IntentService {
                     returnsUploadRequest.itemReturns.size() + returnsUploadRequest.cashReturns.size());
         }else{
             broadcast(ACTION_DONE_RETURNS_SYNC,0);
+        }
+
+        List<ExpenseType> expenseTypeList = ExpenseTypeSynchronizer.sync(this,formalisticsServer);
+        if(expenseTypeList != null){
+            broadcast(ACTION_DONE_EXPENSE_TYPE_SYNC, expenseTypeList.size());
+        }else{
+            broadcast(ACTION_DONE_EXPENSE_TYPE_SYNC, 0);
         }
 
     }

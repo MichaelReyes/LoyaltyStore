@@ -117,7 +117,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         //  dev mode
 //        etFormalisticsServer.setText("192.168.1.7:9007");
-        etFormalisticsServer.setText("192.168.0.120:9007");
+        etFormalisticsServer.setText("192.168.0.140:9007");
 //        etServer.setText("192.168.1.7");
         //etServer.setText("192.168.0.120:85");
         etEmail.setText("donbenitos@gmail.com");

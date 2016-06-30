@@ -35,6 +35,7 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
         public final static Property Status = new Property(9, String.class, "status", false, "STATUS");
         public final static Property Is_synced = new Property(10, Boolean.class, "is_synced", false, "IS_SYNCED");
         public final static Property Date_created = new Property(11, java.util.Date.class, "date_created", false, "DATE_CREATED");
+        public final static Property Approver = new Property(12, String.class, "approver", false, "APPROVER");
     };
 
 
@@ -61,7 +62,8 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
                 "\"IMAGE\" TEXT," + // 8: Image
                 "\"STATUS\" TEXT," + // 9: status
                 "\"IS_SYNCED\" INTEGER," + // 10: is_synced
-                "\"DATE_CREATED\" INTEGER);"); // 11: date_created
+                "\"DATE_CREATED\" INTEGER," + // 11: date_created
+                "\"APPROVER\" TEXT);"); // 12: approver
     }
 
     /** Drops the underlying database table. */
@@ -134,6 +136,11 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
         if (date_created != null) {
             stmt.bindLong(12, date_created.getTime());
         }
+ 
+        String approver = entity.getApprover();
+        if (approver != null) {
+            stmt.bindString(13, approver);
+        }
     }
 
     /** @inheritdoc */
@@ -157,7 +164,8 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
             cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8), // Image
             cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // status
             cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // is_synced
-            cursor.isNull(offset + 11) ? null : new java.util.Date(cursor.getLong(offset + 11)) // date_created
+            cursor.isNull(offset + 11) ? null : new java.util.Date(cursor.getLong(offset + 11)), // date_created
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12) // approver
         );
         return entity;
     }
@@ -177,6 +185,7 @@ public class CashReturnDao extends AbstractDao<CashReturn, Long> {
         entity.setStatus(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
         entity.setIs_synced(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
         entity.setDate_created(cursor.isNull(offset + 11) ? null : new java.util.Date(cursor.getLong(offset + 11)));
+        entity.setApprover(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
      }
     
     /** @inheritdoc */

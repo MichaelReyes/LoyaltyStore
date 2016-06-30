@@ -19,7 +19,18 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="Type :" />
+
+            <Spinner
+                android:id="@+id/Expenses_sType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"></Spinner>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Description :" />
+
 
             <EditText
                 android:layout_width="match_parent"

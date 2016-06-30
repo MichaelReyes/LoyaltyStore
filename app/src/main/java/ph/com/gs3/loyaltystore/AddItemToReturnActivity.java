@@ -28,6 +28,8 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.Store;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.StoreDao;
 import ph.com.gs3.loyaltystore.models.values.Retailer;
 
 /**
@@ -195,6 +197,10 @@ public class AddItemToReturnActivity extends Activity implements
         String type = addItemToReturnViewFragment.getType();
         String cashType = addItemToReturnViewFragment.getCashType();
 
+        Retailer retailer = Retailer.getDeviceRetailerFromSharedPreferences(AddItemToReturnActivity.this);
+        StoreDao storeDao = LoyaltyStoreApplication.getSession().getStoreDao();
+        Store store = storeDao.load(retailer.getStoreId());
+
         ItemReturnDao itemReturnDao =
                 LoyaltyStoreApplication.getInstance().getSession().getItemReturnDao();
 
@@ -223,6 +229,8 @@ public class AddItemToReturnActivity extends Activity implements
                     itemReturn.setStatus("For Loading");
                     itemReturn.setIs_synced(false);
                     itemReturn.setDate_created(new Date());
+                    if (store.getApprover() != null)
+                        itemReturn.setApprover(store.getApprover());
 
                     itemReturnDao.insertOrReplaceInTx(itemReturn);
 
@@ -237,6 +245,8 @@ public class AddItemToReturnActivity extends Activity implements
                     itemReturn.setIs_synced(false);
                     itemReturn.setStore_id(retailer.getStoreId());
                     itemReturn.setDate_created(new Date());
+                    if (store.getApprover() != null)
+                        itemReturn.setApprover(store.getApprover());
 
                     if (itemReturnId != -1) {
                         itemReturn.setId(itemReturnId);
@@ -273,6 +283,8 @@ public class AddItemToReturnActivity extends Activity implements
                                 itemReturn.setIs_synced(false);
                                 itemReturn.setStore_id(retailer.getStoreId());
                                 itemReturn.setDate_created(new Date());
+                                if (store.getApprover() != null)
+                                    itemReturn.setApprover(store.getApprover());
 
                                 if (itemReturnId != -1) {
                                     itemReturn.setId(itemReturnId);
@@ -298,7 +310,7 @@ public class AddItemToReturnActivity extends Activity implements
 
                         }
 
-                    }else{
+                    } else {
                         itemReturn.setType(type);
                         itemReturn.setProduct_name(addItemToReturnViewFragment.getProduct());
                         itemReturn.setQuantity(Float.valueOf(addItemToReturnViewFragment.getQuantityOrAmount()));
@@ -307,6 +319,8 @@ public class AddItemToReturnActivity extends Activity implements
                         itemReturn.setIs_synced(false);
                         itemReturn.setStore_id(retailer.getStoreId());
                         itemReturn.setDate_created(new Date());
+                        if (store.getApprover() != null)
+                            itemReturn.setApprover(store.getApprover());
 
                         if (itemReturnId != -1) {
                             itemReturn.setId(itemReturnId);
@@ -327,6 +341,8 @@ public class AddItemToReturnActivity extends Activity implements
                     cashReturn.setIs_synced(false);
                     cashReturn.setStore_id(retailer.getStoreId());
                     cashReturn.setDate_created(new Date());
+                    if (store.getApprover() != null)
+                        cashReturn.setApprover(store.getApprover());
 
                     if (addItemToReturnViewFragment.getCashType().equals(AddItemToReturnViewFragment.CASH_TYPE_VALUE_CASH_ON_BANK)) {
 

@@ -32,8 +32,21 @@
 
             <ListView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:id="@+id/ItemStockCountDetails_lvInventory"></ListView>
+
+            <Button
+                android:id="@+id/ItemStockCountDetails_bSyncInventoryFromWeb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sync Inventory On Web" />
+
+            <ProgressBar
+                android:id="@+id/ItemStockCountDetails_pbSyncInventoryFromWeb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"/>
 
             <ScrollView
                 android:layout_width="match_parent"

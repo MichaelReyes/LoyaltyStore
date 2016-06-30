@@ -20,6 +20,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.Store;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturn;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.Expenses;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpenseType;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDelivery;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventory;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCount;
@@ -36,6 +37,7 @@ import ph.com.gs3.loyaltystore.models.sqlite.dao.StoreDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.CashReturnDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpensesDao;
+import ph.com.gs3.loyaltystore.models.sqlite.dao.ExpenseTypeDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ProductDeliveryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemInventoryDao;
 import ph.com.gs3.loyaltystore.models.sqlite.dao.ItemStockCountDao;
@@ -61,6 +63,7 @@ public class DaoSession extends AbstractDaoSession {
     private final DaoConfig itemReturnDaoConfig;
     private final DaoConfig cashReturnDaoConfig;
     private final DaoConfig expensesDaoConfig;
+    private final DaoConfig expenseTypeDaoConfig;
     private final DaoConfig productDeliveryDaoConfig;
     private final DaoConfig itemInventoryDaoConfig;
     private final DaoConfig itemStockCountDaoConfig;
@@ -77,6 +80,7 @@ public class DaoSession extends AbstractDaoSession {
     private final ItemReturnDao itemReturnDao;
     private final CashReturnDao cashReturnDao;
     private final ExpensesDao expensesDao;
+    private final ExpenseTypeDao expenseTypeDao;
     private final ProductDeliveryDao productDeliveryDao;
     private final ItemInventoryDao itemInventoryDao;
     private final ItemStockCountDao itemStockCountDao;
@@ -119,6 +123,9 @@ public class DaoSession extends AbstractDaoSession {
         expensesDaoConfig = daoConfigMap.get(ExpensesDao.class).clone();
         expensesDaoConfig.initIdentityScope(type);
 
+        expenseTypeDaoConfig = daoConfigMap.get(ExpenseTypeDao.class).clone();
+        expenseTypeDaoConfig.initIdentityScope(type);
+
         productDeliveryDaoConfig = daoConfigMap.get(ProductDeliveryDao.class).clone();
         productDeliveryDaoConfig.initIdentityScope(type);
 
@@ -142,6 +149,7 @@ public class DaoSession extends AbstractDaoSession {
         itemReturnDao = new ItemReturnDao(itemReturnDaoConfig, this);
         cashReturnDao = new CashReturnDao(cashReturnDaoConfig, this);
         expensesDao = new ExpensesDao(expensesDaoConfig, this);
+        expenseTypeDao = new ExpenseTypeDao(expenseTypeDaoConfig, this);
         productDeliveryDao = new ProductDeliveryDao(productDeliveryDaoConfig, this);
         itemInventoryDao = new ItemInventoryDao(itemInventoryDaoConfig, this);
         itemStockCountDao = new ItemStockCountDao(itemStockCountDaoConfig, this);
@@ -158,6 +166,7 @@ public class DaoSession extends AbstractDaoSession {
         registerDao(ItemReturn.class, itemReturnDao);
         registerDao(CashReturn.class, cashReturnDao);
         registerDao(Expenses.class, expensesDao);
+        registerDao(ExpenseType.class, expenseTypeDao);
         registerDao(ProductDelivery.class, productDeliveryDao);
         registerDao(ItemInventory.class, itemInventoryDao);
         registerDao(ItemStockCount.class, itemStockCountDao);
@@ -176,6 +185,7 @@ public class DaoSession extends AbstractDaoSession {
         itemReturnDaoConfig.getIdentityScope().clear();
         cashReturnDaoConfig.getIdentityScope().clear();
         expensesDaoConfig.getIdentityScope().clear();
+        expenseTypeDaoConfig.getIdentityScope().clear();
         productDeliveryDaoConfig.getIdentityScope().clear();
         itemInventoryDaoConfig.getIdentityScope().clear();
         itemStockCountDaoConfig.getIdentityScope().clear();
@@ -224,6 +234,10 @@ public class DaoSession extends AbstractDaoSession {
 
     public ExpensesDao getExpensesDao() {
         return expensesDao;
+    }
+
+    public ExpenseTypeDao getExpenseTypeDao() {
+        return expenseTypeDao;
     }
 
     public ProductDeliveryDao getProductDeliveryDao() {

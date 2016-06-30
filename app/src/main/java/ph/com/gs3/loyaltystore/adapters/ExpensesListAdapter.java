@@ -87,6 +87,8 @@ public class ExpensesListAdapter extends BaseAdapter {
             viewHolder.tvDate.setText("Date : " + formatter.format(expenses.getDate()));
         }
 
+        viewHolder.tvType.setText(expenses.getType());
+
         viewHolder.tvDescription.setText("Description : " + expenses.getDescription());
         viewHolder.tvAmount.setText("Amount : " + decimalFormat.format(expenses.getAmount()));
 
@@ -140,12 +142,14 @@ public class ExpensesListAdapter extends BaseAdapter {
 
         final TextView tvDate;
         final TextView tvDescription;
+        final TextView tvType;
         final TextView tvAmount;
         final Button bDelete;
 
         public ExpenseViewHolder(View view) {
             tvDate = (TextView) view.findViewById(R.id.Expense_tvDate);
             tvDescription = (TextView) view.findViewById(R.id.Expense_tvDescription);
+            tvType = (TextView) view.findViewById(R.id.Expense_tvType);
             tvAmount = (TextView) view.findViewById(R.id.Expense_tvAmount);
             bDelete = (Button) view.findViewById(R.id.Expense_bDelete);
         }

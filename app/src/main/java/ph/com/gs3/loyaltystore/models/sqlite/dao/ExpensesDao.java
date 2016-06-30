@@ -25,10 +25,12 @@ public class ExpensesDao extends AbstractDao<Expenses, Long> {
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property Store_id = new Property(1, Long.class, "store_id", false, "STORE_ID");
-        public final static Property Description = new Property(2, String.class, "description", false, "DESCRIPTION");
-        public final static Property Amount = new Property(3, Float.class, "amount", false, "AMOUNT");
-        public final static Property Date = new Property(4, java.util.Date.class, "date", false, "DATE");
-        public final static Property Is_synced = new Property(5, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Type = new Property(2, String.class, "type", false, "TYPE");
+        public final static Property Description = new Property(3, String.class, "description", false, "DESCRIPTION");
+        public final static Property Amount = new Property(4, Float.class, "amount", false, "AMOUNT");
+        public final static Property Date = new Property(5, java.util.Date.class, "date", false, "DATE");
+        public final static Property Is_synced = new Property(6, Boolean.class, "is_synced", false, "IS_SYNCED");
+        public final static Property Approver = new Property(7, String.class, "approver", false, "APPROVER");
     };
 
 
@@ -46,10 +48,12 @@ public class ExpensesDao extends AbstractDao<Expenses, Long> {
         db.execSQL("CREATE TABLE " + constraint + "\"EXPENSES\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"STORE_ID\" INTEGER," + // 1: store_id
-                "\"DESCRIPTION\" TEXT," + // 2: description
-                "\"AMOUNT\" REAL," + // 3: amount
-                "\"DATE\" INTEGER," + // 4: date
-                "\"IS_SYNCED\" INTEGER);"); // 5: is_synced
+                "\"TYPE\" TEXT," + // 2: type
+                "\"DESCRIPTION\" TEXT," + // 3: description
+                "\"AMOUNT\" REAL," + // 4: amount
+                "\"DATE\" INTEGER," + // 5: date
+                "\"IS_SYNCED\" INTEGER," + // 6: is_synced
+                "\"APPROVER\" TEXT);"); // 7: approver
     }
 
     /** Drops the underlying database table. */
@@ -73,24 +77,34 @@ public class ExpensesDao extends AbstractDao<Expenses, Long> {
             stmt.bindLong(2, store_id);
         }
  
+        String type = entity.getType();
+        if (type != null) {
+            stmt.bindString(3, type);
+        }
+ 
         String description = entity.getDescription();
         if (description != null) {
-            stmt.bindString(3, description);
+            stmt.bindString(4, description);
         }
  
         Float amount = entity.getAmount();
         if (amount != null) {
-            stmt.bindDouble(4, amount);
+            stmt.bindDouble(5, amount);
         }
  
         java.util.Date date = entity.getDate();
         if (date != null) {
-            stmt.bindLong(5, date.getTime());
+            stmt.bindLong(6, date.getTime());
         }
  
         Boolean is_synced = entity.getIs_synced();
         if (is_synced != null) {
-            stmt.bindLong(6, is_synced ? 1L: 0L);
+            stmt.bindLong(7, is_synced ? 1L: 0L);
+        }
+ 
+        String approver = entity.getApprover();
+        if (approver != null) {
+            stmt.bindString(8, approver);
         }
     }
 
@@ -106,10 +120,12 @@ public class ExpensesDao extends AbstractDao<Expenses, Long> {
         Expenses entity = new Expenses( //
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1), // store_id
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // description
-            cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3), // amount
-            cursor.isNull(offset + 4) ? null : new java.util.Date(cursor.getLong(offset + 4)), // date
-            cursor.isNull(offset + 5) ? null : cursor.getShort(offset + 5) != 0 // is_synced
+            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // type
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // description
+            cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4), // amount
+            cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)), // date
+            cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0, // is_synced
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7) // approver
         );
         return entity;
     }
@@ -119,10 +135,12 @@ public class ExpensesDao extends AbstractDao<Expenses, Long> {
     public void readEntity(Cursor cursor, Expenses entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setStore_id(cursor.isNull(offset + 1) ? null : cursor.getLong(offset + 1));
-        entity.setDescription(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setAmount(cursor.isNull(offset + 3) ? null : cursor.getFloat(offset + 3));
-        entity.setDate(cursor.isNull(offset + 4) ? null : new java.util.Date(cursor.getLong(offset + 4)));
-        entity.setIs_synced(cursor.isNull(offset + 5) ? null : cursor.getShort(offset + 5) != 0);
+        entity.setType(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setDescription(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setAmount(cursor.isNull(offset + 4) ? null : cursor.getFloat(offset + 4));
+        entity.setDate(cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)));
+        entity.setIs_synced(cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0);
+        entity.setApprover(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
      }
     
     /** @inheritdoc */

@@ -108,8 +108,10 @@ public class LoyaltyStoreDAOGenerator {
         store.addIntProperty("is_active");
         store.addDateProperty("created_at");
         store.addDateProperty("updated_at");
+        store.addStringProperty("approver").codeBeforeField("@SerializedName(\"list_approver\")");
 
         Entity itemsReturn = schema.addEntity("ItemReturn");
+        itemsReturn.addImport("com.google.gson.annotations.SerializedName");
         itemsReturn.addIdProperty().autoincrement();
         itemsReturn.addLongProperty("store_id");
         itemsReturn.addStringProperty("type");
@@ -119,8 +121,10 @@ public class LoyaltyStoreDAOGenerator {
         itemsReturn.addStringProperty("status");
         itemsReturn.addBooleanProperty("is_synced");
         itemsReturn.addDateProperty("date_created");
+        itemsReturn.addStringProperty("approver").codeBeforeField("@SerializedName(\"txt_approver\")");
 
         Entity cashReturn = schema.addEntity("CashReturn");
+        cashReturn.addImport("com.google.gson.annotations.SerializedName");
         cashReturn.addIdProperty().autoincrement();
         cashReturn.addLongProperty("store_id");
         cashReturn.addStringProperty("type");
@@ -133,14 +137,24 @@ public class LoyaltyStoreDAOGenerator {
         cashReturn.addStringProperty("status");
         cashReturn.addBooleanProperty("is_synced");
         cashReturn.addDateProperty("date_created");
+        cashReturn.addStringProperty("approver").codeBeforeField("@SerializedName(\"txt_approver\")");
 
         Entity expenses = schema.addEntity("Expenses");
+        expenses.addImport("com.google.gson.annotations.SerializedName");
         expenses.addIdProperty().autoincrement();
         expenses.addLongProperty("store_id");
+        expenses.addStringProperty("type").codeBeforeField("@SerializedName(\"txt_expensetype\")");
         expenses.addStringProperty("description");
         expenses.addFloatProperty("amount");
         expenses.addDateProperty("date");
         expenses.addBooleanProperty("is_synced");
+        expenses.addStringProperty("approver").codeBeforeField("@SerializedName(\"txt_approver\")");
+
+
+        Entity expenseType = schema.addEntity("ExpenseType");
+        expenseType.addImport("com.google.gson.annotations.SerializedName");
+        expenseType.addIdProperty().codeBeforeField("@SerializedName(\"ID\")");
+        expenseType.addStringProperty("type").codeBeforeField("@SerializedName(\"txt_expense\")");
 
         Entity productDelivery = schema.addEntity("ProductDelivery");
         productDelivery.addImport("com.google.gson.annotations.SerializedName");

@@ -487,4 +487,9 @@ public class InventoryActivity extends AppCompatActivity implements
         ((ItemInventoryDetailsFragment) itemInventoryDetailsFragment).setItems(itemStockCountList);
 
     }
+
+    @Override
+    public void onSyncInventoryFromWeb() {
+
+    }
 }

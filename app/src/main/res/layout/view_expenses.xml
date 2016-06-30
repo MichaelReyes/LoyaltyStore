@@ -16,13 +16,21 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/Expense_tvType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="[Type Here]"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="#000000" />
+
+            <TextView
                 android:id="@+id/Expense_tvDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="[Description Here]"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#000000" />
+                android:textColor="@android:color/holo_orange_dark"/>
 
             <TextView
                 android:id="@+id/Expense_tvDate"
@@ -52,7 +60,7 @@
             <Button
                 android:id="@+id/Expense_bDelete"
                 android:layout_width="50dp"
-                android:layout_height="50dp "
+                android:layout_height="50dp"
                 android:background="@drawable/minus"
                 android:focusable="false"
                 android:focusableInTouchMode="false" />

@@ -371,7 +371,8 @@ public class InvoiceFragment extends Fragment implements
         String sql = "SELECT DISTINCT " +
                 ProductDao.Properties.Category.columnName +
                 " FROM " + ProductDao.TABLENAME + " WHERE " +
-                ProductDao.Properties.Type.columnName + "='Product for Retail'";
+                ProductDao.Properties.Type.columnName + "='Product for Retail' OR " +
+                ProductDao.Properties.Type.columnName + "='For Direct Transactions'";
 
         List<String> result = new ArrayList<>();
 
@@ -397,8 +398,10 @@ public class InvoiceFragment extends Fragment implements
 
         for (Product product : productList) {
 
-            if (product.getCategory().trim().equals(category.trim())) {
-                productsByCategory.add(product);
+            if(product.getCategory() != null) {
+                if (product.getCategory().trim().equals(category.trim())) {
+                    productsByCategory.add(product);
+                }
             }
         }
 
